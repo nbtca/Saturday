@@ -1,14 +1,14 @@
 const { mysql } = require("../config/config");
 
 exports.get = async (rid) => {
-  console.log("e;e");
-
   let dbResults;
   try {
     if (rid == -1) {
+      // roll
       dbResults = await mysql.query(
         "SELECT rid,ralias,name,class,gmt_create,gmt_modified,rprofile,event_count FROM repairelements WHERE rid !=0000000000 ORDER BY RAND() LIMIT 1;"
       );
+      dbResults = dbResults[0];
     } else if (rid == null) {
       dbResults = await mysql.query(
         "SELECT rid,ralias,name,class,gmt_create,gmt_modified,rprofile,event_count FROM repairelements"
@@ -18,25 +18,33 @@ exports.get = async (rid) => {
         "SELECT rid,ralias,name,class,gmt_create,gmt_modified,rprofile,event_count FROM repairelements WHERE rid=?",
         [rid]
       );
+      dbResults = dbResults[0];
     }
   } catch (err) {
-    console.log(err);
     return err;
   }
   await mysql.end();
   return dbResults;
 };
 
-exports.getAlias = async (rid) => {
+exports.checkPassword = async (rid, password) => {
   let dbResults;
   try {
     dbResults = await mysql.query(
-      "SELECT ralias FROM repairelements WHERE rid=?",
+      "SELECT rpassword FROM repairelements WHERE rid=?",
       [rid]
     );
-  } catch (err) {
+  } catch (error) {
     return err;
   }
   await mysql.end();
-  return dbResults[0];
+  let ans = dbResults[0].rpassword == password ? true : false;
+  return ans;
 };
+
+// exports.update = async (info) => {
+//   await mysql.query(
+//     "update repairelements set rpassword = ?,ralias = ?,name=?,class=?,gmt_modified = sysdate() where rid = ?;",
+//     [info.password, info.alias, info.name, info.class, info.rid]
+//   );
+// };

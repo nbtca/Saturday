@@ -16,9 +16,27 @@ router.get("/", async (req, res, next) => {
 router.get("/:rid", async (req, res, next) => {
   try {
     let data = await element.get(req.params.rid);
-    respond(res, 0, "Success", data);
+    //TODO error code
+    data
+      ? respond(res, 0, "Success", data)
+      : respond(res, 123, "no such element");
   } catch (error) {
     next(error);
   }
+});
+router.put("/", async (req, res, next) => {
+  try {
+    element.update({
+      password: req.body.password,
+      alias: req.body.alias,
+      name: req.body.name,
+      class: req.body.class,
+      rid: res.locals.data.rid,
+    });
+    respond(0);
+  } catch (err) {
+    next(err);
+  }
+  res.send(returnObj);
 });
 module.exports = router;
