@@ -1,16 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const { jsonPush, respond } = require("../utils");
-const { isEidVaild } = require("../middleware/event");
-const { mysql } = require("../config/config");
+const { isAdmin } = require("../middleware/auth");
+const { isEidVaild, isCurrentUser } = require("../middleware/event");
 const event = require("../models/event");
 const element = require("../models/element");
 
 router.use("/", isEidVaild);
 
 router.get("/", async (req, res, next) => {
-  let data = await event.get();
-  respond(res, 0, "Success", data);
+  try {
+    let data = await event.get();
+    respond(res, 0, "Success", data);
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.use("/:eid", isEidVaild);
@@ -20,7 +24,7 @@ router.get("/:eid", async (req, res, next) => {
   let temp = JSON.parse(data.event_log);
   for (let i = 0; i < temp.length; i++) {
     if (temp[i].rid) {
-      temp[i].alias = element.getAlias(temp[i].rid);
+      temp[i].alias = element.get(temp[i].rid).ralias;
     }
     temp[i].time =
       temp[i].time.substring(0, 10) + " " + temp[i].time.substring(11, 19);
@@ -66,59 +70,41 @@ router.get("/:eid", async (req, res, next) => {
 // reject 3->(1,2) A
 // close  ?->4 A
 
-
-
-router.put("/:eid", async (req, res, next) => {
-  status = req.body.status;
-  if (status == 0) {
-  } else if (status == 1) {
-  } else if (status == 1) {
-  } else if (status == 1) {
-  } else if (status == 1) {
-  }
-});
-
-router.post("/accept", async (req, res, next) => {
-  let data = await event.get(req.body.eid);
-  if (data[0].rid == null && data[0].status == 0) {
-    let addeventLog = {
-      type: "accept",
-      time: new Date(),
-      rid: res.locals.data.rid,
-    };
-    eventLog = jsonPush(data[0].event_log, addeventLog);
-    await event.accept();
-    respond(res, 0);
-  } else {
-    respond(res, 220, "Event has been accepted or deleted");
-  }
-});
-
-//TODO move to middleware
-// router.use("/event/edit", async (req, res, next) => {
-//   let dbResults;
-//   try {
-//     dbResults = await mysql.query("SELECT rid FROM `event` WHERE eid=?", [
-//       req.body.eid,
-//     ]);
-//   } catch (err) {
-//     next(err);
-//   }
-//   await mysql.end();
-//   if ((req.rid = res.locals.data.rid)) {
-//     next();
-//   } else {
-//     respond(res, 230, "No edit permission");
+// router.put("/:eid", async (req, res, next) => {
+//   status = req.body.status;
+//   if (status == 0) {
+//   } else if (status == 1) {
+//   } else if (status == 1) {
+//   } else if (status == 1) {
+//   } else if (status == 1) {
 //   }
 // });
 
-router.post("/edit/submit", async (req, res, next) => {
-  let returnObj = {
-    resultCode: null,
-    resultMsg: null,
-  };
-  let dbResults;
+router.post("/accept", async (req, res, next) => {
+  let eid = req.body.eid;
   try {
+    let data = await event.get(eid);
+    if (data[0].rid == null && data[0].status == 0) {
+      let rid = res.locals.data.rid;
+      let addeventLog = {
+        type: "accept",
+        time: new Date(),
+        rid: rid,
+      };
+      eventLog = jsonPush(data[0].event_log, addeventLog);
+      await event.accept(rid, eventLog, eid);
+      respond(res, 0);
+    } else {
+      respond(res, 220, "Event has been accepted or deleted");
+    }
+  } catch (error) {
+    next(err);
+  }
+});
+
+router.post("/submit", isCurrentUser, async (req, res, next) => {
+  try {
+    let dbResults = event.get(req.body.eid);
     let addeventLog = {
       type: "submit",
       time: new Date(),
@@ -130,108 +116,47 @@ router.post("/edit/submit", async (req, res, next) => {
       rid: res.locals.data.rid,
       description: req.body.description,
     };
-    dbResults = await mysql.query(
-      "SELECT event_log,repair_description FROM `event` WHERE eid=?",
-      [req.body.eid]
-    );
-    let eventLog = jsonPush(dbResults[0].event_log, addeventLog);
-    description = jsonPush(dbResults[0].repair_description, description);
-    await mysql.query(
-      "UPDATE `event` SET event_log=?,repair_description=?,status=2 WHERE eid=?",
-      [eventLog, description, req.body.eid]
-    );
-    returnObj.resultCode = 0;
-    returnObj.resultMsg = "Success";
+    let eventLog = jsonPush(dbResults.event_log, addeventLog);
+    description = jsonPush(dbResults.repair_description, description);
+    await event.submit(eventLog, description, req);
+    respond(res, 0);
   } catch (err) {
     next(err);
   }
-  await mysql.end();
-  res.send(returnObj);
 });
 
-// 1
-router.post("/edit/cancelEvent", async (req, res, next) => {
-  let returnObj = {
-    resultCode: null,
-    resultMsg: null,
-  };
-  let dbResults;
+router.post("/cancel", isCurrentUser, async (req, res, next) => {
+  let eid = req.body.eid;
   try {
-    dbResults = await mysql.query(
-      "SELECT rid,status,event_log FROM `event` WHERE eid=?",
-      [req.body.eid]
-    );
-    if (dbResults[0].rid == res.locals.data.rid && dbResults[0].status == 1) {
+    let dbResults = event.get(eid);
+    if (dbResults.status == 1) {
       let addeventLog = {
         type: "cancel",
         time: new Date(),
         rid: res.locals.data.rid,
       };
       let eventLog = jsonPush(dbResults[0].event_log, addeventLog);
-
-      // eventLog = JSON.parse(eventLog[0].event_log);
-      // eventLog.push(addeventLog);
-      // eventLog = JSON.stringify(eventLog);
-      await mysql.query(
-        "UPDATE `event` SET rid=?,event_log=?,status=? WHERE eid=?",
-        [null, eventLog, 0, req.body.eid]
-      );
-      returnObj.resultCode = 0;
-      returnObj.resultMsg = "Success";
+      await event.cancel(eventLog, eid);
+      respond(res, 0);
     } else {
-      returnObj.resultCode = 220;
-      returnObj.resultMsg = "Event has been cancel or closed";
+      respond(res, 220, "Event has been cancel or closed");
     }
   } catch (err) {
     next(err);
   }
-  await mysql.end();
-  res.send(returnObj);
 });
 
-router.use("/manage", async (req, res, next) => {
-  let returnObj = {
-    resultCode: null,
-    resultMsg: null,
-  };
-  let dbResults;
-  try {
-    dbResults = await mysql.query("SELECT aid FROM admin WHERE rid=?", [
-      res.locals.data.rid,
-    ]);
-  } catch (err) {
-    next(err);
-  }
-  await mysql.end();
-  res.locals.data.aid = dbResults[0].aid;
-  if (dbResults[0].aid) {
-    console.log("经过了manage1");
-    next();
-  } else {
-    console.log("经过了manage2");
-    returnObj.resultCode = 250;
-    returnObj.resultMsg = "No admin permission";
-    res.send(returnObj);
-  }
-});
-
-router.post("/manage/checkEvent", async (req, res, next) => {
-  let returnObj = {
-    resultCode: null,
-    resultMsg: null,
-  };
-  let dbResults;
+router.post("/close", isAdmin, async (req, res, next) => {
+  let eid = req.body.eid;
+  let aid = res.locals.data.aid;
   let status;
   try {
-    dbResults = await mysql.query(
-      "SELECT status,event_log FROM `event` WHERE eid=?",
-      [req.body.eid]
-    );
-    if (dbResults[0].status == 2) {
+    let dbResults = event.get(eid);
+    if (dbResults.status == 2) {
       let addeventLog = {
         type: "",
         time: new Date(),
-        aid: res.locals.data.aid,
+        aid: aid,
       };
       if (req.body.accept) {
         addeventLog.type = "close";
@@ -240,58 +165,35 @@ router.post("/manage/checkEvent", async (req, res, next) => {
         addeventLog.type = "reject";
         status = 0;
       }
-      let eventLog = jsonPush(dbResults[0].event_log, addeventLog);
-      // eventLog = JSON.parse(dbResults[0].event_log);
-      // eventLog.push(addeventLog);
-      // eventLog = JSON.stringify(eventLog);
-      await mysql.query(
-        "UPDATE `event` SET aid=?,event_log=?,status=? WHERE eid=?",
-        [res.locals.data.aid, eventLog, status, req.body.eid]
-      );
-      returnObj.resultCode = 0;
-      returnObj.resultMsg = "Success";
+      let eventLog = jsonPush(dbResults.event_log, addeventLog);
+      await event.close(aid, eventLog, status, eid);
+      respond(res, 0);
     } else {
-      returnObj.resultCode = 251;
-      returnObj.resultMsg = "Event status error";
+      respond(res, 251, "Event status error");
     }
   } catch (err) {
     next(err);
   }
-  await mysql.end();
-  res.send(returnObj);
 });
 
-router.post("/manage/assignEvent", async (req, res, next) => {
-  let returnObj = {
-    resultCode: null,
-    resultMsg: null,
-  };
-  let dbResults;
+router.post("/assign", isAdmin, async (req, res, next) => {
+  let eid = req.body.eid;
+  let aid = res.locals.data.aid;
+  let rid = req.body.rid;
   try {
-    dbResults = await mysql.query("SELECT event_log FROM `event` WHERE eid=?", [
-      req.body.eid,
-    ]);
+    let dbResults = event.get(eid);
     let addeventLog = {
       type: "assign",
       time: new Date(),
-      aid: res.locals.data.aid,
-      rid: req.body.rid,
+      aid: aid,
+      rid: rid,
     };
-    let eventLog = jsonPush(dbResults[0].event_log, addeventLog);
-    // eventLog = JSON.parse(dbResults[0].event_log);
-    // eventLog.push(addeventLog);
-    // eventLog = JSON.stringify(eventLog);
-    await mysql.query(
-      "UPDATE `event` SET rid=?,event_log=?,status=? WHERE eid=?",
-      [req.body.rid, eventLog, 1, req.body.eid]
-    );
-    returnObj.resultCode = 0;
-    returnObj.resultMsg = "Success";
+    let eventLog = jsonPush(dbResults.event_log, addeventLog);
+    await assign(rid, eventLog, eid);
+    respond(res, 0);
   } catch (err) {
     next(err);
   }
-  await mysql.end();
-  res.send(returnObj);
 });
 
 module.exports = router;

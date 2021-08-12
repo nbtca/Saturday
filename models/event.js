@@ -29,3 +29,50 @@ exports.accept = async (rid, eventLog, eid) => {
   }
   await mysql.end();
 };
+
+exports.submit = async (eventLog, description, req) => {
+  try {
+    await mysql.query(
+      "UPDATE `event` SET event_log=?,repair_description=?,status=2 WHERE eid=?",
+      [eventLog, description, req.body.eid]
+    );
+  } catch (err) {
+    return err;
+  }
+  await mysql.end();
+};
+
+exports.cancel = async (eventLog, eid) => {
+  try {
+    await mysql.query(
+      "UPDATE `event` SET rid=?,event_log=?,status=? WHERE eid=?",
+      [null, eventLog, 0, eid]
+    );
+  } catch (err) {
+    return err;
+  }
+  await mysql.end();
+};
+
+exports.close = async (aid, eventLog, status, eid) => {
+  try {
+    await mysql.query(
+      "UPDATE `event` SET aid=?,event_log=?,status=? WHERE eid=?",
+      [aid, eventLog, status, eid]
+    );
+  } catch (err) {
+    return err;
+  }
+  await mysql.end();
+};
+exports.assign = async (rid, eventLog, eid) => {
+  try {
+    await mysql.query(
+      "UPDATE `event` SET rid=?,event_log=?,status=? WHERE eid=?",
+      [rid, eventLog, 1, eid]
+    );
+  } catch (err) {
+    return err;
+  }
+  await mysql.end();
+};
