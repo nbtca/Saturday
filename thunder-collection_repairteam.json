@@ -1,0 +1,217 @@
+{
+	"client": "Thunder Client",
+	"collectionName": "repairteam",
+	"dateExported": "2021-08-13T08:29:00.666Z",
+	"version": "1.1",
+	"folders": [
+		{
+			"containerId": "",
+			"sortNum": 10000,
+			"name": "element",
+			"_id": "8138ba28-435d-476a-90fd-2c7f9b4c06b2",
+			"created": "2021-08-13T07:30:29.940Z",
+			"settings": {
+				"headers": [],
+				"auth": {
+					"type": "bearer",
+					"bearer": "{{token}}"
+				},
+				"tests": []
+			}
+		},
+		{
+			"containerId": "",
+			"sortNum": 20000,
+			"name": "events",
+			"_id": "43ee7be2-5d8a-433a-9692-959d84759164",
+			"created": "2021-08-13T07:43:02.529Z"
+		}
+	],
+	"requests": [
+		{
+			"containerId": "8138ba28-435d-476a-90fd-2c7f9b4c06b2",
+			"sortNum": 10000,
+			"headers": [
+				{
+					"name": "Accept",
+					"value": "*/*"
+				},
+				{
+					"name": "User-Agent",
+					"value": "Thunder Client (https://www.thunderclient.io)"
+				}
+			],
+			"colId": "60e9da27-cd22-40e2-9067-d9eac316223d",
+			"name": "localhost:3001/login",
+			"url": "{{baseURL}}/elements",
+			"method": "GET",
+			"modified": "2021-08-13T07:42:06.971Z",
+			"created": "2021-08-13T07:41:22.343Z",
+			"_id": "32adb058-112a-4ff6-8810-917696a10c01",
+			"params": [
+				{
+					"name": "baseURL",
+					"value": "",
+					"isPath": true
+				}
+			],
+			"body": {
+				"type": "json",
+				"raw": "{\n    \"id\":\"3190421163\",\n    \"password\":123\n}",
+				"form": []
+			},
+			"tests": []
+		},
+		{
+			"containerId": "",
+			"sortNum": 10000,
+			"headers": [
+				{
+					"name": "Accept",
+					"value": "*/*"
+				},
+				{
+					"name": "User-Agent",
+					"value": "Thunder Client (https://www.thunderclient.io)"
+				}
+			],
+			"colId": "60e9da27-cd22-40e2-9067-d9eac316223d",
+			"name": "localhost:3001/login",
+			"url": "{{baseURL}}/login",
+			"method": "POST",
+			"modified": "2021-08-13T07:39:36.292Z",
+			"created": "2021-08-08T08:53:55.256Z",
+			"_id": "8e50c536-5dc8-41d4-a470-967af697b681",
+			"params": [
+				{
+					"name": "baseURL",
+					"value": "",
+					"isPath": true
+				}
+			],
+			"body": {
+				"type": "json",
+				"raw": "{\n    \"id\":\"3190421163\",\n    \"password\":123\n}",
+				"form": []
+			},
+			"tests": [
+				{
+					"type": "set-env-var",
+					"custom": "json.data.token",
+					"action": "setto",
+					"value": "{{token}}"
+				}
+			]
+		},
+		{
+			"containerId": "43ee7be2-5d8a-433a-9692-959d84759164",
+			"sortNum": 10000,
+			"headers": [
+				{
+					"name": "Accept",
+					"value": "*/*"
+				},
+				{
+					"name": "User-Agent",
+					"value": "Thunder Client (https://www.thunderclient.io)"
+				}
+			],
+			"colId": "60e9da27-cd22-40e2-9067-d9eac316223d",
+			"name": "获取全部事件",
+			"url": "{{baseURL}}/events",
+			"method": "GET",
+			"modified": "2021-08-13T07:43:30.813Z",
+			"created": "2021-08-13T07:43:16.820Z",
+			"_id": "96fdce73-0238-4c62-a735-ff803929d118",
+			"params": [
+				{
+					"name": "baseURL",
+					"value": "",
+					"isPath": true
+				}
+			],
+			"body": {
+				"type": "json",
+				"raw": "{\n    \"id\":\"3190421163\",\n    \"password\":123\n}",
+				"form": []
+			},
+			"tests": []
+		},
+		{
+			"containerId": "8138ba28-435d-476a-90fd-2c7f9b4c06b2",
+			"sortNum": 20000,
+			"headers": [
+				{
+					"name": "Accept",
+					"value": "*/*"
+				},
+				{
+					"name": "User-Agent",
+					"value": "Thunder Client (https://www.thunderclient.io)"
+				}
+			],
+			"colId": "60e9da27-cd22-40e2-9067-d9eac316223d",
+			"name": "获取单个用户",
+			"url": "{{baseURL}}/elements/0000000000",
+			"method": "GET",
+			"modified": "2021-08-13T07:42:23.402Z",
+			"created": "2021-08-13T07:42:16.664Z",
+			"_id": "170b2802-f2e2-463e-8143-a5da44d66c4a",
+			"params": [
+				{
+					"name": "baseURL",
+					"value": "",
+					"isPath": true
+				}
+			],
+			"body": {
+				"type": "json",
+				"raw": "{\n    \"id\":\"3190421163\",\n    \"password\":123\n}",
+				"form": []
+			},
+			"tests": []
+		},
+		{
+			"containerId": "43ee7be2-5d8a-433a-9692-959d84759164",
+			"sortNum": 20000,
+			"headers": [
+				{
+					"name": "Accept",
+					"value": "*/*"
+				},
+				{
+					"name": "User-Agent",
+					"value": "Thunder Client (https://www.thunderclient.io)"
+				}
+			],
+			"colId": "60e9da27-cd22-40e2-9067-d9eac316223d",
+			"name": "获取单个事件",
+			"url": "{{baseURL}}/events/1",
+			"method": "GET",
+			"modified": "2021-08-13T07:44:01.932Z",
+			"created": "2021-08-13T07:43:56.463Z",
+			"_id": "848eec8d-03b6-4057-81a5-06eaff77555b",
+			"params": [
+				{
+					"name": "baseURL",
+					"value": "",
+					"isPath": true
+				}
+			],
+			"body": {
+				"type": "json",
+				"raw": "{\n    \"id\":\"3190421163\",\n    \"password\":123\n}",
+				"form": []
+			},
+			"tests": []
+		}
+	],
+	"settings": {
+		"headers": [],
+		"auth": {
+			"type": "bearer",
+			"bearer": "{{token}}"
+		},
+		"tests": []
+	}
+}

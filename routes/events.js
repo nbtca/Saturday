@@ -28,6 +28,7 @@ router.get("/:eid", async (req, res, next) => {
     }
     temp[i].time =
       temp[i].time.substring(0, 10) + " " + temp[i].time.substring(11, 19);
+    //TODO use action sheet
     if (temp[i].type == "create") {
       temp[i].title = "提交";
       temp[i].icon = "add_circle";
@@ -58,6 +59,7 @@ router.get("/:eid", async (req, res, next) => {
     }
   }
   data.event_log = temp;
+  data.repair_description = JSON.parse(data.repair_description);
   respond(res, 0, "Success", data);
 });
 
@@ -80,18 +82,71 @@ router.get("/:eid", async (req, res, next) => {
 //   }
 // });
 
-router.post("/accept", async (req, res, next) => {
+router.post("/", async (req, res, next) => {
+  let eventLog = JSON.stringify([
+    {
+      type: "create",
+      time: new Date(),
+    },
+  ]);
+  try {
+    await event.creat({
+      uid: req.body.uid,
+      model: req.body.model,
+      qq: req.body.qq,
+      phone: req.body.phone,
+      preference: req.body.preference,
+      description: req.body.description,
+      eventLog: eventLog,
+    });
+    respond(res, 0);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put("/", async (req, res, next) => {
   let eid = req.body.eid;
   try {
     let data = await event.get(eid);
-    if (data[0].rid == null && data[0].status == 0) {
+    if (data.status <= 1) {
+      let addEventLog = {
+        type: "update",
+        time: new Date(),
+      };
+      eventLog = jsonPush(data.event_log, addEventLog);
+      await event.update({
+        model: req.body.model,
+        phone: req.body.phone,
+        qq: req.body.qq,
+        description: req.body.description,
+        preference: req.body.preference,
+        eventLog: eventLog,
+        eid: req.body.eid,
+      });
+      respond(res, 0);
+    } else {
+      // TODO error code
+      respond(res, 220, "Event has been accepted or deleted");
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/accept", async (req, res, next) => {
+  let eid = req.body.eid;
+  console.log(req.body);
+  try {
+    let data = await event.get(eid);
+    if (data.rid == null && data.status == 0) {
       let rid = res.locals.data.rid;
-      let addeventLog = {
+      let addEventLog = {
         type: "accept",
         time: new Date(),
         rid: rid,
       };
-      eventLog = jsonPush(data[0].event_log, addeventLog);
+      eventLog = jsonPush(data.event_log, addEventLog);
       await event.accept(rid, eventLog, eid);
       respond(res, 0);
     } else {

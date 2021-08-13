@@ -18,6 +18,43 @@ exports.get = async (eid) => {
   return dbResults;
 };
 
+exports.creat = async (event) => {
+  var sql =
+    "INSERT INTO EVENT ( uid, model, eqq, ephone, econtact_preference,user_description,event_log,status,gmt_create, gmt_modified)VALUES (?,?,?,?,?,?,?,0,SYSDATE(),SYSDATE())";
+  var sqlParams = [
+    event.uid,
+    event.model,
+    event.qq,
+    event.phone,
+    event.preference,
+    event.description,
+    event.eventLog,
+  ];
+  try {
+    await mysql.query(sql, sqlParams);
+  } catch (error) {
+    return error;
+  }
+};
+exports.update = async (event) => {
+  let sql =
+    "UPDATE EVENT SET model =?,ephone=?,eqq=?,user_description =?,econtact_preference=?,event_log=?,gmt_modified = SYSDATE() WHERE eid =?";
+  let sqlParams = [
+    event.model,
+    event.phone,
+    event.qq,
+    event.description,
+    event.preference,
+    event.eventLog,
+    event.eid,
+  ];
+  try {
+    await mysql.query(sql, sqlParams);
+  } catch (error) {
+    return error;
+  }
+};
+
 exports.accept = async (rid, eventLog, eid) => {
   try {
     await mysql.query(
