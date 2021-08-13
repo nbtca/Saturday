@@ -24,6 +24,7 @@ router.get("/:rid", async (req, res, next) => {
     next(error);
   }
 });
+
 router.put("/", async (req, res, next) => {
   try {
     element.update({
@@ -37,6 +38,6 @@ router.put("/", async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-  res.send(returnObj);
 });
+
 module.exports = router;

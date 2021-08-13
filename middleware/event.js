@@ -1,10 +1,12 @@
 const event = require("../models/event");
-
+const { respond } = require("../utils");
 exports.isEidVaild = async (req, res, next) => {
   try {
     eid = req.params.eid || req.body.eid;
     req.event = await event.get(eid);
-    if (req.event) {
+    // console.log(req.body);
+    // console.log(req.event.eid);
+    if (req.event == null) {
       next();
     } else {
       respond(res, 210, "Eid does not exist");
