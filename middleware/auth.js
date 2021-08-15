@@ -9,8 +9,9 @@ exports.auth = (req, res, next) => {
     next(err);
   }
   if (decoded.data) {
+    // ???????????
     res.locals.data = decoded.data;
-    res.role = decoded.data.role;
+    req.role = decoded.data.role;
     next();
   } else {
     respond(res, 11, "Token authentication expired");
@@ -18,5 +19,6 @@ exports.auth = (req, res, next) => {
 };
 
 exports.isAdmin = (req, res, next) => {
+  console.log(req.role);
   req.role == "admin" ? next() : respond(res, 250, "No admin permission");
 };
