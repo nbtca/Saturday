@@ -1,8 +1,2 @@
-class Test {
-  constructor() {}
-  try() {
-    console.log("Test");
-  }
-}
-let test = new Test();
-test.try();
+let a = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+a.indexOf(5);

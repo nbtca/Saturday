@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { cert } = require("../config/config");
-const { respond } = require("../utils");
+const { respond } = require("../utils/utils");
 exports.auth = (req, res, next) => {
   let decoded;
   try {

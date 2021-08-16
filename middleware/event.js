@@ -1,5 +1,5 @@
 const event = require("../models/event");
-const { respond } = require("../utils");
+const { respond } = require("../utils/utils");
 exports.isEidVaild = async (req, res, next) => {
   try {
     let eid = req.params.eid || req.body.eid;
@@ -16,7 +16,7 @@ exports.isEidVaild = async (req, res, next) => {
   }
 };
 
-exports.isCurrentUser = async (req, res, next) => {
+exports.isCurrentElement = async (req, res, next) => {
   try {
     eid = req.params.eid || req.body.eid;
     rid = req.event.rid;

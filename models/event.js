@@ -38,14 +38,17 @@ exports.creat = async (event) => {
 };
 exports.update = async (event) => {
   let sql =
-    "UPDATE EVENT SET model =?,ephone=?,eqq=?,user_description =?,econtact_preference=?,event_log=?,gmt_modified = SYSDATE() WHERE eid =?";
+    "UPDATE EVENT SET rid=?, model =?,ephone=?,eqq=?,user_description =?,econtact_preference=?,status=?,repair_description=?,event_log=?,gmt_modified = SYSDATE() WHERE eid =?";
   let sqlParams = [
+    event.rid,
     event.model,
-    event.phone,
-    event.qq,
-    event.description,
-    event.preference,
-    event.eventLog,
+    event.ephone,
+    event.eqq,
+    event.user_description,
+    event.econtact_preference,
+    event.status,
+    event.repair_description,
+    event.event_log,
     event.eid,
   ];
   try {
@@ -55,61 +58,74 @@ exports.update = async (event) => {
   }
 };
 
-exports.accept = async (rid, eventLog, eid) => {
-  try {
-    await mysql.query(
-      "UPDATE `event` SET rid=?,event_log=?,status=1 WHERE eid=?",
-      [rid, eventLog, eid]
-    );
-  } catch (err) {
-    return err;
-  }
-  await mysql.end();
-};
+// exports.accept = async (rid, eventLog, eid) => {
+//   try {
+//     await mysql.query(
+//       "UPDATE `event` SET rid=?,event_log=?,status=1 WHERE eid=?",
+//       [rid, eventLog, eid]
+//     );
+//   } catch (err) {
+//     return err;
+//   }
+//   await mysql.end();
+// };
 
-exports.submit = async (eventLog, description, req) => {
-  try {
-    await mysql.query(
-      "UPDATE `event` SET event_log=?,repair_description=?,status=2 WHERE eid=?",
-      [eventLog, description, req.body.eid]
-    );
-  } catch (err) {
-    return err;
-  }
-  await mysql.end();
-};
+// exports.submit = async (eventLog, description, req) => {
+//   try {
+//     await mysql.query(
+//       "UPDATE `event` SET event_log=?,repair_description=?,status=2 WHERE eid=?",
+//       [eventLog, description, req.body.eid]
+//     );
+//   } catch (err) {
+//     return err;
+//   }
+//   await mysql.end();
+// };
 
-exports.cancel = async (eventLog, eid) => {
-  try {
-    await mysql.query(
-      "UPDATE `event` SET rid=?,event_log=?,status=? WHERE eid=?",
-      [null, eventLog, 0, eid]
-    );
-  } catch (err) {
-    return err;
-  }
-  await mysql.end();
-};
+// exports.cancel = async (eventLog, eid) => {
+//   try {
+//     await mysql.query(
+//       "UPDATE `event` SET rid=?,event_log=?,status=? WHERE eid=?",
+//       [null, eventLog, 0, eid]
+//     );
+//   } catch (err) {
+//     return err;
+//   }
+//   await mysql.end();
+// };
 
-exports.close = async (aid, eventLog, status, eid) => {
-  try {
-    await mysql.query(
-      "UPDATE `event` SET aid=?,event_log=?,status=? WHERE eid=?",
-      [aid, eventLog, status, eid]
-    );
-  } catch (err) {
-    return err;
-  }
-  await mysql.end();
-};
-exports.assign = async (rid, eventLog, eid) => {
-  try {
-    await mysql.query(
-      "UPDATE `event` SET rid=?,event_log=?,status=? WHERE eid=?",
-      [rid, eventLog, 1, eid]
-    );
-  } catch (err) {
-    return err;
-  }
-  await mysql.end();
-};
+// exports.close = async (aid, eventLog, status, eid) => {
+//   try {
+//     await mysql.query(
+//       "UPDATE `event` SET aid=?,event_log=?,status=? WHERE eid=?",
+//       [aid, eventLog, status, eid]
+//     );
+//   } catch (err) {
+//     return err;
+//   }
+//   await mysql.end();
+// };
+// exports.assign = async (rid, eventLog, eid) => {
+//   try {
+//     await mysql.query(
+//       "UPDATE `event` SET rid=?,event_log=?,status=? WHERE eid=?",
+//       [rid, eventLog, 1, eid]
+//     );
+//   } catch (err) {
+//     return err;
+//   }
+//   await mysql.end();
+// };
+
+// exports.delete = async (eventLog, eid) => {
+//   try {
+//     await mysql.query("update event set status=?,event_log=? where eid=?", [
+//       -1,
+//       eventLog,
+//       eid,
+//     ]);
+//     await mysql.end();
+//   } catch (error) {
+//     return error;
+//   }
+// };
