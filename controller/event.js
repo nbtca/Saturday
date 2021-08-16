@@ -1,7 +1,8 @@
-const { jsonPush, respond } = require("../utils");
+const { jsonPush, respond } = require("../utils/utils");
+const { actionSheet } = require("../config/config");
 const event = require("../models/event");
 const element = require("../models/element");
-
+const { Action } = require("../utils/action");
 // A:admin U:user E:element CE:current element
 // delete (1-3)->0 U
 // accept 1->2 E
@@ -17,46 +18,18 @@ class Event {
     let data = req.event;
     try {
       let temp = JSON.parse(data.event_log);
-      for (let i = 0; i < temp.length; i++) {
-        if (temp[i].rid) {
-          temp[i].alias = element.get(temp[i].rid).ralias;
+      for (let item of temp) {
+        if (item.rid) {
+          item.alias = element.get(item.rid).ralias;
         }
-        temp[i].time =
-          temp[i].time.substring(0, 10) + " " + temp[i].time.substring(11, 19);
-        //TODO use action sheet
-        if (temp[i].type == "create") {
-          temp[i].title = "提交";
-          temp[i].icon = "add_circle";
-        } else if (temp[i].type == "delete") {
-          temp[i].title = "取消";
-          temp[i].icon = "remove_circle";
-        } else if (temp[i].type == "close") {
-          temp[i].title = "完成";
-          temp[i].icon = "check_circle";
-        } else if (temp[i].type == "update") {
-          temp[i].title = "更新";
-          temp[i].icon = "update_circle";
-        } else if (temp[i].type == "accept") {
-          temp[i].title = "接受";
-          temp[i].icon = "accept_circle";
-        } else if (temp[i].type == "cancel") {
-          temp[i].title = "放弃";
-          temp[i].icon = "sentiment_very_dissatisfied";
-        } else if (temp[i].type == "reject") {
-          temp[i].title = "退回";
-          temp[i].icon = "sentiment_very_dissatisfied";
-        } else if (temp[i].type == "assign") {
-          temp[i].title = "指派";
-          temp[i].icon = "accept_circle";
-        } else if (temp[i].type == "submit") {
-          temp[i].title = "提交维修";
-          temp[i].icon = "sentiment_very_dissatisfied";
-        }
+        item.time =
+          item.time.substring(0, 10) + " " + item.time.substring(11, 19);
+        item.icon = actionSheet[item.type].icon;
+        item.title = actionSheet[item.type].title;
       }
       data.event_log = temp;
       data.repair_description = JSON.parse(data.repair_description);
       respond(res, 0, "Success", data);
-      return;
     } catch (error) {
       next(error);
     }
@@ -69,7 +42,7 @@ class Event {
       next(error);
     }
   }
-  async creat(req, res, next) {
+  async create(req, res, next) {
     let eventLog = JSON.stringify([
       {
         type: "create",
@@ -91,6 +64,7 @@ class Event {
       next(error);
     }
   }
+
   async update(req, res, next) {
     try {
       let thisEvent = req.event;
@@ -118,116 +92,119 @@ class Event {
       next(error);
     }
   }
-  async accept(req, res, next) {
-    let eid = req.body.eid;
+
+  async delete(req, res, next) {
+    let thisEvent = req.event;
     try {
-      let thisEvent = req.event;
-      if (thisEvent.rid == null && thisEvent.status == 0) {
-        let rid = res.locals.data.rid;
-        let addEventLog = {
-          type: "accept",
-          time: new Date(),
-          rid: rid,
-        };
-        let eventLog = jsonPush(thisEvent.event_log, addEventLog);
-        await event.accept(rid, eventLog, eid);
-        respond(res, 0);
-      } else {
-        respond(res, 220, "Event has been accepted or deleted");
-      }
+      let del = Action("delete");
+      del.perform(thisEvent);
+      await event.update(thisEvent);
+      respond(res, 0);
+      // if (thisEvent.status <= 1) {
+      //   let addEventLog = {
+      //     type: "delete",
+      //     time: new Date(),
+      //   };
+      //   let eventLog = jsonPush(thisEvent.event_log, addEventLog);
+      //   event.delete(eventLog, req.body.eid);
+      //   respond(res, 0);
+      // } else {
+      //   respond(res, 123, "no permission");
+      // }
     } catch (error) {
       next(error);
     }
   }
+
+  async accept(req, res, next) {
+    try {
+      let thisEvent = req.event;
+      let accept = Action("accept");
+      thisEvent = accept.perform(thisEvent, {
+        rid: res.locals.data.rid,
+      });
+      await event.update(thisEvent);
+      respond(res, 0);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async submit(req, res, next) {
     try {
       let thisEvent = req.event;
-      let eventLog = {
-        type: "submit",
+      let submit = Action("submit");
+      let repair_description = {
         time: new Date(),
         rid: res.locals.data.rid,
         description: req.body.description,
       };
-      let description = {
-        time: new Date(),
-        rid: res.locals.data.rid,
+      repair_description = jsonPush(
+        thisEvent.repair_description,
+        repair_description
+      );
+      thisEvent = submit.perform(thisEvent, {
+        repair_description: repair_description,
         description: req.body.description,
-      };
-      eventLog = jsonPush(thisEvent.event_log, eventLog);
-      description = jsonPush(thisEvent.repair_description, description);
-      await event.submit(eventLog, description, req);
+      });
+      await event.update();
       respond(res, 0);
     } catch (err) {
       next(err);
     }
   }
-  async cancel(req, res, next) {
-    let eid = req.body.eid;
+
+  async drop(req, res, next) {
     try {
       let thisEvent = req.event;
-      if (thisEvent.status == 1) {
-        let addeventLog = {
-          type: "cancel",
-          time: new Date(),
-          rid: res.locals.data.rid,
-        };
-        let eventLog = jsonPush(thisEvent.event_log, addeventLog);
-        await event.cancel(eventLog, eid);
-        respond(res, 0);
-      } else {
-        respond(res, 220, "Event has been cancel or closed");
-      }
+      let drop = Action("drop");
+      thisEvent = drop.perform(thisEvent, {
+        rid: res.locals.data.rid,
+      });
+      thisEvent.rid = null;
+      await event.update(thisEvent);
+      respond(res, 0);
     } catch (err) {
       next(err);
     }
   }
+
   async close(req, res, next) {
-    let eid = req.body.eid;
     let aid = res.locals.data.aid;
-    let status;
+    let thisEvent = req.event;
     try {
-      let thisEvent = req.event;
-      if (thisEvent.status == 2) {
-        let addeventLog = {
-          type: "",
-          time: new Date(),
+      if (req.body.accept) {
+        let close = Action("close");
+        thisEvent = close.perform(thisEvent, {
           aid: aid,
-        };
-        if (req.body.accept) {
-          addeventLog.type = "close";
-          status = 3;
-        } else {
-          addeventLog.type = "reject";
-          status = 0;
-        }
-        let eventLog = jsonPush(thisEvent.event_log, addeventLog);
-        await event.close(aid, eventLog, status, eid);
-        respond(res, 0);
+        });
       } else {
-        respond(res, 251, "Event status error");
+        let reject = Action("reject");
+        thisEvent = reject.perform(thisEvent, {
+          aid: aid,
+        });
       }
+      await event.update(thisEvent);
+      respond(res, 0);
     } catch (err) {
       next(err);
     }
   }
+
   async assign(req, res, next) {
-    let eid = req.body.eid;
-    let aid = res.locals.data.aid;
-    let rid = req.body.rid;
     try {
       let thisEvent = req.event;
-      let addeventLog = {
-        type: "assign",
-        time: new Date(),
-        aid: aid,
-        rid: rid,
-      };
-      let eventLog = jsonPush(thisEvent.event_log, addeventLog);
-      await event.assign(rid, eventLog, eid);
+      let assign = Action("assign");
+      thisEvent = assign.perform(thisEvent, {
+        aid: res.locals.data.aid,
+        rid: req.body.rid,
+      });
+      await event.update(thisEvent);
       respond(res, 0);
     } catch (err) {
       next(err);
     }
   }
 }
+
 module.exports = new Event();
