@@ -1,26 +1,25 @@
-const { actionSheet } = require("../config/config");
-const { jsonPush } = require("../utils/utils");
+const { actionSheet } = require("../../config/config");
+const { jsonPush } = require("../../utils/utils");
 class Action {
   constructor(type, role) {
     this.ref = actionSheet[type];
     // this.isRoleValid(role);
   }
-
-  // isRoleValid(role) {
-  //   let flag = false;
-  //   for (let r of role) {
-  //     console.log(r);
-  //     if (this.ref.auth.role.indexOf(r) != -1) {
-  //       console.log("vaild");
-  //       flag = true;
-  //       break;
-  //     }
-  //   }
-  //   if (!flag) {
-  //     throw new Error("invalid role");
-  //   }
-  //   return flag;
-  // }
+  isRoleValid(role) {
+    let flag = false;
+    for (let r of role) {
+      console.log(r);
+      if (this.ref.auth.role.indexOf(r) != -1) {
+        console.log("vaild");
+        flag = true;
+        break;
+      }
+    }
+    if (!flag) {
+      throw new Error("invalid role");
+    }
+    return flag;
+  }
   isFormerStatusValid(event) {
     let status = event.status;
     if (this.ref.auth.formerStatus.indexOf(status) != -1) {
@@ -64,16 +63,16 @@ exports.Action = (type) => {
 };
 
 // let role = ["currentUser", "element"];
-let role = "element";
-let action = new Action("accept", role);
-let event = {
-  status: 0,
-};
-try {
-  let nevent = action.perform(event, {
-    rid: "123",
-  });
-  console.log(nevent);
-} catch (error) {
-  console.error(error);
-}
+// let role = "element";
+// let action = new Action("accept", role);
+// let event = {
+//   status: 0,
+// };
+// try {
+//   let nevent = action.perform(event, {
+//     rid: "123",
+//   });
+//   console.log(nevent);
+// } catch (error) {
+//   console.error(error);
+// }

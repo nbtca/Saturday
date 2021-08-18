@@ -63,9 +63,25 @@ exports.create = async (element) => {
   }
 };
 
-// exports.update = async (info) => {
-//   await mysql.query(
-//     "update repairelements set rpassword = ?,ralias = ?,name=?,class=?,gmt_modified = sysdate() where rid = ?;",
-//     [info.password, info.alias, info.name, info.class, info.rid]
-//   );
-// };
+exports.update = async (info) => {
+  await mysql.query(
+    "update repairelements set rpassword = ?,ralias = ?,name=?,class=?,rprofile=?,event_count,gmt_modified = sysdate() where rid = ?;",
+    [
+      info.password,
+      info.alias,
+      info.name,
+      info.class,
+      info.profile,
+      info.event_count,
+      info.rid,
+    ]
+  );
+};
+
+exports.delete = async (rid) => {
+  try {
+    await mysql.query("DELETE FROM repairelements where rid = ?", [rid]);
+  } catch (error) {
+    return error;
+  }
+};

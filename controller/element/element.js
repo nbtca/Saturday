@@ -1,5 +1,5 @@
-const { respond } = require("../utils/utils");
-const element = require("../models/element");
+const { respond } = require("../../utils/utils");
+const element = require("../../models/element");
 class Element {
   constructor() {}
   async getAll(req, res, next) {
@@ -44,6 +44,16 @@ class Element {
         name: req.body.name,
         class: req.body.class,
         rid: res.locals.data.rid,
+      });
+      respond(res, 0);
+    } catch (err) {
+      next(err);
+    }
+  }
+  async delete(req, res, next) {
+    try {
+      await element.delete({
+        rid: req.body.rid,
       });
       respond(res, 0);
     } catch (err) {
