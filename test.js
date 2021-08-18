@@ -1,2 +1,11 @@
-let a = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-a.indexOf(5);
+function testError() {
+  throw new Error("Error");
+}
+function wrapper() {
+  testError();
+}
+try {
+  wrapper();
+} catch (error) {
+  console.log(error);
+}

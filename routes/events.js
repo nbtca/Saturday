@@ -3,7 +3,7 @@ const router = express.Router();
 const { isAdmin } = require("../middleware/auth");
 const { isEidVaild, isCurrentElement } = require("../middleware/event");
 
-const Event = require("../controller/event");
+const Event = require("../controller/event/event");
 
 router.post("/", Event.create);
 router.get("/", Event.getAll);

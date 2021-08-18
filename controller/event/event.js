@@ -1,8 +1,8 @@
-const { jsonPush, respond } = require("../utils/utils");
-const { actionSheet } = require("../config/config");
-const event = require("../models/event");
-const element = require("../models/element");
-const { Action } = require("../utils/action");
+const { jsonPush, respond } = require("../../utils/utils");
+const { actionSheet } = require("../../config/config");
+const event = require("../../models/event");
+const element = require("../../models/element");
+const { Action } = require("./action");
 // A:admin U:user E:element CE:current element
 // delete (1-3)->0 U
 // accept 1->2 E
