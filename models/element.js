@@ -6,16 +6,16 @@ exports.get = async (rid) => {
     if (rid == -1) {
       // roll
       dbResults = await mysql.query(
-        "SELECT rid,ralias,name,class,gmt_create,gmt_modified,rprofile,event_count FROM repairelements WHERE rid !=0000000000 ORDER BY RAND() LIMIT 1;"
+        "SELECT rid,ralias,name,class,gmt_create,rqq,rphone,ravatar,gmt_modified,rprofile,event_count FROM repairelements WHERE rid !=0000000000 ORDER BY RAND() LIMIT 1;"
       );
       dbResults = dbResults[0];
     } else if (rid == null) {
       dbResults = await mysql.query(
-        "SELECT rid,ralias,name,class,gmt_create,gmt_modified,rprofile,event_count FROM repairelements"
+        "SELECT rid,ralias,name,class,rqq,rphone,ravatar,gmt_create,gmt_modified,rprofile,event_count FROM repairelements"
       );
     } else {
       dbResults = await mysql.query(
-        "SELECT rid,ralias,name,class,gmt_create,gmt_modified,rprofile,event_count FROM repairelements WHERE rid=?",
+        "SELECT rid,ralias,name,rqq,rphone,class,ravatar,gmt_create,gmt_modified,rprofile,event_count FROM repairelements WHERE rid=?",
         [rid]
       );
       dbResults = dbResults[0];
@@ -45,13 +45,16 @@ exports.checkPassword = async (rid, password) => {
 exports.create = async (element) => {
   try {
     await mysql.query(
-      "insert INTO repairelements (rid,ralias,rpassword,name,class,gmt_create,gmt_modified,rprofile,event_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "insert INTO repairelements (rid,ralias,rpassword,name,class,rqq,rphone,ravatar,gmt_create,gmt_modified,rprofile,event_count) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?)",
       [
         element.rid,
         element.alias,
         element.password,
         element.name,
         element.class,
+        element.rqq,
+        element.rphone,
+        element.ravatar,
         SYSDATE(),
         SYSDATE(),
         element.rprofile,
@@ -65,12 +68,15 @@ exports.create = async (element) => {
 
 exports.update = async (info) => {
   await mysql.query(
-    "update repairelements set rpassword = ?,ralias = ?,name=?,class=?,rprofile=?,event_count,gmt_modified = sysdate() where rid = ?;",
+    "update repairelements set rpassword = ?,ralias = ?,name=?,class=?,rqq=?,rphone=?,ravatar=?,rprofile=?,event_count,gmt_modified = sysdate() where rid = ?;",
     [
       info.password,
       info.alias,
       info.name,
       info.class,
+      info.rqq,
+      info.rphone,
+      info.ravatar,
       info.profile,
       info.event_count,
       info.rid,

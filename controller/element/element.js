@@ -29,6 +29,9 @@ class Element {
         password: req.body.password,
         name: req.body.name,
         class: req.body.class,
+        rqq: req.body.rqq,
+        rphone: req.body.rphone,
+        ravatar: req.body.ravatar,
         profile: req.body.profile,
       });
       respond(res, 0);
@@ -39,11 +42,14 @@ class Element {
   async update(req, res, next) {
     try {
       await element.update({
-        password: req.body.password,
+        rid: res.locals.data.rid,
         alias: req.body.alias,
+        password: req.body.password,
         name: req.body.name,
         class: req.body.class,
-        rid: res.locals.data.rid,
+        rqq: req.body.rqq,
+        rphone: req.body.rphone,
+        ravatar: req.body.ravatar,
       });
       respond(res, 0);
     } catch (err) {

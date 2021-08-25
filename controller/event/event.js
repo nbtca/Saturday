@@ -147,7 +147,7 @@ class Event {
         repair_description: repair_description,
         description: req.body.description,
       });
-      await event.update();
+      await event.update(thisEvent);
       respond(res, 0);
     } catch (err) {
       next(err);
