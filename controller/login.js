@@ -32,6 +32,7 @@ class Login {
           let data = {
             token: token,
             alias: dbResults.ralias,
+            avatar: dbResults.ravatar,
             rid: rid,
             role: role,
             isPasswordEmpty: isPasswordEmpty,
