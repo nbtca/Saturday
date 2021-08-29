@@ -14,7 +14,7 @@ class Login {
         respond(res, 101, "no such user");
       } else {
         if (await element.checkPassword(rid, password)) {
-          let isPasswordEmpty = !password ? true : false;
+          let isActivated = !password ? true : false;
           let isAdmin = await admin.get(rid);
           let role = isAdmin ? "admin" : "element";
           let info = {
@@ -35,7 +35,7 @@ class Login {
             avatar: dbResults.ravatar,
             rid: rid,
             role: role,
-            isPasswordEmpty: isPasswordEmpty,
+            isActivated: isActivated,
           };
           // TODO auto
           await mysql.query(

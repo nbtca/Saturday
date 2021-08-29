@@ -22,6 +22,7 @@ class Element {
     }
   }
   async create(req, res, next) {
+    console.log("pass create");
     try {
       await element.create({
         rid: req.body.rid,

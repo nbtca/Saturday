@@ -43,27 +43,21 @@ exports.checkPassword = async (rid, password) => {
 };
 
 exports.create = async (element) => {
-  try {
-    await mysql.query(
-      "insert INTO repairelements (rid,ralias,rpassword,name,class,rqq,rphone,ravatar,gmt_create,gmt_modified,rprofile,event_count) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        element.rid,
-        element.alias,
-        element.password,
-        element.name,
-        element.class,
-        element.rqq,
-        element.rphone,
-        element.ravatar,
-        SYSDATE(),
-        SYSDATE(),
-        element.rprofile,
-        0,
-      ]
-    );
-  } catch (error) {
-    return error;
-  }
+  await mysql.query(
+    "insert INTO repairelements (rid,ralias,rpassword,name,class,rqq,rphone,ravatar,gmt_create,gmt_modified,rprofile,event_count) VALUES (?, ?, ?, ?,?, ?, ?, ?, SYSDATE(),SYSDATE(), ?, ?)",
+    [
+      element.rid,
+      element.alias,
+      element.password,
+      element.name,
+      element.class,
+      element.rqq,
+      element.rphone,
+      element.ravatar,
+      element.rprofile,
+      0,
+    ]
+  );
 };
 
 exports.update = async (info) => {
