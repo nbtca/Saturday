@@ -11,11 +11,14 @@ exports.get = async (rid) => {
       dbResults = dbResults[0];
     } else if (rid == null) {
       dbResults = await mysql.query(
-        "SELECT rid,ralias,name,class,rqq,rphone,ravatar,gmt_create,gmt_modified,rprofile,event_count FROM repairelements"
+        "SELECT * FROM repairelements"
       );
+      // dbResults = await mysql.query(
+      //   "SELECT rid,ralias,name,class,rqq,rphone,ravatar,gmt_create,gmt_modified,rprofile,event_count FROM repairelements"
+      // );
     } else {
       dbResults = await mysql.query(
-        "SELECT rid,ralias,name,rqq,rphone,class,ravatar,gmt_create,gmt_modified,rprofile,event_count FROM repairelements WHERE rid=?",
+        "SELECT * FROM repairelements WHERE rid=?",
         [rid]
       );
       dbResults = dbResults[0];
