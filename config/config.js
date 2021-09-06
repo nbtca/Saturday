@@ -1,14 +1,13 @@
 exports.cert = "***REMOVED***";
 
-var host = "rm-uf6s9l8ep4131lzt9go.mysql.rds.aliyuncs.com";
-exports.mysql = require("serverless-mysql")({
-  config: {
-    host: host,
-    user: "high_admin",
-    password: "***REMOVED***",
-    database: "repairteam_build",
-  },
-});
+const config = {
+  host: "rm-uf6s9l8ep4131lzt9go.mysql.rds.aliyuncs.com",
+  user: "high_admin",
+  password: "***REMOVED***",
+  database: "repairteam_build",
+};
+exports.dbConfig = config;
+exports.mysql = require("serverless-mysql")({ config: config });
 exports.actionSheet = {
   create: {
     type: "create",

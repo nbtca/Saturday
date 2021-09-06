@@ -1,7 +1,7 @@
 const { jsonPush, respond } = require("../../utils/utils");
 const { actionSheet } = require("../../config/config");
 const event = require("../../models/event");
-const element = require("../../models/element");
+const ElementModel = require("../../models/ElementModel");
 const { Action } = require("./action");
 // A:admin U:user E:element CE:current element
 // delete (1-3)->0 U
@@ -19,9 +19,9 @@ class Event {
     try {
       let temp = JSON.parse(data.event_log);
       for (let item of temp) {
-        if (item.rid) {
-          item.alias = element.get(item.rid).ralias;
-        }
+        // if (item.rid) {
+        //   item.alias = element.get(item.rid).ralias;
+        // }
         item.time =
           item.time.substring(0, 10) + " " + item.time.substring(11, 19);
         item.icon = actionSheet[item.type].icon;
