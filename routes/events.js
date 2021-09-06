@@ -1,14 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const { isAdmin } = require("../middleware/auth");
-const { isEidVaild, isCurrentElement } = require("../middleware/event");
+const { isEidValid: isEidValid, isCurrentElement } = require("../middleware/event");
 
 const Event = require("../controller/event/event");
 
 router.post("/", Event.create);
 router.get("/", Event.getAll);
-router.get("/:eid", isEidVaild, Event.get);
-router.use("/", isEidVaild);
+router.get("/:eid", isEidValid, Event.get);
+router.use("/", isEidValid);
 router.put("/", Event.update);
 router.post("/delete", Event.delete);
 router.post("/accept", Event.accept);

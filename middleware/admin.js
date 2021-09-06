@@ -1,6 +1,5 @@
-const admin = require("../models/admin");
 const { respond } = require("../utils/utils");
-exports.isAidVaild = async (req, res, next) => {
+exports.isAidValid = async (req, res, next) => {
   try {
     let eid = req.params.eid || req.body.eid;
     if (eid) {

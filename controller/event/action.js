@@ -10,7 +10,7 @@ class Action {
     for (let r of role) {
       console.log(r);
       if (this.ref.auth.role.indexOf(r) != -1) {
-        console.log("vaild");
+        console.log("valid");
         flag = true;
         break;
       }
@@ -23,7 +23,6 @@ class Action {
   isFormerStatusValid(event) {
     let status = event.status;
     if (this.ref.auth.formerStatus.indexOf(status) != -1) {
-      // console.log("vaild");
       return true;
     } else {
       throw new Error("invalid former status");
@@ -58,8 +57,9 @@ class Action {
   }
 }
 
-exports.Action = (type) => {
-  return new Action(type);
+exports.appendLog = (type, event, data) => {
+  let action = new Action(type);
+  return action.perform(event, data);
 };
 
 // let role = ["currentUser", "element"];

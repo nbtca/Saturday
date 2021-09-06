@@ -1,12 +1,16 @@
-const { respond } = require("../../utils/utils");
+const { respond, dateToStr } = require("../../utils/utils");
 const ElementModel = require("../../models/ElementModel");
 class ElementController {
   constructor() {
-    this.Element = new ElementModel();
+    // ElementModel = new ElementModel();
   }
   async getAll(req, res, next) {
     try {
-      await this.Element.findAll().then((result) => {
+      await ElementModel.findAll({ exclude: ["rpassword"] }).then(result => {
+        for (let item of result) {
+          //TODO gmt_create format
+          item.dataValues.gmt_create = dateToStr(item.gmt_create, "time");
+        }
         respond(res, 0, "Success", result);
       });
     } catch (error) {
@@ -15,20 +19,16 @@ class ElementController {
   }
   async get(req, res, next) {
     try {
-      await this.Element.findByFilter({}, { rid: req.params.rid }).then(
-        (result) => {
-          result
-            ? respond(res, 0, "Success", result)
-            : respond(res, 123, "no such element");
-        }
-      );
+      await ElementModel.findByFilter({ exclude: ["rpassword"] }, { rid: req.params.rid }).then(result => {
+        result ? respond(res, 0, "Success", result) : respond(res, 123, "no such element");
+      });
     } catch (error) {
       next(error);
     }
   }
   async create(req, res, next) {
     try {
-      await this.Element.create({
+      await ElementModel.create({
         rid: req.body.rid,
         alias: req.body.alias,
         password: req.body.password,
@@ -46,12 +46,9 @@ class ElementController {
       next(error);
     }
   }
-  async test(req, res, next) {
-    console.log(req);
-  }
   async update(req, res, next) {
     try {
-      await this.Element.update(
+      await ElementModel.update(
         {
           rid: res.locals.data.rid,
           ralias: req.body.alias,
@@ -70,9 +67,9 @@ class ElementController {
   }
   async delete(req, res, next) {
     try {
-      await this.Element.delete({
+      await ElementModel.delete({
         rid: req.body.rid,
-      }).then((result) => {
+      }).then(result => {
         // console.log(result);
         respond(res, 0);
       });

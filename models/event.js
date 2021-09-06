@@ -18,7 +18,7 @@ exports.get = async (eid) => {
   return dbResults;
 };
 
-exports.creat = async (event) => {
+exports.create = async (event) => {
   var sql =
     "INSERT INTO EVENT ( uid, model, eqq, ephone, econtact_preference,user_description,event_log,status,gmt_create, gmt_modified)VALUES (?,?,?,?,?,?,?,0,SYSDATE(),SYSDATE())";
   var sqlParams = [
