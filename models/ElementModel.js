@@ -6,4 +6,4 @@ class ElementModel extends BaseModel {
     super(RepairElementsModel());
   }
 }
-module.exports = ElementModel;
+module.exports = new ElementModel();

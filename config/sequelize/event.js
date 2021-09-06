@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
-
-module.exports = (sequelize) => {
+const sequelize = require("../db");
+module.exports = () => {
   const attributes = {
     uid: {
       type: DataTypes.BIGINT,
@@ -144,6 +144,7 @@ module.exports = (sequelize) => {
   const options = {
     tableName: "event",
     comment: "",
+    timestamps: false,
     indexes: [
       {
         name: "fk_Event_Admin_2",

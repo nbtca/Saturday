@@ -1,13 +1,12 @@
 const { respond } = require("../../utils/utils");
-const admin = require("../../models/admin");
 const AdminModel = require("../../models/AdminModel");
 class Admin {
   constructor() {
-    this.Admin = AdminModel;
+    // this.Admin = AdminModel;
   }
   async getAll(req, res, next) {
     try {
-      this.Admin.findAll().then((result) => respond(res, 0, "Success", result));
+      AdminModel.findAll().then((result) => respond(res, 0, "Success", result));
       // let data = await admin.get();
       // respond(res, 0, "Success", data);
     } catch (error) {
@@ -16,7 +15,7 @@ class Admin {
   }
   async get(req, res, next) {
     try {
-      await this.Admin.findByFilter({}, { rid: req.params.rid }).then(
+      await AdminModel.findByFilter({}, { aid: req.params.aid }).then(
         (result) => {
           result
             ? respond(res, 0, "Success", result)
@@ -29,7 +28,7 @@ class Admin {
   }
   async create(req, res, next) {
     try {
-      await admin.create({
+      await AdminModel.create({
         rid: req.body.rid,
         gmt_create: new Date(),
         gmt_modified: new Date(),
@@ -42,7 +41,7 @@ class Admin {
 
   async delete(req, res, next) {
     try {
-      await this.Admin.delete({
+      await AdminModel.delete({
         rid: req.body.rid,
       }).then((result) => {
         // console.log(result);
