@@ -8,13 +8,14 @@ exports.auth = (req, res, next) => {
   } catch (err) {
     next(err);
   }
-  if (decoded.data) {
-    // ???????????
+  if (decoded) {
+    // 
     res.locals.data = decoded.data;
     req.role = decoded.data.role;
     next();
   } else {
-    respond(res, 11, "Token authentication expired");
+    // respond(res, 11, "Token authentication expired");
+    respond(res, 12, "wrong token");
   }
 };
 

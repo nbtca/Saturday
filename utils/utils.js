@@ -21,3 +21,6 @@ exports.respond = (res, code, msg, data) => {
   }
   res.send(returnObj);
 };
+exports.wiper = (target) => {
+  t
+};
