@@ -10,6 +10,7 @@ class ElementController {
         for (let item of result) {
           //TODO gmt_create format
           item.dataValues.gmt_create = dateToStr(item.gmt_create, "time");
+          item.dataValues.gmt_modified = dateToStr(item.gmt_modified, "time");
         }
         respond(res, 0, "Success", result);
       });
