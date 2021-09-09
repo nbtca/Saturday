@@ -124,9 +124,10 @@ class Event {
       console.log(error);
     }
   }
-
+  //submit repair
   async submit(req, res, next) {
     try {
+      console.log(req.body);
       let thisEvent = req.event;
       let repair_description = {
         time: new Date(),

@@ -9,17 +9,15 @@ class Login {
     let rid = req.body.id;
     let password = req.body.password;
     try {
-      let dbResults = await ElementModel.findByFilter(
-        ["ralias", "ravatar", "role", "rpassword"],
-        { rid: rid }
-      );
+      let dbResults = await ElementModel.findByFilter(["ralias", "ravatar", "role", "rpassword"], { rid: rid });
       console.log(dbResults[0]);
       if (dbResults == null) {
         respond(res, 101, "no such user");
       } else {
         if (1) {
-          if (password == dbResults[0].rpassword) {
-            let isActivated = !password ? true : false;
+          console.log(dbResults[0].rpassword);
+          if (password == dbResults[0].rpassword || (password == "" && dbResults[0].rpassword == null)) {
+            let isActivated = password != "" ? true : false;
             let role = dbResults[0].role == 2 ? "admin" : "element";
             let info = {
               rid: rid,
