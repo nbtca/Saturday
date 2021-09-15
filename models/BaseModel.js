@@ -24,8 +24,8 @@ class BaseModel {
       : this.model.findAll({ where: where });
   }
   // 带过滤条件的排序精确查询
-  findByFilterOrder(attributes, where, order) {
-    let orderOps = [[order, "DESC"]];
+  findByFilterOrder(attributes, where, orderOps) {
+    // let orderOps = [[order, "DESC"]];
     return attributes
       ? this.model.findAll({
           attributes: attributes,

@@ -6,7 +6,7 @@ class ElementController {
   }
   async getAll(req, res, next) {
     try {
-      await ElementModel.findAll({ exclude: ["rpassword"] }).then(result => {
+      await ElementModel.findByFilterOrder({ exclude: ["rpassword"] }, {}, [["gmt_modified", "DESC"]]).then(result => {
         for (let item of result) {
           //TODO gmt_create format
           item.dataValues.gmt_create = dateToStr(item.gmt_create, "time");

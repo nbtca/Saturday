@@ -38,7 +38,12 @@ class Login {
               role: role,
               isActivated: isActivated,
             };
-            await ElementModel.update({}, { rid: rid });
+            await ElementModel.update(
+              {
+                gmt_modified: new Date(),
+              },
+              { rid: rid }
+            );
             // TODO auto
             respond(res, 0, "Success", data);
           } else {
