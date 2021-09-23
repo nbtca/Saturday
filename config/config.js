@@ -4,7 +4,7 @@ const config = {
   host: "rm-uf6s9l8ep4131lzt9go.mysql.rds.aliyuncs.com",
   user: "high_admin",
   password: "***REMOVED***",
-  database: "repairteam_build",
+  database: "repairteam_build2",
 };
 exports.dbConfig = config;
 exports.mysql = require("serverless-mysql")({ config: config });
@@ -80,7 +80,7 @@ exports.actionSheet = {
     icon: "sentiment_very_dissatisfied",
     auth: {
       role: ["currentElement"],
-      formerStatus: [1],
+      formerStatus: [1, 2],
     },
     targetStatus: 0,
     alterItem: [],
@@ -111,4 +111,25 @@ exports.actionSheet = {
     alterItem: ["repair_description"],
     logItem: ["description"],
   },
+  alterSubmit: {
+    type: "alterSubmit",
+    title: "修改维修描述",
+    icon: "123",
+    auth: {
+      role: ["currentElement"],
+      formerStatus: [2],
+    },
+    targetStatus: 2,
+    alterItem: ["repair_description"],
+    logItem: ["description"],
+  },
 };
+
+
+
+exports.ossConfig = {
+  region: "oss-cn-hangzhou",
+  accessKeyId: "LTAI5tCyeZFdHskUvpTRCyPp",
+  accessKeySecret: "r79n1DQaL5Y0lpremWGguBoHFA3aky",
+  bucket: "sunday-res",
+}

@@ -1,4 +1,6 @@
-const { DataTypes } = require("sequelize");
+const {
+  DataTypes
+} = require('sequelize');
 const sequelize = require("../db");
 
 module.exports = () => {
@@ -10,7 +12,7 @@ module.exports = () => {
       primaryKey: true,
       autoIncrement: false,
       comment: null,
-      field: "rid",
+      field: "rid"
     },
     ralias: {
       type: DataTypes.STRING(50),
@@ -19,7 +21,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "ralias",
+      field: "ralias"
     },
     rpassword: {
       type: DataTypes.STRING(50),
@@ -28,7 +30,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "rpassword",
+      field: "rpassword"
     },
     name: {
       type: DataTypes.STRING(20),
@@ -37,7 +39,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "name",
+      field: "name"
     },
     class: {
       type: DataTypes.STRING(20),
@@ -46,7 +48,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "class",
+      field: "class"
     },
     rprofile: {
       type: DataTypes.STRING(1000),
@@ -55,7 +57,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "rprofile",
+      field: "rprofile"
     },
     event_count: {
       type: DataTypes.INTEGER(11),
@@ -64,7 +66,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "event_count",
+      field: "event_count"
     },
     rphone: {
       type: DataTypes.STRING(11),
@@ -73,7 +75,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "rphone",
+      field: "rphone"
     },
     rqq: {
       type: DataTypes.STRING(20),
@@ -82,7 +84,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "rqq",
+      field: "rqq"
     },
     ravatar: {
       type: DataTypes.STRING(255),
@@ -91,7 +93,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "ravatar",
+      field: "ravatar"
     },
     gmt_create: {
       type: DataTypes.DATE,
@@ -100,7 +102,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "gmt_create",
+      field: "gmt_create"
     },
     gmt_modified: {
       type: DataTypes.DATE,
@@ -109,7 +111,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "gmt_modified",
+      field: "gmt_modified"
     },
     role: {
       type: DataTypes.INTEGER(10),
@@ -118,7 +120,7 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "role",
+      field: "role"
     },
     status: {
       type: DataTypes.INTEGER(10),
@@ -127,8 +129,26 @@ module.exports = () => {
       primaryKey: false,
       autoIncrement: false,
       comment: null,
-      field: "status",
+      field: "status"
     },
+    created_by: {
+      type: DataTypes.CHAR(10),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "created_by"
+    },
+    gmt_expire: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "gmt_expire"
+    }
   };
   const options = {
     tableName: "repairelements",
@@ -136,10 +156,6 @@ module.exports = () => {
     indexes: [],
     timestamps: false,
   };
-  const RepairelementsModel = sequelize.define(
-    "repairelements_model",
-    attributes,
-    options
-  );
+  const RepairelementsModel = sequelize.define("repairelements_model", attributes, options);
   return RepairelementsModel;
 };

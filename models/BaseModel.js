@@ -45,8 +45,8 @@ class BaseModel {
       : this.model.findAll({ where: whereOps });
   }
   // 带过滤条件的排序模糊查询
-  findLikeByFilterOrder(attributes, where, order) {
-    let orderOps = [[order, "DESC"]];
+  findLikeByFilterOrder(attributes, where, orderOps) {
+    // let orderOps = [[order, "DESC"]];
     let whereOps = {};
     for (let k in where) {
       whereOps[k] = { [Op.like]: "%" + where[k] + "%" };

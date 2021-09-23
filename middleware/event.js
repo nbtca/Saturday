@@ -2,11 +2,12 @@ const EventModel = require("../models/EventModel");
 
 const { respond } = require("../utils/utils");
 exports.isEidValid = (req, res, next) => {
+  console.log("isEidValid");
   try {
     let eid = req.params.eid || req.body.eid;
     if (eid) {
       EventModel.findByFilter({}, { eid: eid }).then(result => {
-        if (result != null) {
+        if (result.length != 0) {
           req.event = result[0].dataValues;
           if (req.event.rid == res.locals.data.rid) {
             req.role = "currentElement";
