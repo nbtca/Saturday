@@ -1,15 +1,16 @@
 const {
   DataTypes
 } = require('sequelize');
+const sequelize = require("../db");
 
-module.exports = sequelize => {
+module.exports = () => {
   const attributes = {
     uid: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.STRING(40),
       allowNull: false,
       defaultValue: null,
       primaryKey: true,
-      autoIncrement: true,
+      autoIncrement: false,
       comment: null,
       field: "uid"
     },
@@ -44,7 +45,8 @@ module.exports = sequelize => {
   const options = {
     tableName: "user",
     comment: "",
-    indexes: []
+    indexes: [],
+    timestamps: false,
   };
   const UserModel = sequelize.define("user_model", attributes, options);
   return UserModel;

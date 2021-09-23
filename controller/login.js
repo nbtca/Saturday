@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 const { respond } = require("../utils/utils");
 const { mysql, cert } = require("../config/config");
 const ElementModel = require("../models/ElementModel");
-const AdminModel = require("../models/AdminModel");
 class Login {
   constructor() {}
   async login(req, res, next) {

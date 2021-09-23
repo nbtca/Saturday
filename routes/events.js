@@ -13,6 +13,7 @@ router.put("/", Event.update);
 router.post("/delete", Event.delete);
 router.post("/accept", Event.accept);
 router.post("/submit", isCurrentElement, Event.submit);
+router.post("/alterSubmit", isCurrentElement, Event.alterSubmit);
 router.post("/drop", isCurrentElement, Event.drop);
 router.post("/assign", isAdmin, Event.assign);
 router.post("/close", isAdmin, Event.close);

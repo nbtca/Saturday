@@ -1,4 +1,4 @@
-const { jsonPush, respond, dateToStr } = require("../../utils/utils");
+const { jsonPush, respond, dateToStr, uuid } = require("../../utils/utils");
 const { actionSheet } = require("../../config/config");
 const event = require("../../models/event");
 const ElementModel = require("../../models/ElementModel");
@@ -23,7 +23,8 @@ class Event {
         // if (item.rid) {
         //   item.alias = await ElementModel.findByFilter({ ralias }, { rid: req.params.rid });
         // }
-        item.time = item.time.substring(0, 10) + " " + item.time.substring(11, 19);
+        item.time =
+          item.time.substring(0, 10) + " " + item.time.substring(11, 19);
         item.icon = actionSheet[item.type].icon;
         item.title = actionSheet[item.type].title;
       }
@@ -37,7 +38,11 @@ class Event {
   }
   async getAll(req, res, next) {
     try {
-      await EventModel.findAll(["eid", "user_description", "status", "model", "rid", "gmt_create"]).then(result => {
+      await EventModel.findByFilterOrder(
+        ["eid", "user_description", "status", "model", "rid", "gmt_create"],
+        {},
+        [["gmt_create", "DESC"]]
+      ).then(result => {
         for (let item of result) {
           item.dataValues.gmt_create = dateToStr(item.gmt_create, "time");
         }
@@ -56,6 +61,7 @@ class Event {
     ]);
     try {
       await EventModel.create({
+        eid: uuid(),
         uid: req.body.uid,
         model: req.body.model,
         eqq: req.body.qq,
@@ -134,8 +140,33 @@ class Event {
         rid: res.locals.data.rid,
         description: req.body.description,
       };
-      repair_description = jsonPush(thisEvent.repair_description, repair_description);
+      repair_description = jsonPush(
+        thisEvent.repair_description,
+        repair_description
+      );
       appendLog("submit", thisEvent, {
+        repair_description: repair_description,
+        description: req.body.description,
+      });
+      await EventModel.update(thisEvent, { eid: thisEvent.eid });
+      respond(res, 0);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async alterSubmit(req, res, next) {
+    try {
+      let thisEvent = req.event;
+      let repair_description = {
+        time: new Date(),
+        rid: res.locals.data.rid,
+        description: req.body.description,
+      };
+      let temp = JSON.parse(thisEvent.repair_description);
+      temp.pop();
+      repair_description = jsonPush(JSON.stringify(temp), repair_description);
+      appendLog("alterSubmit", thisEvent, {
         repair_description: repair_description,
         description: req.body.description,
       });

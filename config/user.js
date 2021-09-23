@@ -1,32 +1,29 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../db");
+const sequelize = require("./db");
+
 module.exports = () => {
   const attributes = {
-    rid: {
-      type: DataTypes.CHAR(10),
-      allowNull: false,
-      defaultValue: null,
-      primaryKey: false,
-      autoIncrement: false,
-      comment: null,
-      field: "rid",
-      references: {
-        key: "rid",
-        model: "repairelements_model",
-      },
-    },
-    aid: {
+    uid: {
       type: DataTypes.BIGINT,
       allowNull: false,
       defaultValue: null,
       primaryKey: true,
       autoIncrement: true,
       comment: null,
-      field: "aid",
+      field: "uid",
+    },
+    uopenid: {
+      type: DataTypes.CHAR(28),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "uopenid",
     },
     gmt_create: {
       type: DataTypes.DATE,
-      allowNull: false,
+      allowNull: true,
       defaultValue: null,
       primaryKey: false,
       autoIncrement: false,
@@ -44,18 +41,11 @@ module.exports = () => {
     },
   };
   const options = {
-    tableName: "admin",
+    tableName: "user",
     comment: "",
+    indexes: [],
     timestamps: false,
-    indexes: [
-      {
-        name: "fk_Admin_repairElements_1",
-        unique: false,
-        type: "BTREE",
-        fields: ["rid"],
-      },
-    ],
   };
-  const AdminModel = sequelize.define("admin_model", attributes, options);
-  return AdminModel;
+  const UserModel = sequelize.define("user_model", attributes, options);
+  return UserModel;
 };
