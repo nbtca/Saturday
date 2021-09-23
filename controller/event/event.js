@@ -1,6 +1,5 @@
 const { jsonPush, respond, dateToStr, uuid } = require("../../utils/utils");
 const { actionSheet } = require("../../config/config");
-const event = require("../../models/event");
 const ElementModel = require("../../models/ElementModel");
 const EventModel = require("../../models/EventModel");
 const { appendLog } = require("./action");
@@ -30,7 +29,6 @@ class Event {
       }
       data.event_log = temp;
       data.repair_description = JSON.parse(data.repair_description);
-
       respond(res, 0, "Success", data);
     } catch (error) {
       console.log(error);
@@ -190,14 +188,29 @@ class Event {
   }
 
   async close(req, res, next) {
-    let aid = res.locals.data.aid;
+    let rid = res.locals.data.rid;
     let thisEvent = req.event;
     try {
-      appendLog(req.body.accept ? "close" : "reject", thisEvent, { aid: aid });
+      appendLog("close", thisEvent, { closed_by: rid });
+      await EventModel.update(thisEvent, { eid: thisEvent.eid });
+      console.log(thisEvent);
+      respond(res, 0);
+    } catch (err) {
+      console.log(err);
+      respond(res, 111, err.message);
+    }
+  }
+
+  async reject(req, res, next) {
+    let rid = res.locals.data.rid;
+    let thisEvent = req.event;
+    try {
+      appendLog("reject", thisEvent, { rejected_by: rid });
       await EventModel.update(thisEvent, { eid: thisEvent.eid });
       respond(res, 0);
     } catch (err) {
-      next(err);
+      console.log(err);
+      respond(res, 111, err.message);
     }
   }
 

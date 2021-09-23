@@ -15,7 +15,9 @@ router.post("/accept", Event.accept);
 router.post("/submit", isCurrentElement, Event.submit);
 router.post("/alterSubmit", isCurrentElement, Event.alterSubmit);
 router.post("/drop", isCurrentElement, Event.drop);
-router.post("/assign", isAdmin, Event.assign);
-router.post("/close", isAdmin, Event.close);
+router.use(isAdmin);
+router.post("/close", Event.close);
+router.post("/reject", Event.reject);
+router.post("/assign", Event.assign);
 
 module.exports = router;

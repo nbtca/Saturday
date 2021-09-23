@@ -2,7 +2,6 @@ const EventModel = require("../models/EventModel");
 
 const { respond } = require("../utils/utils");
 exports.isEidValid = (req, res, next) => {
-  console.log("isEidValid");
   try {
     let eid = req.params.eid || req.body.eid;
     if (eid) {
@@ -14,7 +13,7 @@ exports.isEidValid = (req, res, next) => {
           }
           next();
         } else {
-          respond(res, 210, "Eid does not exist");
+          respond(res, 2010, "Eid does not exist");
         }
       });
     }
@@ -28,7 +27,7 @@ exports.isCurrentElement = async (req, res, next) => {
     if (req.role == "currentElement") {
       next();
     } else {
-      respond(res, 230, "No edit permission");
+      respond(res, 2020, "No edit permission");
     }
   } catch (error) {
     next(error);
