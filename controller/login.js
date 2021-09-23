@@ -11,7 +11,7 @@ class Login {
       let dbResults = await ElementModel.findByFilter(["ralias", "ravatar", "role", "rpassword"], { rid: rid });
       console.log(dbResults[0]);
       if (dbResults == null) {
-        respond(res, 101, "no such user");
+        respond(res, 1010, "No such user");
       } else {
         if (1) {
           console.log(dbResults[0].rpassword);
@@ -46,7 +46,7 @@ class Login {
             // TODO auto
             respond(res, 0, "Success", data);
           } else {
-            respond(res, 102, "Wrong password");
+            respond(res, 1011, "Wrong password");
           }
         }
       }

@@ -41,8 +41,8 @@ exports.actionSheet = {
       formerStatus: [2],
     },
     targetStatus: 3,
-    alterItem: ["aid"],
-    logItem: ["aid"],
+    alterItem: ["closed_by"],
+    logItem: ["closed_by"],
   },
   reject: {
     type: "reject",
@@ -53,8 +53,8 @@ exports.actionSheet = {
       formerStatus: [2],
     },
     targetStatus: 1,
-    alterItem: ["aid"],
-    logItem: ["aid"],
+    alterItem: [],
+    logItem: ["rejected_by"],
   },
   update: {
     type: "update",
@@ -96,7 +96,7 @@ exports.actionSheet = {
     },
     targetStatus: 1,
     alterItem: ["rid"],
-    logItem: ["aid", "rid"],
+    logItem: ["assigned_by", "rid"],
   },
   submit: {
     type: "submit",
