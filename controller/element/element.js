@@ -70,7 +70,7 @@ class ElementController {
           {
             rid: res.locals.data.rid,
             ralias: req.fields.alias,
-            password: req.fields.password,
+            rpassword: req.fields.password,
             name: req.fields.name,
             class: req.fields.class,
             rqq: req.fields.rqq,
@@ -84,18 +84,40 @@ class ElementController {
       console.log(err);
     }
   }
-  async update(req, res, next) {
+
+  updateAvatar(req, res, next) {
     try {
-      await ElementModel.update(
+      let file = req.files.file;
+      let ext = "." + file.type.substring(file.type.indexOf("/") + 1);
+      let timestamps = new Date().getTime();
+      let fileName = "/element/" + res.locals.data.rid + "/" + timestamps + ext;
+      let path = req.files.file.path;
+      console.log(fileName, path);
+      put(fileName, path).then(result => {
+        console.log(result);
+        ElementModel.update(
+          {
+            ravatar: result.res.requestUrls[0],
+          },
+          { rid: res.locals.data.rid }
+        ).then(respond(res, 0));
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  update(req, res, next) {
+    try {
+      ElementModel.update(
         {
           rid: res.locals.data.rid,
           ralias: req.body.alias,
-          password: req.body.password,
+          rpassword: req.body.password,
           name: req.body.name,
           class: req.body.class,
           rqq: req.body.rqq,
           rphone: req.body.rphone,
-          ravatar: req.body.ravatar,
         },
         { rid: res.locals.data.rid }
       ).then(respond(res, 0));
@@ -103,9 +125,9 @@ class ElementController {
       next(err);
     }
   }
-  async delete(req, res, next) {
+  delete(req, res, next) {
     try {
-      await ElementModel.delete({
+      ElementModel.delete({
         rid: req.body.rid,
       }).then(result => {
         // console.log(result);
