@@ -27,8 +27,13 @@ jobs:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }} 
           TARGET: "/home/ubuntu/weekend/service"
-      - uses: kevin-leptons/ssh_action@v1
+      - name: ssh pipelines
+        uses: cross-the-world/ssh-pipeline@master
+        env:
+          WELCOME: "ssh pipeline"
         with:
           host: ${{ secrets.REMOTE_HOST }}
-          key: ${{ secrets.ACCESS_TOKEN }}
-          command: docker-compose -f /home/ubuntu/weekend/docker-compose.yaml restart
+          user: ${{ secrets.REMOTE_USER }}
+          connect_timeout: 10s
+          script: |
+            docker-compose -f /home/ubuntu/weekend/docker-compose.yaml restart
