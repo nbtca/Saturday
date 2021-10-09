@@ -1,0 +1,35 @@
+name: deploy
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # 切换分支
+      - name: Checkout
+        uses: actions/checkout@master
+      # 下载 git submodule
+      - uses: srt32/git-actions@v0.0.3
+        with:
+          args: git submodule update --init --recursive
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - run: npm install
+      # Deploy
+      - name: ssh deploy
+        uses: easingthemes/ssh-deploy@v2.2.11
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.ACCESS_TOKEN }}
+          ARGS: "-avz --delete"
+          SOURCE: "dist/"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }} 
+          TARGET: "/home/ubuntu/weekend/service"
+      - uses: kevin-leptons/ssh_action@v1
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          key: ${{ secrets.ACCESS_TOKEN }}
+          command: docker-compose -f /home/ubuntu/weekend/docker-compose.yaml restart
