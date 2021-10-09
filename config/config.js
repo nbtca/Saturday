@@ -1,10 +1,10 @@
 exports.cert = "02000163";
 
 const config = {
-  host: "rm-uf6s9l8ep4131lzt9go.mysql.rds.aliyuncs.com",
-  user: "high_admin",
+  host: "1.117.145.67",
+  user: "saturday",
   password: "02000163",
-  database: "repairteam_build2",
+  database: "saturday",
 };
 exports.dbConfig = config;
 exports.mysql = require("serverless-mysql")({ config: config });
