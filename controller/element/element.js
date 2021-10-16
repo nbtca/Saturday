@@ -6,9 +6,7 @@ class ElementController {
   }
   getAll(req, res, next) {
     try {
-      ElementModel.findByFilterOrder({ exclude: ["rpassword"] }, {}, [
-        ["gmt_modified", "DESC"],
-      ]).then(result => {
+      ElementModel.findByFilterOrder({ exclude: ["rpassword"] }, {}, [["gmt_modified", "DESC"]]).then(result => {
         for (let item of result) {
           //TODO gmt_create format
           item.dataValues.gmt_create = dateToStr(item.gmt_create, "time");
@@ -22,13 +20,8 @@ class ElementController {
   }
   get(req, res, next) {
     try {
-      ElementModel.findByFilter(
-        { exclude: ["rpassword"] },
-        { rid: req.params.rid }
-      ).then(result => {
-        result
-          ? respond(res, 0, "Success", result)
-          : respond(res, 123, "no such element");
+      ElementModel.findByFilter({ exclude: ["rpassword"] }, { rid: req.params.rid }).then(result => {
+        result ? respond(res, 0, "Success", result) : respond(res, 123, "no such element");
       });
     } catch (error) {
       next(error);
@@ -57,33 +50,60 @@ class ElementController {
     }
   }
   activate(req, res, next) {
-    try {
-      let file = req.files.file;
-      let ext = "." + file.type.substring(file.type.indexOf("/") + 1);
-      let timestamps = new Date().getTime();
-      let fileName = "/element/" + res.locals.data.rid + "/" + timestamps + ext;
-      let path = req.files.file.path;
-      console.log(fileName, path);
-      put(fileName, path).then(result => {
-        console.log(result);
-        ElementModel.update(
-          {
-            rid: res.locals.data.rid,
-            ralias: req.fields.alias,
-            rpassword: req.fields.password,
-            name: req.fields.name,
-            class: req.fields.class,
-            rqq: req.fields.rqq,
-            rphone: req.fields.rphone,
-            ravatar: result.res.requestUrls[0],
-          },
-          { rid: res.locals.data.rid }
-        ).then(respond(res, 0));
-      });
-    } catch (err) {
-      console.log(err);
-    }
+    // try {
+      // let file = req.files.file;
+      // let ext = "." + file.type.substring(file.type.indexOf("/") + 1);
+      // let timestamps = new Date().getTime();
+      // let fileName = "/element/" + res.locals.data.rid + "/" + timestamps + ext;
+      // let path = req.files.file.path;
+      // console.log(fileName, path);
+      // put(fileName, path).then(result => {
+      console.log(1);
+      ElementModel.update(
+        {
+          // rid: res.locals.data.rid,
+          ralias: req.body.alias,
+          rpassword: req.body.password,
+          // name: req.body.name,
+          // class: req.body.class,
+          rqq: req.body.rqq,
+          rphone: req.body.rphone,
+        },
+        { rid: res.locals.data.rid }
+      ).then(respond(res, 0));
+      // });
+    // } catch (err) {
+    //   console.log(err);
+    // }
   }
+  // activate(req, res, next) {
+  //   try {
+  //     let file = req.files.file;
+  //     let ext = "." + file.type.substring(file.type.indexOf("/") + 1);
+  //     let timestamps = new Date().getTime();
+  //     let fileName = "/element/" + res.locals.data.rid + "/" + timestamps + ext;
+  //     let path = req.files.file.path;
+  //     console.log(fileName, path);
+  //     put(fileName, path).then(result => {
+  //       console.log(result);
+  //       ElementModel.update(
+  //         {
+  //           rid: res.locals.data.rid,
+  //           ralias: req.fields.alias,
+  //           rpassword: req.fields.password,
+  //           name: req.fields.name,
+  //           class: req.fields.class,
+  //           rqq: req.fields.rqq,
+  //           rphone: req.fields.rphone,
+  //           ravatar: result.res.requestUrls[0],
+  //         },
+  //         { rid: res.locals.data.rid }
+  //       ).then(respond(res, 0));
+  //     });
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // }
 
   updateAvatar(req, res, next) {
     try {

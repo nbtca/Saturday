@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const log4js = require("../utils/log4js");
 const { respond } = require("../utils/utils");
-const { mysql, cert } = require("../config/config");
+const { cert } = require("../config/config");
 const ElementModel = require("../models/ElementModel");
 class Login {
   constructor() {}
@@ -8,19 +9,15 @@ class Login {
     let rid = req.body.id;
     let password = req.body.password;
     try {
-      let dbResults = await ElementModel.findByFilter(
-        ["ralias", "ravatar", "role", "rpassword"],
-        { rid: rid }
-      );
+      let dbResults = await ElementModel.findByFilter(["ralias", "rpassword", "ravatar", "role", "status"], { rid: rid });
       if (dbResults.length == 0) {
         respond(res, 1010, "No such user");
       } else {
-        if (
-          password == dbResults[0].rpassword ||
-          (password == "" && dbResults[0].rpassword == null)
-        ) {
-          let isActivated = password != "" ? true : false;
-          let role = dbResults[0].role == 2 ? "admin" : "element";
+        let elementInfo = dbResults[0];
+        let roleMap = ["", "element", "admin"];
+        if (password == elementInfo.rpassword || (password == "" && elementInfo.rpassword == null)) {
+          let role = roleMap[elementInfo.role];
+          if (elementInfo.status == 0) role = "notActivated";
           let info = {
             rid: rid,
             role: role,
@@ -34,11 +31,10 @@ class Login {
           );
           let data = {
             token: token,
-            alias: dbResults[0].ralias,
-            avatar: dbResults[0].ravatar,
+            alias: elementInfo.ralias,
+            avatar: elementInfo.ravatar,
             rid: rid,
             role: role,
-            isActivated: isActivated,
           };
           await ElementModel.update(
             {
@@ -47,6 +43,8 @@ class Login {
             { rid: rid }
           );
           // TODO auto
+          let logger = log4js.getLogger("default");
+          logger.info(rid);
           respond(res, 0, "Success", data);
         } else {
           respond(res, 1011, "Wrong password");
@@ -55,7 +53,6 @@ class Login {
     } catch (err) {
       next(err);
     }
-    await mysql.end();
   }
 }
 module.exports = new Login();
