@@ -1,5 +1,6 @@
 const UserModel = require("../../models/UserModel");
 const { respond, uuid } = require("../../utils/utils");
+const axios = require("axios");
 class UserController {
   constructor() {}
   getUid(req, res, next) {
@@ -40,6 +41,25 @@ class UserController {
     } catch (error) {
       console.log(error);
     }
+  }
+  async wxLogin(req, res, next) {
+    const wxAuthUrl = "https://api.weixin.qq.com/sns/jscode2session"
+    
+    axios.get(wxAuthUrl, {
+      params : {
+        appid: "***REMOVED***",
+        secret: "***REMOVED***",
+        js_code: req.body.code,
+        grant_type:"authorization_code"
+      }
+    })
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+    
   }
 }
 module.exports = new UserController();
