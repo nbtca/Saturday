@@ -9,7 +9,8 @@ log4js.configure({
   },
   categories: {
     default: { appenders: ["fileout", "consoleout"], level: "debug" },
-    anything: { appenders: ["consoleout"], level: "debug" },
+    // anything: { appenders: ["consoleout"], level: "debug" },
+    // error: { appenders: ["fileout", "consoleout"], level: "debug" },
   },
 });
 

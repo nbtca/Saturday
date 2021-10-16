@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { cert } = require("../config/config");
 exports.jsonPush = (str, data) => {
   if (!str) {
     str = "[]";
