@@ -43,7 +43,7 @@ class Login {
             { rid: rid }
           );
           // TODO auto
-          let logger = log4js.getLogger("default");
+          let logger = log4js.getLogger();
           logger.info(rid);
           respond(res, 0, "Success", data);
         } else {
