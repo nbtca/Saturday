@@ -13,3 +13,13 @@ exports.dbConfig = {
   password: "02000163",
   database: "saturday",
 };
+
+exports.MiraiConfig = {
+  url: "http://localhost:8080",
+  key: "02000163",
+};
+
+exports.BotAccount = {
+  id: "107385325",
+  password: "repair_team",
+};
