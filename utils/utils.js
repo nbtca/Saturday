@@ -22,9 +22,7 @@ exports.respond = (res, code, msg, data) => {
   }
   res.send(returnObj);
 };
-// exports.wiper = (target) => {
-//   t;
-// };
+// TODO ???????????
 exports.dateToStr = (date, time) => {
   let ans;
   var year = date.getFullYear(); //年

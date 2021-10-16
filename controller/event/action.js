@@ -1,4 +1,4 @@
-const { actionSheet } = require("../../config/config");
+const actionSheet = require("../../config/actionSheet");
 const { jsonPush } = require("../../utils/utils");
 class Action {
   constructor(type, role) {
