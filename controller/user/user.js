@@ -1,5 +1,5 @@
 const UserModel = require("../../models/UserModel");
-const { respond, uuid } = require("../../utils/utils");
+const { respond, uuid ,createToken } = require("../../utils/utils");
 const axios = require("axios");
 class UserController {
   constructor() {}
@@ -55,6 +55,16 @@ class UserController {
     })
     .then(function (response) {
       console.log(response.data);
+      UserModel.findByFilter( ["uid"] , { uopenid: response.data.openid }).then(
+        result => {
+          if (result.length == 0) {
+            //写入openid
+          } else {
+            //生成token
+            token = createToken();
+          }
+        }
+      );
     })
     .catch(function (error) {
       console.log(error);

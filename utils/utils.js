@@ -1,3 +1,4 @@
+const jwt = require("jsonwebtoken");
 exports.jsonPush = (str, data) => {
   if (!str) {
     str = "[]";
@@ -77,3 +78,18 @@ exports.put = async (fileName, path) => {
     console.log(e);
   }
 };
+
+exports.createToken = (day, data) => {
+  try {
+    let token = jwt.sign(
+      {
+        exp: Math.floor(Date.now() / 1000) + day*24 * 60 * 60,
+        data: data,
+      },
+      cert
+    );
+    return token;
+  } catch (e) {
+    console.log(e);
+  }
+}
