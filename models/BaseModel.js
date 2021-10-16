@@ -1,4 +1,3 @@
-const db = require("../config/db");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 class BaseModel {

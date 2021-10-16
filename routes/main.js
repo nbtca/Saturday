@@ -1,7 +1,6 @@
 var express = require("express");
 const router = express.Router();
 const { auth } = require("../middleware/auth");
-const formidableMiddleware = require("express-formidable");
 
 
 var loginRouter = require("./login");

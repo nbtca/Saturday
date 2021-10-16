@@ -1,5 +1,5 @@
 const { jsonPush, respond, dateToStr, uuid } = require("../../utils/utils");
-const { actionSheet } = require("../../config/config");
+const actionSheet = require("../../config/actionSheet");
 const ElementModel = require("../../models/ElementModel");
 const EventModel = require("../../models/EventModel");
 const { appendLog } = require("./action");
@@ -22,8 +22,7 @@ class Event {
         // if (item.rid) {
         //   item.alias = await ElementModel.findByFilter({ ralias }, { rid: req.params.rid });
         // }
-        item.time =
-          item.time.substring(0, 10) + " " + item.time.substring(11, 19);
+        item.time = item.time.substring(0, 10) + " " + item.time.substring(11, 19);
         item.icon = actionSheet[item.type].icon;
         item.title = actionSheet[item.type].title;
       }
@@ -36,11 +35,9 @@ class Event {
   }
   async getAll(req, res, next) {
     try {
-      await EventModel.findByFilterOrder(
-        ["eid", "user_description", "status", "model", "rid", "gmt_create"],
-        {},
-        [["gmt_create", "DESC"]]
-      ).then(result => {
+      await EventModel.findByFilterOrder(["eid", "user_description", "status", "model", "rid", "gmt_create"], {}, [
+        ["gmt_create", "DESC"],
+      ]).then(result => {
         for (let item of result) {
           item.dataValues.gmt_create = dateToStr(item.gmt_create, "time");
         }
@@ -138,10 +135,7 @@ class Event {
         rid: res.locals.data.rid,
         description: req.body.description,
       };
-      repair_description = jsonPush(
-        thisEvent.repair_description,
-        repair_description
-      );
+      repair_description = jsonPush(thisEvent.repair_description, repair_description);
       appendLog("submit", thisEvent, {
         repair_description: repair_description,
         description: req.body.description,
