@@ -5,46 +5,45 @@ const log4js = require("../../utils/log4js");
 class UserController {
   constructor() {}
   getUid(req, res, next) {
-    try {
-      UserModel.findByFilter(["uid"], { uopenid: req.body.openid }).then(
-        result => {
-          if (result.length == 0) {
-            respond(res, 122, "No such user");
-          } else {
-            respond(res, 0, "Success", result[0]);
-          }
+    UserModel.findByFilter(["uid"], { uopenid: req.body.openid })
+      .then(result => {
+        if (result.length == 0) {
+          respond(res, 122, "No such user");
+        } else {
+          respond(res, 0, "Success", result[0]);
         }
-      );
-    } catch (error) {
-      console.error(error);
-    }
+      })
+      .catch(error => {
+        console.log(error);
+      });
   }
   get(req, res, next) {
-    try {
-      UserModel.findByFilter({}, { uid: req.params.uid }).then(result => {
+    UserModel.findByFilter({}, { uid: req.params.uid })
+      .then(result => {
         result ? respond(res, 0, "Success", result) : respond(res, 123, "user");
+      })
+      .catch(error => {
+        console.log(error);
       });
-    } catch (error) {
-      next(error);
-    }
   }
   create(req, res, next) {
-    try {
-      let id = uuid();
-      UserModel.create({
-        uid: id,
-        uopenid: req.body.openid,
-        gmt_create: new Date(),
-        gmt_modified: new Date(),
-      }).then(result => {
+    let id = uuid();
+    UserModel.create({
+      uid: id,
+      uopenid: req.body.openid,
+      gmt_create: new Date(),
+      gmt_modified: new Date(),
+    })
+      .then(result => {
         respond(res, 0, "Success", { uid: id });
+      })
+      .catch(error => {
+        console.log(error);
       });
-    } catch (error) {
-      console.log(error);
-    }
   }
-  async wxLogin(req, res, next) {
+  wxLogin(req, res, next) {
     const wxAuthUrl = "https://api.weixin.qq.com/sns/jscode2session";
+    let openid;
     axios
       .get(wxAuthUrl, {
         params: {
@@ -55,11 +54,12 @@ class UserController {
         },
       })
       .then(wxData => {
-        if (wxData.openid == null) {
+        if (wxData.data.openid == null) {
           respond(res, 555, "wrong code");
           throw new Error("wrong code");
         }
-        let openid = wxData.data.openid;
+        openid = wxData.data.openid;
+        console.log(openid);
         return UserModel.findByFilter(["uid"], { uopenid: openid });
       })
       .then(async result => {
@@ -76,7 +76,7 @@ class UserController {
           uid = result[0].uid;
         }
         //生成token
-        let token = createToken(1, { uid: uid });
+        let token = createToken(1, { uid: uid, role: "user" });
         let data = {
           uid: uid,
           token: token,
