@@ -5,5 +5,6 @@ class UserModel extends BaseModel {
   constructor() {
     super(User());
   }
+  
 }
 module.exports = new UserModel();

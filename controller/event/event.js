@@ -22,7 +22,8 @@ class Event {
         // if (item.rid) {
         //   item.alias = await ElementModel.findByFilter({ ralias }, { rid: req.params.rid });
         // }
-        item.time = item.time.substring(0, 10) + " " + item.time.substring(11, 19);
+        item.time =
+          item.time.substring(0, 10) + " " + item.time.substring(11, 19);
         item.icon = actionSheet[item.type].icon;
         item.title = actionSheet[item.type].title;
       }
@@ -35,9 +36,12 @@ class Event {
   }
   async getAll(req, res, next) {
     try {
-      await EventModel.findByFilterOrder(["eid", "user_description", "status", "model", "rid", "gmt_create"], {}, [
-        ["gmt_create", "DESC"],
-      ]).then(result => {
+      let filter = req.role == "user" ? { uid: res.locals.data.uid } : {};
+      await EventModel.findByFilterOrder(
+        ["eid", "user_description", "status", "model", "rid", "gmt_create"],
+        filter,
+        [["gmt_create", "DESC"]]
+      ).then(result => {
         for (let item of result) {
           item.dataValues.gmt_create = dateToStr(item.gmt_create, "time");
         }
@@ -118,7 +122,6 @@ class Event {
     try {
       let thisEvent = req.event;
       appendLog("accept", thisEvent, { rid: res.locals.data.rid });
-      console.log(thisEvent);
       await EventModel.update(thisEvent, { eid: thisEvent.eid });
       respond(res, 0);
     } catch (error) {
@@ -128,14 +131,16 @@ class Event {
   //submit repair
   async submit(req, res, next) {
     try {
-      console.log(req.body);
       let thisEvent = req.event;
       let repair_description = {
         time: new Date(),
         rid: res.locals.data.rid,
         description: req.body.description,
       };
-      repair_description = jsonPush(thisEvent.repair_description, repair_description);
+      repair_description = jsonPush(
+        thisEvent.repair_description,
+        repair_description
+      );
       appendLog("submit", thisEvent, {
         repair_description: repair_description,
         description: req.body.description,
@@ -187,7 +192,6 @@ class Event {
     try {
       appendLog("close", thisEvent, { closed_by: rid });
       await EventModel.update(thisEvent, { eid: thisEvent.eid });
-      console.log(thisEvent);
       respond(res, 0);
     } catch (err) {
       console.log(err);
