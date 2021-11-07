@@ -86,7 +86,7 @@ class Event {
           type: "update",
           time: new Date(),
         };
-        eventLog = jsonPush(thisEvent.event_log, addEventLog);
+        let eventLog = jsonPush(thisEvent.event_log, addEventLog);
         await EventModel.update(
           {
             model: req.body.model,
@@ -104,7 +104,7 @@ class Event {
         respond(res, 220, "Event has been accepted or deleted");
       }
     } catch (error) {
-      next(error);
+      console.log(error);
     }
   }
 
