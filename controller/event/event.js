@@ -3,6 +3,7 @@ const actionSheet = require("../../config/actionSheet");
 const ElementModel = require("../../models/ElementModel");
 const EventModel = require("../../models/EventModel");
 const { appendLog } = require("./action");
+const Bot = require("../../utils/bot");
 // A:admin U:user E:element CE:current element
 // delete (1-3)->0 U
 // accept 1->2 E
@@ -22,8 +23,7 @@ class Event {
         // if (item.rid) {
         //   item.alias = await ElementModel.findByFilter({ ralias }, { rid: req.params.rid });
         // }
-        item.time =
-          item.time.substring(0, 10) + " " + item.time.substring(11, 19);
+        item.time = item.time.substring(0, 10) + " " + item.time.substring(11, 19);
         item.icon = actionSheet[item.type].icon;
         item.title = actionSheet[item.type].title;
       }
@@ -37,11 +37,9 @@ class Event {
   async getAll(req, res, next) {
     try {
       let filter = req.role == "user" ? { uid: res.locals.data.uid } : {};
-      await EventModel.findByFilterOrder(
-        ["eid", "user_description", "status", "model", "rid", "gmt_create"],
-        filter,
-        [["gmt_create", "DESC"]]
-      ).then(result => {
+      await EventModel.findByFilterOrder(["eid", "user_description", "status", "model", "rid", "gmt_create"], filter, [
+        ["gmt_create", "DESC"],
+      ]).then(result => {
         for (let item of result) {
           item.dataValues.gmt_create = dateToStr(item.gmt_create, "time");
         }
@@ -58,19 +56,22 @@ class Event {
         time: new Date(),
       },
     ]);
+    let newEvent = {
+      eid: uuid(),
+      uid: req.body.uid,
+      model: req.body.model,
+      eqq: req.body.qq,
+      ephone: req.body.phone,
+      preference: req.body.preference,
+      user_description: req.body.description,
+      event_log: eventLog,
+      gmt_create: new Date(),
+      gmt_modified: new Date(),
+    };
     try {
-      await EventModel.create({
-        eid: uuid(),
-        uid: req.body.uid,
-        model: req.body.model,
-        eqq: req.body.qq,
-        ephone: req.body.phone,
-        preference: req.body.preference,
-        user_description: req.body.description,
-        event_log: eventLog,
-        gmt_create: new Date(),
-        gmt_modified: new Date(),
-      });
+      await EventModel.create(newEvent);
+      const msg = Bot.newEventTemplate(newEvent);
+      await Bot.sendGroupMsg(msg);
       respond(res, 0);
     } catch (error) {
       console.log(error);
@@ -137,10 +138,7 @@ class Event {
         rid: res.locals.data.rid,
         description: req.body.description,
       };
-      repair_description = jsonPush(
-        thisEvent.repair_description,
-        repair_description
-      );
+      repair_description = jsonPush(thisEvent.repair_description, repair_description);
       appendLog("submit", thisEvent, {
         repair_description: repair_description,
         description: req.body.description,
