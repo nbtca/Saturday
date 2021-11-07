@@ -6,5 +6,4 @@ const Setting = require("../controller/setting/setting");
 router.get("/", Setting.get);
 router.put("/", isAdmin, Setting.update);
 
-
 module.exports = router;
