@@ -1,8 +1,10 @@
 const log4js = require("../../utils/log4js");
 const { respond, dateToStr, put, createToken } = require("../../utils/utils");
 const ElementModel = require("../../models/ElementModel");
+
 class ElementController {
   constructor() {}
+
   getAll(req, res, next) {
     ElementModel.findByFilterOrder({ exclude: ["rpassword"] }, {}, [["gmt_modified", "DESC"]])
       .then(result => {
@@ -15,6 +17,7 @@ class ElementController {
       })
       .catch(error => console.log(error));
   }
+
   get(req, res, next) {
     ElementModel.findByFilter({ exclude: ["rpassword"] }, { rid: req.params.rid })
       .then(result => {
@@ -22,6 +25,7 @@ class ElementController {
       })
       .catch(error => console.log(error));
   }
+
   create(req, res, next) {
     ElementModel.create({
       rid: req.body.rid,
@@ -41,6 +45,7 @@ class ElementController {
       .then(() => respond(res, 0))
       .catch(error => console.log(error));
   }
+
   update(req, res, next) {
     ElementModel.update(
       {
