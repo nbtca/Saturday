@@ -23,3 +23,5 @@ exports.BotAccount = {
   id: "***REMOVED***",
   password: "***REMOVED***",
 };
+
+exports.GroupID = "***REMOVED***";
