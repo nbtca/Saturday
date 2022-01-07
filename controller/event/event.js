@@ -27,6 +27,7 @@ class Event {
         item.icon = actionSheet[item.type].icon;
         item.title = actionSheet[item.type].title;
       }
+      data.gmt_create = dateToStr(data.gmt_create, "time");
       data.event_log = temp;
       data.repair_description = JSON.parse(data.repair_description);
       respond(res, 0, "Success", data);

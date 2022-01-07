@@ -23,3 +23,5 @@ exports.BotAccount = {
   id: "107385325",
   password: "repair_team",
 };
+
+exports.GroupID = "875853470";

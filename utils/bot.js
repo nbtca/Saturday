@@ -1,9 +1,9 @@
 const { Message, Middleware } = require("mirai-js");
 const bot = require("../config/mirai");
-const GroupID = "960601785"; // test
+const GroupID = require("../config/config");
+// const GroupID = "960601785"; // test
 
 class Bot {
-  // const GroupID = "875853470";
   constructor() {}
   newEventTemplate(event) {
     // let xmlContent =
