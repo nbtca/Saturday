@@ -8,6 +8,13 @@ var elementsRouter = require("./elements");
 var eventsRouter = require("./events");
 var settingRouter = require("./setting");
 
+
+const Bot = require("../utils/bot");
+router.get("/mirai", (request, response) => {
+  Bot.msgTest();
+  response.send("mirai");
+})
+
 router.use("/login", loginRouter);
 router.use("/user", userRouter);
 router.use("/elements", auth, elementsRouter);
