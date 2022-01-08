@@ -20,7 +20,7 @@ class Bot {
   }
 
   async msgTest() {
-    bot.sendMessage({
+    await bot.sendMessage({
       group: TestGroupID,
       message: new Message().addText("test"),
     });
