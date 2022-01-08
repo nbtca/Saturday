@@ -15,7 +15,7 @@ exports.dbConfig = {
 };
 
 exports.MiraiConfig = {
-  url: "http://localhost:8080",
+  url: "http://mirai:8080",
   key: "***REMOVED***",
 };
 
