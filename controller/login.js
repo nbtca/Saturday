@@ -2,11 +2,14 @@ const log4js = require("../utils/log4js");
 const { respond, createToken } = require("../utils/utils");
 const ElementModel = require("../models/ElementModel");
 class Login {
-  constructor() {}
+  constructor() { }
   async login(req, res, next) {
     let rid = req.body.id;
     let password = req.body.password;
-     ElementModel.findByFilter(
+    if (rid == null) {
+      respond(res, 1001, "missing id");
+    }
+    ElementModel.findByFilter(
       ["ralias", "rpassword", "ravatar", "role", "status"],
       { rid: rid }
     )
@@ -39,7 +42,6 @@ class Login {
               { gmt_modified: new Date() },
               { rid: rid }
             );
-
             let logger = log4js.getLogger();
             logger.info(rid);
             respond(res, 0, "Success", data);
