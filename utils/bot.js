@@ -1,10 +1,11 @@
 const { Message, Middleware } = require("mirai-js");
 const bot = require("../config/mirai");
-const GroupID = require("../config/config");
+const { GroupID } = require("../config/config");
 // const GroupID = "960601785"; // test
 
 class Bot {
   constructor() {}
+  
   newEventTemplate(event) {
     // let xmlContent =
     //   "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?> <msg serviceID='1' templateID='-1' action='app' actionData='com.android.camera' brief='测试' sourceMsgId='0' url='' flag='1' adverSign='0' multiMsgFlag='0'> <item><title>测试</title></item> <item layout='6' ><picture cover='https://w.wallhaven.cc/full/3z/wallhaven-3z32j3.jpg' /></item></msg>";
