@@ -8,7 +8,7 @@ exports.isEidValid = (req, res, next) => {
       EventModel.findByFilter({}, { eid: eid }).then(result => {
         if (result.length != 0) {
           req.event = result[0].dataValues;
-          if (req.event.rid == res.locals.data.rid) {
+          if (req.event.rid == res.locals.data.rid && req.role != "admin") {
             req.role = "currentElement";
           }
           next();
@@ -24,7 +24,7 @@ exports.isEidValid = (req, res, next) => {
 
 exports.isCurrentElement = async (req, res, next) => {
   try {
-    if (req.role == "currentElement") {
+    if (req.role == "currentElement" || req.role == "admin") {
       next();
     } else {
       respond(res, 2020, "No edit permission");
