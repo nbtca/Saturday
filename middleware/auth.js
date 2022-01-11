@@ -9,8 +9,6 @@ exports.auth = (req, res, next) => {
     next(err);
   }
   if (decoded) {
-    // 
-    console.log('de'+decoded.data.rid)
     res.locals.data = decoded.data;
     req.role = decoded.data.role;
     next();
