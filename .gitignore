@@ -1,2 +1,3 @@
 node_modules
 logs/*
+wait-for-it.sh
