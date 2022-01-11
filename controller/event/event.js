@@ -38,7 +38,7 @@ class Event {
   async getAll(req, res, next) {
     try {
       let filter = req.role == "user" ? { uid: res.locals.data.uid } : {};
-      await EventModel.findByFilterOrder(["eid", "user_description", "status", "model", "rid", "gmt_create"], filter, [
+      await EventModel.findByFilterOrder(["eid", "user_description", "status", "model", "rid", "gmt_create","ephone","eqq"], filter, [
         ["gmt_create", "DESC"],
       ]).then(result => {
         for (let item of result) {
