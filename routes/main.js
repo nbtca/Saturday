@@ -15,6 +15,8 @@ router.get("/mirai", (request, response) => {
   response.send("mirai");
 })
 
+
+
 router.use("/login", loginRouter);
 router.use("/user", userRouter);
 router.use("/elements", auth, elementsRouter);

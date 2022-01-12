@@ -3,7 +3,7 @@ const { respond, dateToStr, put, createToken } = require("../../utils/utils");
 const ElementModel = require("../../models/ElementModel");
 
 class ElementController {
-  constructor() {}
+  constructor() { }
 
   getAll(req, res, next) {
     ElementModel.findByFilterOrder({ exclude: ["rpassword"] }, {}, [["gmt_modified", "DESC"]])
@@ -21,7 +21,13 @@ class ElementController {
   get(req, res, next) {
     ElementModel.findByFilter({ exclude: ["rpassword"] }, { rid: req.params.rid })
       .then(result => {
-        result ? respond(res, 0, "Success", result) : respond(res, 123, "no such element");
+        if (result) {
+          let roleMap = ["", "element", "admin"];
+          result[0].role=roleMap[result[0].role];
+          respond(res, 0, "Success", result[0]);
+        } else {
+          respond(res, 123, "No such element");
+        }
       })
       .catch(error => console.log(error));
   }
@@ -153,6 +159,7 @@ class ElementController {
   //   }
   // }
   updateAvatar(req, res, next) {
+    console.log("update Avatar");
     let file = req.files.file;
     let ext = "." + file.type.substring(file.type.indexOf("/") + 1);
     let timestamps = new Date().getTime();
