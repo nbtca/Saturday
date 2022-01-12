@@ -2,8 +2,8 @@ exports.cert = "02000163";
 
 exports.ossConfig = {
   region: "oss-cn-hangzhou",
-  accessKeyId: "LTAI5tCyeZFdHskUvpTRCyPp",
-  accessKeySecret: "r79n1DQaL5Y0lpremWGguBoHFA3aky",
+  accessKeyId: "LTAI5tFKYE3PsxxXJLBGkb8u",
+  accessKeySecret: "vgKKxwgjJBtDVfVRzNwKXF51C8Fwju",
   bucket: "sunday-res",
 };
 
