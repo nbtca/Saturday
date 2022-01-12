@@ -2,8 +2,8 @@ exports.cert = "***REMOVED***";
 
 exports.ossConfig = {
   region: "oss-cn-hangzhou",
-  accessKeyId: "LTAI5tCyeZFdHskUvpTRCyPp",
-  accessKeySecret: "r79n1DQaL5Y0lpremWGguBoHFA3aky",
+  accessKeyId: "***REMOVED***",
+  accessKeySecret: "***REMOVED***",
   bucket: "sunday-res",
 };
 
