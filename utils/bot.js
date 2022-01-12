@@ -15,6 +15,7 @@ class Bot {
       .addText(event.user_description + "\n")
       .addText("型号: ")
       .addText(event.model + "\n")
+      .addText("www.vingilote.icu\n")
       .addAtAll();
     // .addXml(xmlContent);
   }
