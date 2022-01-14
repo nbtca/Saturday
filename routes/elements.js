@@ -1,8 +1,12 @@
-var express = require("express");
+const express = require("express");
 const formidableMiddleware = require("express-formidable");
 const router = express.Router();
-var Element = require("../controller/element/element");
+const {  auth } = require("../middleware/auth");
+const Element = require("../controller/element/element");
 
+router.post("/login", Element.login);
+
+router.use(auth);
 router.get("/", Element.getAll);
 router.get("/:rid", Element.get);
 router.post("/", Element.create);

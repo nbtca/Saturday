@@ -1,4 +1,4 @@
-const { jsonPush, respond, dateToStr, uuid } = require("../../utils/utils");
+const { jsonPush, respond,  uuid } = require("../../utils/utils");
 const actionSheet = require("../../config/actionSheet");
 const ElementModel = require("../../models/ElementModel");
 const EventModel = require("../../models/EventModel");
@@ -27,7 +27,6 @@ class Event {
         item.icon = actionSheet[item.type].icon;
         item.title = actionSheet[item.type].title;
       }
-      data.gmt_create = dateToStr(data.gmt_create, "time");
       data.event_log = temp;
       data.repair_description = JSON.parse(data.repair_description);
       respond(res, 0, "Success", data);
@@ -41,9 +40,6 @@ class Event {
       await EventModel.findByFilterOrder(["eid", "user_description", "status", "model", "rid", "gmt_create","ephone","eqq"], filter, [
         ["gmt_create", "DESC"],
       ]).then(result => {
-        for (let item of result) {
-          item.dataValues.gmt_create = dateToStr(item.gmt_create, "time");
-        }
         respond(res, 0, "Success", result);
       });
     } catch (error) {
