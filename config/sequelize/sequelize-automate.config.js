@@ -13,5 +13,5 @@ module.exports = {
   options: {
     type: "js",
     dir: "./config/sequelize",
-  },
+  }
 };

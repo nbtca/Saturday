@@ -1,8 +1,8 @@
 const log4js = require("../../utils/log4js");
-const { respond, dateToStr, put, createToken } = require("../../utils/utils");
+const { respond, put, createToken } = require("../../utils/utils");
 const SettingModel = require("../../models/SettingModel");
 class SettingController {
-  constructor() {}
+  constructor() { }
   async get(req, res, next) {
     try {
       let setting = await SettingModel.findAll();

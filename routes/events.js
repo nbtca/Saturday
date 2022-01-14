@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { isAdmin } = require("../middleware/auth");
+const { isAdmin, auth } = require("../middleware/auth");
 const { isEidValid: isEidValid, isCurrentElement } = require("../middleware/event");
 
 const Event = require("../controller/event/event");
