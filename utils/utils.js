@@ -24,32 +24,32 @@ exports.respond = (res, code, msg, data) => {
   res.send(returnObj);
 };
 // TODO ???????????
-exports.dateToStr = (date, time) => {
-  let ans;
-  var year = date.getFullYear(); //年
-  var month = date.getMonth(); //月
-  var day = date.getDate(); //日
-  ans =
-    year +
-    "-" +
-    (month + 1 > 9 ? month + 1 : "0" + (month + 1)) +
-    "-" +
-    (day > 9 ? day : "0" + day);
-  if (time) {
-    var hours = date.getHours(); //时
-    var min = date.getMinutes(); //分
-    var second = date.getSeconds(); //秒
-    ans +=
-      " " +
-      (hours > 9 ? hours : "0" + hours) +
-      ":" +
-      (min > 9 ? min : "0" + min) +
-      ":" +
-      (second > 9 ? second : "0" + second);
-  }
+// exports.dateToStr = (date, time) => {
+// let ans;
+// var year = date.getFullYear(); //年
+// var month = date.getMonth(); //月
+// var day = date.getDate(); //日
+// ans =
+//   year +
+//   "-" +
+//   (month + 1 > 9 ? month + 1 : "0" + (month + 1)) +
+//   "-" +
+//   (day > 9 ? day : "0" + day);
+// if (time) {
+//   var hours = date.getHours(); //时
+//   var min = date.getMinutes(); //分
+//   var second = date.getSeconds(); //秒
+//   ans +=
+//     " " +
+//     (hours > 9 ? hours : "0" + hours) +
+//     ":" +
+//     (min > 9 ? min : "0" + min) +
+//     ":" +
+//     (second > 9 ? second : "0" + second);
+// }
 
-  return ans;
-};
+// return date;
+// };
 exports.uuid = () => {
   var d = new Date().getTime();
   var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
@@ -82,7 +82,7 @@ exports.createToken = (day, data) => {
   try {
     let token = jwt.sign(
       {
-        exp: Math.floor(Date.now() / 1000) + day*24 * 60 * 60,
+        exp: Math.floor(Date.now() / 1000) + day * 24 * 60 * 60,
         data: data,
       },
       cert
