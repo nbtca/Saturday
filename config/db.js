@@ -5,6 +5,11 @@ const { dbConfig } = require("./config");
 const db = new Sequelize(dbConfig.database, dbConfig.user, dbConfig.password, {
   host: dbConfig.host,
   dialect: "mysql",
+  timezone: '+08:00',
+  dialectOptions: {
+    dateStrings: true,
+    typeCast: true
+  }
 });
 
 db.authenticate()

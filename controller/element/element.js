@@ -1,5 +1,5 @@
 const log4js = require("../../utils/log4js");
-const { respond, dateToStr, put, createToken } = require("../../utils/utils");
+const { respond, put, createToken } = require("../../utils/utils");
 const ElementModel = require("../../models/ElementModel");
 
 class ElementController {
@@ -8,11 +8,6 @@ class ElementController {
   getAll(req, res, next) {
     ElementModel.findByFilterOrder({ exclude: ["rpassword"] }, {}, [["gmt_modified", "DESC"]])
       .then(result => {
-        for (let item of result) {
-          //TODO gmt_create format
-          item.dataValues.gmt_create = dateToStr(item.gmt_create, "time");
-          item.dataValues.gmt_modified = dateToStr(item.gmt_modified, "time");
-        }
         respond(res, 0, "Success", result);
       })
       .catch(error => console.log(error));
@@ -23,7 +18,7 @@ class ElementController {
       .then(result => {
         if (result) {
           let roleMap = ["", "element", "admin"];
-          result[0].role=roleMap[result[0].role];
+          result[0].role = roleMap[result[0].role];
           respond(res, 0, "Success", result[0]);
         } else {
           respond(res, 123, "No such element");
@@ -78,38 +73,51 @@ class ElementController {
       })
       .catch(error => console.log(error));
   }
-  login(req, res, next) {
+  async login(req, res, next) {
     let rid = req.body.id;
     let password = req.body.password;
-    ElementModel.findByFilter(["ralias", "rpassword", "ravatar", "role", "status"], { rid: rid })
+    if (rid == null) {
+      respond(res, 1001, "missing id");
+    }
+    ElementModel.findByFilter(
+      ["ralias", "rpassword", "ravatar", "role", "status"],
+      { rid: rid }
+    )
       .then(async dbResults => {
         if (dbResults.length == 0) {
           respond(res, 1010, "No such user");
+          return;
+        }
+        let elementInfo = dbResults[0];
+        let roleMap = ["", "element", "admin"];
+        if (
+          password == elementInfo.rpassword ||
+          (password == "" && elementInfo.rpassword == null)
+        ) {
+          let role =
+            elementInfo.status == 0
+              ? "notActivated"
+              : roleMap[elementInfo.role];
+          let token = createToken(14, {
+            rid: rid,
+            role: role,
+          });
+          let data = {
+            token: token,
+            alias: elementInfo.ralias,
+            avatar: elementInfo.ravatar,
+            rid: rid,
+            role: role,
+          };
+          await ElementModel.update(
+            { gmt_modified: new Date() },
+            { rid: rid }
+          );
+          let logger = log4js.getLogger();
+          logger.info(rid);
+          respond(res, 0, "Success", data);
         } else {
-          let elementInfo = dbResults[0];
-          let roleMap = ["", "element", "admin"];
-          if (password == elementInfo.rpassword || (password == "" && elementInfo.rpassword == null)) {
-            let role = elementInfo.status == 0 ? "notActivated" : roleMap[elementInfo.role];
-            let token = createToken(100, {
-              rid: rid,
-              role: role,
-            });
-            let data = {
-              token: token,
-              alias: elementInfo.ralias,
-              avatar: elementInfo.ravatar,
-              rid: rid,
-              role: role,
-            };
-            await ElementModel.update({ gmt_modified: new Date() }, { rid: rid });
-
-            let logger = log4js.getLogger();
-            logger.info(rid);
-
-            respond(res, 0, "Success", data);
-          } else {
-            respond(res, 1011, "Wrong password");
-          }
+          respond(res, 1011, "Wrong password");
         }
       })
       .catch(error => {
