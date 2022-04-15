@@ -11,9 +11,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
       # 下载 git submodule
-      - uses: srt32/git-actions@v0.0.3
-        with:
-          args: git submodule update --init --recursive
+      # - uses: srt32/git-actions@v0.0.3
+      #   with:
+      #     args: git submodule update --init --recursive
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
