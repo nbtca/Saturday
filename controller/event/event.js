@@ -68,7 +68,7 @@ class Event {
     try {
       await EventModel.create(newEvent);
       const msg = Bot.newEventTemplate(newEvent);
-      await Bot.broadCast(msg)
+      await Bot.broadcast(msg)
       respond(res, 0);
     } catch (error) {
       console.log(error);

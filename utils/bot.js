@@ -45,10 +45,10 @@ class Bot {
     }
   }
 
-  async broadCast(msg) {
-    GroupList.forEach(group => {
-      await this.sendGroupMsg(msg, group)
-    })
+  async broadcast(msg) {
+    for (group of GroupList) {
+      await this.sendGroupMsg(msg, group);
+    }
   }
 }
 module.exports = new Bot();
