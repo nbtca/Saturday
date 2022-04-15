@@ -1,6 +1,6 @@
 const { Message, Middleware } = require("mirai-js");
 const bot = require("../config/mirai");
-const { GroupID } = require("../config/config");
+const { GroupList } = require("../config/config");
 const TestGroupID = "960601785"; // test
 
 class Bot {
@@ -34,15 +34,21 @@ class Bot {
     });
   }
 
-  async sendGroupMsg(msg) {
+  async sendGroupMsg(message, group) {
     try {
       await bot.sendMessage({
-        group: GroupID,
-        message: msg,
+        group: group,
+        message: message,
       });
     } catch (error) {
       console.log(error);
     }
+  }
+
+  async broadCast(msg) {
+    GroupList.forEach(group => {
+      await this.sendGroupMsg(msg, group)
+    })
   }
 }
 module.exports = new Bot();

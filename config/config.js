@@ -25,3 +25,9 @@ exports.BotAccount = {
 };
 
 exports.GroupID = "***REMOVED***";
+
+exports.GroupList = [
+  "***REMOVED***",
+  "***REMOVED***",
+  "***REMOVED***"
+]

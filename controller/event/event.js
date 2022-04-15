@@ -1,4 +1,4 @@
-const { jsonPush, respond,  uuid } = require("../../utils/utils");
+const { jsonPush, respond, uuid } = require("../../utils/utils");
 const actionSheet = require("../../config/actionSheet");
 const ElementModel = require("../../models/ElementModel");
 const EventModel = require("../../models/EventModel");
@@ -14,7 +14,7 @@ const Bot = require("../../utils/bot");
 // close  ?->4 A
 
 class Event {
-  constructor() {}
+  constructor() { }
   async get(req, res, next) {
     let data = req.event;
     try {
@@ -37,7 +37,7 @@ class Event {
   async getAll(req, res, next) {
     try {
       let filter = req.role == "user" ? { uid: res.locals.data.uid } : {};
-      await EventModel.findByFilterOrder(["eid", "user_description", "status", "model", "rid", "gmt_create","ephone","eqq"], filter, [
+      await EventModel.findByFilterOrder(["eid", "user_description", "status", "model", "rid", "gmt_create", "ephone", "eqq"], filter, [
         ["gmt_create", "DESC"],
       ]).then(result => {
         respond(res, 0, "Success", result);
@@ -68,7 +68,7 @@ class Event {
     try {
       await EventModel.create(newEvent);
       const msg = Bot.newEventTemplate(newEvent);
-      await Bot.sendGroupMsg(msg);
+      await Bot.broadCast(msg)
       respond(res, 0);
     } catch (error) {
       console.log(error);
