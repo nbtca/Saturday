@@ -25,3 +25,9 @@ exports.BotAccount = {
 };
 
 exports.GroupID = "875853470";
+
+exports.GroupList = [
+  "875853470",
+  "466691612",
+  "958434884"
+]
