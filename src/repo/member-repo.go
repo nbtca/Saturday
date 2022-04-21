@@ -7,30 +7,27 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
 )
 
-type MemberRepo struct {
-	DB *sqlx.DB
-}
+// type Member struct{}
 
-func (MemberRepo) getMemberStatement() squirrel.SelectBuilder {
+func getMemberStatement() squirrel.SelectBuilder {
 	members := squirrel.Select(util.FieldsConstructor(model.Member{})).From("member")
 	return members.LeftJoin("member_role_relation USING (member_id)").LeftJoin("role USING (role_id)")
 }
 
-func (repo *MemberRepo) getMemberByIdStatement(id string) squirrel.SelectBuilder {
-	return repo.getMemberStatement().Where(squirrel.Eq{"member_id": id})
+func getMemberByIdStatement(id string) squirrel.SelectBuilder {
+	return getMemberStatement().Where(squirrel.Eq{"member_id": id})
 }
 
-func (repo *MemberRepo) pagination(offset uint64, limit uint64) squirrel.SelectBuilder {
-	return repo.getMemberStatement().Offset(offset).Limit(limit)
+func pagination(offset uint64, limit uint64) squirrel.SelectBuilder {
+	return getMemberStatement().Offset(offset).Limit(limit)
 }
 
-func (repo *MemberRepo) GetMemberById(id string) model.Member {
-	sql, args, _ := repo.getMemberByIdStatement(id).ToSql()
+func GetMemberById(id string) model.Member {
+	sql, args, _ := getMemberByIdStatement(id).ToSql()
 	member := []model.Member{}
-	err := repo.DB.Select(&member, sql, args...)
+	err := db.Select(&member, sql, args...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,11 +38,11 @@ func (repo *MemberRepo) GetMemberById(id string) model.Member {
 	}
 }
 
-func (repo *MemberRepo) GetMembers(offset uint64, limit uint64) []model.Member {
-	sql, args, _ := repo.pagination(offset, limit).ToSql()
+func GetMembers(offset uint64, limit uint64) []model.Member {
+	sql, args, _ := pagination(offset, limit).ToSql()
 	log.Println(sql)
 	members := []model.Member{}
-	err := repo.DB.Select(&members, sql, args...)
+	err := db.Select(&members, sql, args...)
 	if err != nil {
 		log.Fatal(err)
 	}

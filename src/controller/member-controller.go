@@ -10,7 +10,6 @@ import (
 )
 
 type MemberController struct {
-	MemberService *service.MemberService
 }
 
 func (controller *MemberController) GetMemberById(c *gin.Context) {
@@ -20,8 +19,14 @@ func (controller *MemberController) GetMemberById(c *gin.Context) {
 	if errs != nil {
 		log.Println(errs)
 	}
-	member := controller.MemberService.GetMemberById(c.Param("MemberId"))
+	member, err := service.MemberServiceApp.GetMemberById(c.Param("MemberId"))
+	if err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"message": "path fail"})
+		c.Error(err)
+		return
+	}
 	c.JSON(200, member)
+
 }
 
 func (controller *MemberController) GetByPage(c *gin.Context) {
@@ -29,6 +34,8 @@ func (controller *MemberController) GetByPage(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 	}
-	members := controller.MemberService.GetMembers(offset, limit)
+	members := service.MemberServiceApp.GetMembers(offset, limit)
 	c.JSON(200, members)
 }
+
+var MemberControllerApp = new(MemberController)
