@@ -6,6 +6,7 @@ type Member struct {
 	Password    string `json:"password"`
 	Name        string `json:"name"`
 	Section     string `json:"section"`
+	Role        string `json:"role"`
 	Profile     string `json:"profile"`
 	Phone       string `json:"phone"`
 	Qq          string `json:"qq"`
@@ -13,5 +14,4 @@ type Member struct {
 	CreatedBy   string `json:"created_by" db:"created_by"`
 	GmtCreate   string `json:"gmt_create" db:"gmt_create"`
 	GmtModified string `json:"gmt_modified" db:"gmt_modified"`
-	Role        string `json:"role"`
 }

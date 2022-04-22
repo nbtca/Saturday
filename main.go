@@ -1,13 +1,13 @@
 package main
 
 import (
-	_ "github.com/go-sql-driver/mysql"
-
 	"gin-example/src/repo"
 	"gin-example/src/router"
+	"gin-example/util"
 )
 
 func main() {
+	util.Logger().Info("Starting server...")
 	repo.InitDB()
 	defer repo.CloseDB()
 	router.InitRouter()

@@ -1,10 +1,15 @@
 package util
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 type DetailError struct {
-	Field string `json:"field"`
-	Error string `json:"error"`
+	Resource string `json:"resource"`
+	Field    string `json:"field"`
+	Error    string `json:"error"`
 }
 
 type ServiceError struct {
@@ -12,16 +17,20 @@ type ServiceError struct {
 	HttpStatus int
 	Body       struct {
 		Message string        `json:"message"`
-		Errors  []DetailError `json:"errors"`
+		Errors  []DetailError `json:"errors,omitempty"`
 	}
 }
 
-func (error *ServiceError) setErrors(errors []DetailError) *ServiceError {
-	error.Body.Errors = append(error.Body.Errors, errors...)
-	return error
+func (serviceError *ServiceError) AddDetailError(resource string, field string, error string) {
+	detailError := DetailError{
+		Resource: resource,
+		Field:    field,
+		Error:    error,
+	}
+	serviceError.Body.Errors = append(serviceError.Body.Errors, detailError)
 }
 
-func (error *ServiceError) getCodeAndBody() (int, interface{}) {
+func (error ServiceError) Build() (int, interface{}) {
 	return error.HttpStatus, error.Body
 }
 
@@ -32,13 +41,30 @@ func MakeServiceError(HttpStatus int) *ServiceError {
 	return error
 }
 
+func (serviceError *ServiceError) SetStatus(status int) *ServiceError {
+	serviceError.HttpStatus = status
+	return serviceError
+}
+
+func (serviceError *ServiceError) SetMessage(message string) *ServiceError {
+	serviceError.Body.Message = message
+	return serviceError
+}
+
+func IsServiceError(err error) (*ServiceError, bool) {
+	serviceError, ok := err.(*ServiceError)
+	return serviceError, ok
+}
+
 func ErrorHandler(c *gin.Context) {
+
 	c.Next()
-	// for i, err := range c.Errors {
-	// }
-	if len(c.Errors) > 0 {
-		error := MakeServiceError(c.Writer.Status())
-		error.Body.Message = c.Errors.String()
-		// error.setToCtx(c)
+	if len(c.Errors) == 0 {
+		return
 	}
+	for _, err := range c.Errors {
+		Logger().Error(err)
+	}
+	c.JSON(http.StatusInternalServerError, "")
+
 }
