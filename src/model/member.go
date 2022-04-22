@@ -15,3 +15,11 @@ type Member struct {
 	GmtCreate   string `json:"gmt_create" db:"gmt_create"`
 	GmtModified string `json:"gmt_modified" db:"gmt_modified"`
 }
+type MemberRoleRelation struct {
+	MemberId string `json:"member_id"`
+	RoleId   int64  `json:"role_id"`
+}
+type Role struct {
+	RoleId int64  `json:"role_id"`
+	Role   string `json:"role"`
+}

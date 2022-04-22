@@ -68,3 +68,15 @@ func ErrorHandler(c *gin.Context) {
 	c.JSON(http.StatusInternalServerError, "")
 
 }
+
+func CheckError(c *gin.Context, err error) bool {
+	if err != nil {
+		serviceError, ok := IsServiceError(err)
+		if ok {
+			c.AbortWithStatusJSON(serviceError.Build())
+			return true
+		}
+		c.Error(err)
+	}
+	return false
+}

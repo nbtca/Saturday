@@ -3,7 +3,7 @@ package main
 import (
 	"gin-example/src/repo"
 	"gin-example/src/router"
-	"gin-example/util"
+	"gin-example/src/util"
 )
 
 func main() {

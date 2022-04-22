@@ -1,9 +1,10 @@
 package service
 
 import (
-	model "gin-example/models"
+	"gin-example/src/model"
+	"gin-example/src/model/dto"
 	"gin-example/src/repo"
-	"gin-example/util"
+	"gin-example/src/util"
 	"net/http"
 )
 
@@ -23,9 +24,26 @@ func (service *MemberService) GetMembers(offset uint64, limit uint64) []model.Me
 	return repo.GetMembers(offset, limit)
 }
 
-func (service *MemberService) GetToken(id string) (string, error) {
+type MemberAccount struct {
+	MemberId string `json:"member_id" validate:"required,len=10,numeric"`
+	Password string `json:"password" validate:"required"`
+}
+
+func (service *MemberService) CreateToken(account MemberAccount) (dto.CreateMemberTokenResponse, error) {
 	// return repo.GetToken(id)
-	return "TOKEN", nil
+	member, err := service.GetMemberById(account.MemberId)
+	if err != nil {
+		return dto.CreateMemberTokenResponse{}, err
+	}
+	if member.Password != account.Password {
+		serviceError := util.MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
+		return dto.CreateMemberTokenResponse{}, serviceError
+	}
+	res := dto.CreateMemberTokenResponse{
+		Member: member,
+		Token:  "token",
+	}
+	return res, nil
 }
 
 var MemberServiceApp = new(MemberService)

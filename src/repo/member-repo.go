@@ -1,8 +1,8 @@
 package repo
 
 import (
-	model "gin-example/models"
-	"gin-example/util"
+	"gin-example/src/model"
+	"gin-example/src/util"
 	"log"
 
 	"github.com/Masterminds/squirrel"

@@ -1,7 +1,7 @@
 package router
 
 import (
-	"gin-example/util"
+	"gin-example/src/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,9 +19,9 @@ func InitRouter() {
 		MemberGroup.GET("/:MemberId", MemberRouterApp.GetMemberById)
 
 		MemberGroup.POST("/:Member", MemberRouterApp.Create)
-		
+
 		MemberGroup.POST("/token", MemberRouterApp.CreateToken)
-		
+
 	}
 
 	Router.Run()
