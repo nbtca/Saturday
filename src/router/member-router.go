@@ -26,7 +26,10 @@ func (MemberRouter) GetByPage(c *gin.Context) {
 	if err != nil {
 		c.Error(err)
 	}
-	members := service.MemberServiceApp.GetMembers(offset, limit)
+	members, err := service.MemberServiceApp.GetMembers(offset, limit)
+	if err != nil {
+		c.Error(err)
+	}
 	c.JSON(200, members)
 }
 

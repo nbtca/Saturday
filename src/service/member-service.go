@@ -8,11 +8,13 @@ import (
 	"net/http"
 )
 
-type MemberService struct {
-}
+type MemberService struct{}
 
 func (service *MemberService) GetMemberById(id string) (model.Member, error) {
-	member := repo.GetMemberById(id)
+	member, err := repo.GetMemberById(id)
+	if err != nil {
+		return model.Member{}, err
+	}
 	if member == (model.Member{}) {
 		error := util.MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
 		return member, error
@@ -20,7 +22,7 @@ func (service *MemberService) GetMemberById(id string) (model.Member, error) {
 		return member, nil
 	}
 }
-func (service *MemberService) GetMembers(offset uint64, limit uint64) []model.Member {
+func (service *MemberService) GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
 	return repo.GetMembers(offset, limit)
 }
 
@@ -38,7 +40,6 @@ type MemberAccount struct {
 }
 
 func (service *MemberService) CreateToken(account MemberAccount) (dto.CreateMemberTokenResponse, error) {
-	// return repo.GetToken(id)
 	member, err := service.GetMemberById(account.MemberId)
 	if err != nil {
 		return dto.CreateMemberTokenResponse{}, err
@@ -49,7 +50,7 @@ func (service *MemberService) CreateToken(account MemberAccount) (dto.CreateMemb
 	}
 	res := dto.CreateMemberTokenResponse{
 		Member: member,
-		Token:  "token",
+		Token:  "token", //TODO jwt
 	}
 	return res, nil
 }

@@ -3,7 +3,6 @@ package repo
 import (
 	"gin-example/src/model"
 	"gin-example/src/util"
-	"log"
 	"time"
 
 	"github.com/Masterminds/squirrel"
@@ -25,29 +24,28 @@ func pagination(offset uint64, limit uint64) squirrel.SelectBuilder {
 	return getMemberStatement().Offset(offset).Limit(limit)
 }
 
-func GetMemberById(id string) model.Member {
+func GetMemberById(id string) (model.Member, error) {
 	sql, args, _ := getMemberByIdStatement(id).ToSql()
 	member := []model.Member{}
 	err := db.Select(&member, sql, args...)
 	if err != nil {
-		log.Fatal(err)
+		return model.Member{}, err
 	}
 	if len(member) != 0 {
-		return member[0]
+		return member[0], nil
 	} else {
-		return model.Member{}
+		return model.Member{}, nil
 	}
 }
 
-func GetMembers(offset uint64, limit uint64) []model.Member {
+func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
 	sql, args, _ := pagination(offset, limit).ToSql()
-	log.Println(sql)
 	members := []model.Member{}
 	err := db.Select(&members, sql, args...)
 	if err != nil {
-		log.Fatal(err)
+		return []model.Member{}, err
 	}
-	return members
+	return members, nil
 }
 
 func CreateMember(member *model.Member) error {
@@ -55,16 +53,15 @@ func CreateMember(member *model.Member) error {
 	sqlRole, argsRole, _ := squirrel.Insert("member_role_relation").Columns("member_id", "role_id").Values(member.MemberId, 1).ToSql()
 	conn, err := db.Begin()
 	if err != nil {
-		log.Fatal(err)
 		return err
 	}
 	conn.Exec(sqlMember, argsMember...)
 	conn.Exec(sqlRole, argsRole...)
-	commitError := conn.Commit()
-	if commitError != nil {
-		log.Fatal(commitError)
+	err = conn.Commit()
+	if err != nil {
 		conn.Rollback()
-		return commitError
+		return err
 	}
 	return nil
 }
+
