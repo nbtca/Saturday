@@ -1,15 +1,19 @@
 package main
 
 import (
-	"gin-example/src/repo"
-	"gin-example/src/router"
-	"gin-example/src/util"
+	"saturday/src/repo"
+	"saturday/src/router"
+	"saturday/src/util"
 )
 
 func main() {
+	util.InitEnv()
+
 	repo.InitDB()
 	defer repo.CloseDB()
+
 	r := router.SetupRouter()
 	r.Run(":8080")
-	util.Logger().Info("Starting server...")
+
+	util.Logger.Info("Starting server...")
 }

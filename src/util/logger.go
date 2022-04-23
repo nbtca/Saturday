@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func Logger() *logrus.Logger {
+func getLogger() *logrus.Logger {
 	now := time.Now()
 	logFilePath := ""
 	if dir, err := os.Getwd(); err == nil {
@@ -48,3 +48,4 @@ func Logger() *logrus.Logger {
 	return logger
 }
 
+var Logger = getLogger()

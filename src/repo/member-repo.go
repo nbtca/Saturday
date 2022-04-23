@@ -1,8 +1,8 @@
 package repo
 
 import (
-	"gin-example/src/model"
-	"gin-example/src/util"
+	"saturday/src/model"
+	"saturday/src/util"
 	"time"
 
 	"github.com/Masterminds/squirrel"

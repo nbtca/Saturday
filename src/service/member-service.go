@@ -1,11 +1,11 @@
 package service
 
 import (
-	"gin-example/src/model"
-	"gin-example/src/model/dto"
-	"gin-example/src/repo"
-	"gin-example/src/util"
 	"net/http"
+	"saturday/src/model"
+	"saturday/src/model/dto"
+	"saturday/src/repo"
+	"saturday/src/util"
 )
 
 type MemberService struct{}

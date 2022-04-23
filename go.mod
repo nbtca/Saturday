@@ -1,4 +1,4 @@
-module gin-example
+module saturday
 
 go 1.17
 

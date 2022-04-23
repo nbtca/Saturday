@@ -1,7 +1,7 @@
 package router
 
 import (
-	"gin-example/src/util"
+	"saturday/src/util"
 
 	"github.com/gin-gonic/gin"
 )
