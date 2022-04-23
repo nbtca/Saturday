@@ -4,6 +4,7 @@
     "jmoiron",
     "joho",
     "Queryx",
-    "sqlx"
+    "sqlx",
+    "stretchr"
   ]
 }

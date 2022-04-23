@@ -1,7 +1,7 @@
 package repo
 
 import (
-	"log"
+	"gin-example/src/util"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -11,15 +11,14 @@ import (
 var db *sqlx.DB
 
 func InitDB() {
-	var err error
-	err = godotenv.Load()
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		util.Logger().Fatal("Error loading .env file")
 	}
 
 	db, err = sqlx.Connect("mysql", os.Getenv("DB_URL"))
 	if err != nil {
-		log.Fatal(err)
+		util.Logger().Fatal(err)
 	}
 }
 

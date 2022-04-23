@@ -57,7 +57,6 @@ func IsServiceError(err error) (*ServiceError, bool) {
 }
 
 func ErrorHandler(c *gin.Context) {
-
 	c.Next()
 	if len(c.Errors) == 0 {
 		return

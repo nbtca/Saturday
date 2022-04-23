@@ -6,9 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter() {
+func SetupRouter() *gin.Engine {
 	Router := gin.Default()
 	Router.Use(util.ErrorHandler)
+
+	Router.GET("/ping", func(c *gin.Context) {
+		c.String(200, "pong")
+	})
 
 	RouterGroup := Router.Group("/")
 
@@ -24,5 +28,5 @@ func InitRouter() {
 
 	}
 
-	Router.Run()
+	return Router
 }

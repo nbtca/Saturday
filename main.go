@@ -7,8 +7,9 @@ import (
 )
 
 func main() {
-	util.Logger().Info("Starting server...")
 	repo.InitDB()
 	defer repo.CloseDB()
-	router.InitRouter()
+	r := router.SetupRouter()
+	r.Run(":8080")
+	util.Logger().Info("Starting server...")
 }
