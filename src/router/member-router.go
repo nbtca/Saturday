@@ -1,6 +1,7 @@
 package router
 
 import (
+	"gin-example/src/model"
 	"gin-example/src/model/dto"
 	"gin-example/src/service"
 	"gin-example/src/util"
@@ -47,7 +48,17 @@ func (MemberRouter) CreateToken(c *gin.Context) {
 }
 
 func (MemberRouter) Create(c *gin.Context) {
-	c.JSON(200, "not implemented")
+	CreateMemberReq := &model.Member{}
+	err := util.GetBody(c, CreateMemberReq)
+	CreateMemberReq.MemberId = c.Param("MemberId")
+	if util.CheckError(c, err) {
+		return
+	}
+	res, err := service.MemberServiceApp.CreateMember(CreateMemberReq)
+	if util.CheckError(c, err) {
+		return
+	}
+	c.JSON(200, res)
 }
 
 var MemberRouterApp = new(MemberRouter)

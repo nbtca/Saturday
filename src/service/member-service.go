@@ -24,6 +24,14 @@ func (service *MemberService) GetMembers(offset uint64, limit uint64) []model.Me
 	return repo.GetMembers(offset, limit)
 }
 
+func (service *MemberService) CreateMember(member *model.Member) (model.Member, error) {
+	err := repo.CreateMember(member)
+	if err != nil {
+		return model.Member{}, err
+	}
+	return service.GetMemberById(member.MemberId)
+}
+
 type MemberAccount struct {
 	MemberId string `json:"member_id" validate:"required,len=10,numeric"`
 	Password string `json:"password" validate:"required"`

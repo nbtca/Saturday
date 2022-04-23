@@ -18,7 +18,7 @@ func InitRouter() {
 		MemberGroup.GET("/", MemberRouterApp.GetByPage)
 		MemberGroup.GET("/:MemberId", MemberRouterApp.GetMemberById)
 
-		MemberGroup.POST("/:Member", MemberRouterApp.Create)
+		MemberGroup.POST("/:MemberId", MemberRouterApp.Create)
 
 		MemberGroup.POST("/token", MemberRouterApp.CreateToken)
 
