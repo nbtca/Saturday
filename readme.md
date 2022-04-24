@@ -27,3 +27,12 @@
    ``` sh
    go run main.go
    ```
+
+## 测试
+1. 安装`docker`
+2. 运行测试
+
+   测试文件位于test文件夹内
+   ```sh
+   go test <TEST_FILE>
+   ```

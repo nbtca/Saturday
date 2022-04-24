@@ -17,6 +17,10 @@ func InitDB() {
 	}
 }
 
+func SetDB(dbx *sqlx.DB) {
+	db = dbx
+}
+
 func CloseDB() {
 	db.Close()
 }

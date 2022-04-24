@@ -27,8 +27,7 @@ func pagination(offset uint64, limit uint64) squirrel.SelectBuilder {
 func GetMemberById(id string) (model.Member, error) {
 	sql, args, _ := getMemberByIdStatement(id).ToSql()
 	member := model.Member{}
-	err := db.Get(&member, sql, args...)
-	if err != nil {
+	if err := db.Get(&member, sql, args...); err != nil {
 		return model.Member{}, err
 	}
 	return member, nil
@@ -37,8 +36,7 @@ func GetMemberById(id string) (model.Member, error) {
 func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
 	sql, args, _ := pagination(offset, limit).ToSql()
 	members := []model.Member{}
-	err := db.Select(&members, sql, args...)
-	if err != nil {
+	if err := db.Select(&members, sql, args...); err != nil {
 		return []model.Member{}, err
 	}
 	return members, nil
@@ -53,8 +51,7 @@ func CreateMember(member *model.Member) error {
 	}
 	conn.Exec(sqlMember, argsMember...)
 	conn.Exec(sqlRole, argsRole...)
-	err = conn.Commit()
-	if err != nil {
+	if err = conn.Commit(); err != nil {
 		conn.Rollback()
 		return err
 	}

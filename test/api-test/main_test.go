@@ -3,10 +3,9 @@ package apitest
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"saturday/src/repo"
 	"saturday/src/router"
-	"saturday/src/util"
+	testutil "saturday/test/test-util"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -16,11 +15,11 @@ import (
 var r *gin.Engine
 
 func TestMain(m *testing.M) {
-	os.Chdir("./../..")
-	util.InitEnv()
 
-	repo.InitDB()
+	db, _ := testutil.GetDB()
+	repo.SetDB(db)
 	defer repo.CloseDB()
+	defer testutil.Close()
 
 	r = router.SetupRouter()
 

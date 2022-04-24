@@ -27,8 +27,7 @@ func (service *MemberService) GetMembers(offset uint64, limit uint64) ([]model.M
 }
 
 func (service *MemberService) CreateMember(member *model.Member) (model.Member, error) {
-	err := repo.CreateMember(member)
-	if err != nil {
+	if err := repo.CreateMember(member); err != nil {
 		return model.Member{}, err
 	}
 	return service.GetMemberById(member.MemberId)
