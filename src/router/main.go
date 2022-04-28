@@ -1,6 +1,7 @@
 package router
 
 import (
+	"saturday/src/middleware"
 	"saturday/src/util"
 
 	"github.com/gin-gonic/gin"
@@ -8,7 +9,9 @@ import (
 
 func SetupRouter() *gin.Engine {
 	Router := gin.Default()
-	Router.Use(util.ErrorHandler)
+	util.InitValidator()
+
+	Router.Use(middleware.ErrorHandler)
 
 	Router.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
@@ -24,7 +27,7 @@ func SetupRouter() *gin.Engine {
 
 		MemberGroup.POST("/:MemberId", MemberRouterApp.Create)
 
-		MemberGroup.POST("/token", MemberRouterApp.CreateToken)
+		MemberGroup.POST("/:MemberId/token", MemberRouterApp.CreateToken)
 
 	}
 

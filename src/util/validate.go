@@ -2,16 +2,10 @@ package util
 
 import (
 	"errors"
+	"regexp"
 
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-)
-
-type Location int
-
-const (
-	BODY Location = iota
-	PARAM
-	Query
 )
 
 func ValidationHandler(structToValidate interface{}) validator.ValidationErrors {
@@ -36,4 +30,21 @@ func GetErrorMessage(err validator.FieldError) string {
 		return "Invalid number"
 	}
 	return "Invalid " + err.Tag()
+}
+
+var section validator.Func = func(fl validator.FieldLevel) bool {
+	section, ok := fl.Field().Interface().(string)
+	if ok {
+		reg := regexp.MustCompile(`^(\p{Han}{2,10})(\d{3})$`)
+		if reg.MatchString(section) {
+			return true
+		}
+	}
+	return true
+}
+
+func InitValidator() {
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("section", section)
+	}
 }

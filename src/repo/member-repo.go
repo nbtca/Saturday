@@ -9,8 +9,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// type Member struct{}
-
 func getMemberStatement() squirrel.SelectBuilder {
 	members := squirrel.Select(util.FieldsConstructor(model.Member{})).From("member")
 	return members.LeftJoin("member_role_relation USING (member_id)").LeftJoin("role USING (role_id)")

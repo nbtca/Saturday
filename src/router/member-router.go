@@ -1,7 +1,6 @@
 package router
 
 import (
-	"log"
 	"saturday/src/model"
 	"saturday/src/model/dto"
 	"saturday/src/service"
@@ -14,7 +13,12 @@ type MemberRouter struct {
 }
 
 func (MemberRouter) GetMemberById(c *gin.Context) {
-	member, err := service.MemberServiceApp.GetMemberById(c.Param("MemberId"))
+	memberId := &dto.MemberId{}
+	err := util.BindAll(c, memberId)
+	if util.CheckError(c, err) {
+		return
+	}
+	member, err := service.MemberServiceApp.GetMemberById(memberId.MemberId)
 	if util.CheckError(c, err) {
 		return
 	}
@@ -35,8 +39,7 @@ func (MemberRouter) GetByPage(c *gin.Context) {
 
 func (MemberRouter) CreateToken(c *gin.Context) {
 	CreateMemberTokenReq := &dto.CreateMemberTokenReq{}
-	err := util.GetBody(c, CreateMemberTokenReq)
-	log.Println(CreateMemberTokenReq)
+	err := util.BindAll(c, CreateMemberTokenReq)
 	if util.CheckError(c, err) {
 		return
 	}
@@ -51,13 +54,19 @@ func (MemberRouter) CreateToken(c *gin.Context) {
 }
 
 func (MemberRouter) Create(c *gin.Context) {
-	CreateMemberReq := &model.Member{}
-	err := util.GetBody(c, CreateMemberReq)
-	CreateMemberReq.MemberId = c.Param("MemberId")
+	CreateMemberReq := &dto.CreateMemberReq{}
+	err := util.BindAll(c, CreateMemberReq)
 	if util.CheckError(c, err) {
 		return
 	}
-	res, err := service.MemberServiceApp.CreateMember(CreateMemberReq)
+	member := &model.Member{}
+	err = util.SwapObject(CreateMemberReq, member)
+	if err != nil {
+		util.Logger.Error(err)
+		c.JSON(500, err)
+		return
+	}
+	res, err := service.MemberServiceApp.CreateMember(member)
 	if util.CheckError(c, err) {
 		return
 	}

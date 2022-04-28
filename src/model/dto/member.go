@@ -2,17 +2,26 @@ package dto
 
 import model "saturday/src/model"
 
+type MemberId struct {
+	MemberId string `uri:"MemberId" binding:"required,len=10,numeric"`
+}
+
+type CreateMemberReq struct {
+	MemberId
+	Alias   string `json:"alias"`
+	Name    string `json:"name" binding:"required,min=2,max=4"`
+	Section string `json:"section" binding:"required,section"`
+	Profile string `json:"profile"`
+	Phone   string `json:"phone" binding:"len=11,numeric"`
+	Qq      string `json:"qq" binding:"min=5,max=12,numeric"`
+}
+
 type CreateMemberTokenReq struct {
-	MemberId string `json:"member_id" validate:"required,len=10,numeric"`
-	Password string `json:"password" validate:"required"`
+	MemberId  string `uri:"MemberId" binding:"required,len=10,numeric"`
+	Password  string `json:"password" binding:"required"`
 }
 
 type CreateMemberTokenResponse struct {
 	model.Member
 	Token string `json:"token"`
-}
-
-type Page struct {
-	Offset uint64 `json:"-" validate:"min=0"`
-	Limit  uint64 `json:"-" validate:"min=0"`
 }

@@ -1,9 +1,11 @@
 package util
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type DetailError struct {
@@ -13,6 +15,15 @@ type DetailError struct {
 }
 
 type ServiceError struct {
+	error
+	HttpStatus int
+	Body       struct {
+		Message string        `json:"message"`
+		Errors  []DetailError `json:"errors,omitempty"`
+	}
+}
+
+type ServiceErrorBuilder struct {
 	error
 	HttpStatus int
 	Body       struct {
@@ -56,18 +67,6 @@ func IsServiceError(err error) (*ServiceError, bool) {
 	return serviceError, ok
 }
 
-func ErrorHandler(c *gin.Context) {
-	c.Next()
-	if len(c.Errors) == 0 {
-		return
-	}
-	for _, err := range c.Errors {
-		Logger.Error(err)
-	}
-	c.JSON(http.StatusInternalServerError, "")
-
-}
-
 func CheckError(c *gin.Context, err error) bool {
 	if err != nil {
 		serviceError, ok := IsServiceError(err)
@@ -78,4 +77,19 @@ func CheckError(c *gin.Context, err error) bool {
 		c.Error(err)
 	}
 	return false
+}
+
+func MakeValidationError(resource string, err error) error {
+	var ve validator.ValidationErrors
+	serviceError := MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
+	if err == nil {
+		return serviceError
+	}
+	if !errors.As(err, &ve) {
+		return serviceError
+	}
+	for _, fe := range ve {
+		serviceError.AddDetailError(resource, fe.Field(), GetErrorMessage(fe))
+	}
+	return serviceError
 }

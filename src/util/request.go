@@ -1,23 +1,38 @@
 package util
 
 import (
-	"net/http"
+	"encoding/json"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func GetBody(c *gin.Context, target interface{}) error {
-	err := c.ShouldBindJSON(target)
+func BindAll(c *gin.Context, target interface{}) error {
+	c.ShouldBindUri(target)
+	c.ShouldBindJSON(target)
+	err := c.ShouldBindQuery(target)
+	if err != nil {
+		return MakeValidationError(c.Request.URL.Path, err)
+	}
+	return nil
+}
+
+func GetPaginationQuery(c *gin.Context) (offset uint64, limit uint64, err error) {
+	offset, err = strconv.ParseUint(c.DefaultQuery("offset", "0"), 10, 64)
+	if err != nil {
+		return
+	}
+	limit, err = strconv.ParseUint(c.DefaultQuery("offset", "30"), 10, 64)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func SwapObject(from interface{}, to interface{}) error {
+	dataByte, err := json.Marshal(from)
 	if err != nil {
 		return err
 	}
-	ve := ValidationHandler(target)
-	if ve == nil {
-		return nil
-	}
-	serviceError := MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
-	for _, fe := range ve {
-		serviceError.AddDetailError(c.Request.URL.Path, fe.Field(), GetErrorMessage(fe))
-	}
-	return serviceError
+	return json.Unmarshal(dataByte, to)
 }
