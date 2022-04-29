@@ -53,6 +53,7 @@ func (MemberRouter) CreateToken(c *gin.Context) {
 	c.JSON(200, res)
 }
 
+// TODO add check exist
 func (MemberRouter) Create(c *gin.Context) {
 	CreateMemberReq := &dto.CreateMemberReq{}
 	err := util.BindAll(c, CreateMemberReq)

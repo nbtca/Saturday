@@ -2,14 +2,12 @@ package router
 
 import (
 	"saturday/src/middleware"
-	"saturday/src/util"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter() *gin.Engine {
 	Router := gin.Default()
-	util.InitValidator()
 
 	Router.Use(middleware.ErrorHandler)
 

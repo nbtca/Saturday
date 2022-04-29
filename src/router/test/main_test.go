@@ -1,11 +1,11 @@
-package apitest
+package router_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"saturday/src/repo"
 	"saturday/src/router"
-	testutil "saturday/test/test-util"
+	"saturday/src/util"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -15,11 +15,11 @@ import (
 var r *gin.Engine
 
 func TestMain(m *testing.M) {
-
-	db, _ := testutil.GetDB()
+	util.InitValidator()
+	db, _ := util.GetDB()
 	repo.SetDB(db)
 	defer repo.CloseDB()
-	defer testutil.Close()
+	defer util.Close()
 
 	r = router.SetupRouter()
 

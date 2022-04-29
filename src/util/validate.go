@@ -40,7 +40,7 @@ var section validator.Func = func(fl validator.FieldLevel) bool {
 			return true
 		}
 	}
-	return true
+	return false
 }
 
 func InitValidator() {
