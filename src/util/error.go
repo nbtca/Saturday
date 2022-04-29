@@ -8,6 +8,8 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+// TODO refact
+
 type DetailError struct {
 	Resource string `json:"resource"`
 	Field    string `json:"field"`
@@ -15,15 +17,6 @@ type DetailError struct {
 }
 
 type ServiceError struct {
-	error
-	HttpStatus int
-	Body       struct {
-		Message string        `json:"message"`
-		Errors  []DetailError `json:"errors,omitempty"`
-	}
-}
-
-type ServiceErrorBuilder struct {
 	error
 	HttpStatus int
 	Body       struct {
@@ -67,6 +60,9 @@ func IsServiceError(err error) (*ServiceError, bool) {
 	return serviceError, ok
 }
 
+// check error type
+// if error is not nil, return true and handle accordingly,
+// else return false
 func CheckError(c *gin.Context, err error) bool {
 	if err != nil {
 		serviceError, ok := IsServiceError(err)
@@ -92,4 +88,8 @@ func MakeValidationError(resource string, err error) error {
 		serviceError.AddDetailError(resource, fe.Field(), GetErrorMessage(fe))
 	}
 	return serviceError
+}
+
+func MakeInternalServerError() error {
+	return MakeServiceError(http.StatusInternalServerError).SetMessage("Internal Server Error")
 }

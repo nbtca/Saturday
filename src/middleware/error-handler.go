@@ -18,5 +18,7 @@ func ErrorHandler(c *gin.Context) {
 			util.Logger.Error(err)
 		}
 	}
-	c.JSON(http.StatusInternalServerError, "")
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"message": "Internal Server Error",
+	})
 }
