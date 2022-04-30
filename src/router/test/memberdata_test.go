@@ -1,50 +1,249 @@
 package router_test
 
-type H map[string]interface{}
+import "github.com/gin-gonic/gin"
 
-type TestData struct {
-	Method       string
-	Url          string
-	RequestBody  H
-	Code         int
-	ResponseBody H
+var GetPublicMemberData = []TestData{
+	{
+		"success",
+		Request{
+			"GET",
+			"/members/2333333333",
+			"",
+			nil,
+		},
+		Response{
+			200,
+			gin.H{
+				"member_id":    "2333333333",
+				"alias":        "滑稽",
+				"role":         "member",
+				"profile":      "relaxing",
+				"avatar":       "",
+				"created_by":   "0000000000",
+				"gmt_create":   "2022-04-23 15:49:59",
+				"gmt_modified": "2022-04-30 17:29:46",
+			},
+		},
+	},
 }
 
-var CreateMemberData = []TestData{
+var CreateMemberTokenData = []TestData{
 	{
-		"POST",
-		"/members/1231231231",
-		H{
-			"alias":   "123",
-			"name":    "滑小稽",
-			"section": "计算机123",
-			"phone":   17523458765,
+		"success",
+		Request{
+			"POST",
+			"/members/2333333333/token",
+			"",
+			gin.H{
+				"password": "123456",
+			},
 		},
-		200,
-		nil,
+		Response{
+			200,
+			gin.H{
+				"member_id":    "2333333333",
+				"alias":        "滑稽",
+				"name":         "滑稽",
+				"section":      "计算机233",
+				"role":         "member",
+				"profile":      "relaxing",
+				"phone":        "12356839487",
+				"qq":           "123456",
+				"avatar":       "",
+				"created_by":   "0000000000",
+				"gmt_create":   "2022-04-23 15:49:59",
+				"gmt_modified": "2022-04-30 17:29:46",
+				"token":        "not implemented",
+			},
+		},
 	},
 }
 
 var GetMemberData = []TestData{
 	{
-		"GET",
-		"/members/2333333333",
-		nil,
-		200,
-		H{
-			"member_id":    "2333333333",
-			"alias":        "huaji",
-			"password":     "123456",
-			"name":         "滑稽",
-			"section":      "计算机233",
-			"role":         "member",
-			"profile":      "",
-			"phone":        "",
-			"qq":           "",
-			"avatar":       "",
-			"created_by":   "",
-			"gmt_create":   "2022-04-23 15:49:59",
-			"gmt_modified": "2022-04-23 15:50:01",
+		"success",
+		Request{
+			"GET",
+			"/member",
+			"",
+			nil,
+		},
+		Response{
+			200,
+			gin.H{
+				"member_id":    "2333333333",
+				"alias":        "滑稽",
+				"name":         "滑稽",
+				"section":      "计算机233",
+				"role":         "member",
+				"profile":      "relaxing",
+				"phone":        "12356839487",
+				"qq":           "123456",
+				"avatar":       "",
+				"created_by":   "0000000000",
+				"gmt_create":   "2022-04-23 15:49:59",
+				"gmt_modified": "2022-04-30 17:29:46",
+			},
+		},
+	},
+}
+
+var MemberActiveData = []TestData{
+	{
+		"success",
+		Request{
+			"PUT",
+			"/member/activate",
+			"",
+			gin.H{
+				"alias":    "滑稽",
+				"phone":    "12356839487",
+				"qq":       "123456",
+				"password": "123456",
+			},
+		},
+		Response{
+			200,
+			gin.H{
+				"member_id":    "2333333333",
+				"alias":        "滑da稽",
+				"name":         "滑稽",
+				"section":      "计算机233",
+				"role":         "member",
+				"profile":      "want to relax",
+				"phone":        "12356839487",
+				"qq":           "123456",
+				"avatar":       "",
+				"created_by":   "0000000000",
+				"gmt_create":   "2022-04-23 15:49:59",
+				"gmt_modified": "2022-04-30 17:29:46",
+			},
+		},
+	},
+}
+
+var UpdateMemberData = []TestData{
+	{
+		"success",
+		Request{
+			"PUT",
+			"/member",
+			"",
+			gin.H{
+				"member_id": "2333333333",
+				"alias":     "滑da稽",
+				"name":      "滑稽",
+				"profile":   "want to relax",
+				"phone":     "12356839487",
+				"qq":        "123456",
+			},
+		},
+		Response{
+			200,
+			gin.H{
+				"member_id":    "2333333333",
+				"alias":        "滑da稽",
+				"name":         "滑稽",
+				"section":      "计算机233",
+				"role":         "member",
+				"profile":      "want to relax",
+				"phone":        "12356839487",
+				"qq":           "123456",
+				"avatar":       "",
+				"created_by":   "0000000000",
+				"gmt_create":   "2022-04-23 15:49:59",
+				"gmt_modified": "2022-04-30 17:29:46",
+			},
+		},
+	},
+}
+
+var UpdateMemberAvatarData = []TestData{}
+
+var CreateMemberData = []TestData{
+	{
+		"success",
+		Request{
+			"POST",
+			"/members/3000000000",
+			"",
+			gin.H{
+				"alias":   "小稽",
+				"name":    "滑小稽",
+				"section": "计算机233",
+				"profile": "。。。",
+				"phone":   "12352439487",
+				"qq":      "123456",
+			},
+		},
+		Response{
+			200,
+			gin.H{
+				"member_id":    "3000000000",
+				"alias":        "小稽",
+				"name":         "滑小稽",
+				"section":      "计算机233",
+				"role":         "member_inactive",
+				"profile":      "。。。",
+				"phone":        "",
+				"qq":           "123456",
+				"avatar":       "",
+				"created_by":   "2333333333",
+				"gmt_create":   "2022-04-30 23:06:44",
+				"gmt_modified": "2022-04-30 23:06:44",
+			},
+		},
+	},
+	{
+		"invalid section",
+		Request{
+			"POST",
+			"/members/3000000000",
+			"",
+			gin.H{
+				"alias":   "小稽",
+				"name":    "滑小稽",
+				"section": "计算机23",
+				"profile": "。。。",
+				"phone":   "12352439487",
+				"qq":      "123456",
+			},
+		},
+		Response{
+			422,
+			nil,
+		},
+	},
+}
+
+var UpdateMemberBasicInfoData = []TestData{
+	{
+		"success",
+		Request{
+			"PUT",
+			"/members/2333333333",
+			"",
+			gin.H{
+				"name":    "滑稽",
+				"section": "计算机322",
+			},
+		},
+		Response{
+			200,
+			gin.H{
+				"member_id":    "2333333333",
+				"alias":        "滑稽",
+				"name":         "滑稽",
+				"section":      "计算机322",
+				"profile":      "relaxing",
+				"phone":        "12356839487",
+				"qq":           "123456",
+				"avatar":       "",
+				"created_by":   "",
+				"gmt_create":   "2022-04-17T19:35:55.000Z",
+				"gmt_modified": "2022-04-17T19:35:55.000Z",
+				"role":         "member",
+			},
 		},
 	},
 }

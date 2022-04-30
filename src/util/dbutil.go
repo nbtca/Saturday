@@ -12,21 +12,30 @@ import (
 	"github.com/ory/dockertest/v3"
 )
 
-func FieldsConstructor(q interface{}) string {
+func FieldsConstructor(q interface{}) []string {
 	t := reflect.TypeOf(q)
 	i := 0
-	res := ""
+	var res []string
+	shouldAppendField := func(field reflect.StructField) (string, bool) {
+		dbTag := t.Field(i).Tag.Get("json")
+		// visibleTag := t.Field(i).Tag.Get("visible")
+		if dbTag == "" {
+			return "", false
+		}
+		// if visibleTag == "private" && visible != "private" {
+		// 	return "", false
+		// }
+		return dbTag, true
+	}
 	if reflect.ValueOf(q).Kind() == reflect.Struct {
 		for ; i < t.NumField()-1; i++ {
-			dbTag := t.Field(i).Tag.Get("json")
-			if dbTag != "" {
-				res += dbTag + ", "
+			if dbTag, should := shouldAppendField(t.Field(i)); should {
+				res = append(res, dbTag)
 			}
 		}
 	}
-	dbTag := t.Field(i).Tag.Get("json")
-	if dbTag != "" {
-		res += dbTag
+	if dbTag, should := shouldAppendField(t.Field(i)); should {
+		res = append(res, dbTag)
 	}
 	return res
 }
@@ -64,7 +73,7 @@ func GetDB() (*sqlx.DB, error) {
 
 	if err = pool.Retry(func() error {
 		log.Println(resource.GetPort("3306/tcp"))
-		db, err = sqlx.Connect("mysql", fmt.Sprintf("root:password@(localhost:%s)/saturday_test?parseTime=true", resource.GetPort("3306/tcp")))
+		db, err = sqlx.Connect("mysql", fmt.Sprintf("root:password@(localhost:%s)/saturday_test?multiStatements=true", resource.GetPort("3306/tcp")))
 		if err != nil {
 			return err
 		}
@@ -79,4 +88,8 @@ func Close() {
 	if err := pool.Purge(resource); err != nil {
 		log.Fatalf("Could not purge resource: %s", err)
 	}
+}
+
+func GetDate() string {
+	return time.Now().Format("2006-01-02 15:04:11")
 }

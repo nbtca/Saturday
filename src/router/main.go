@@ -15,18 +15,30 @@ func SetupRouter() *gin.Engine {
 		c.String(200, "pong")
 	})
 
-	RouterGroup := Router.Group("/")
-
-	MemberGroup := RouterGroup.Group("/members")
+	PublicGroup := Router.Group("/")
 	{
+		PublicGroup.GET("members/:MemberId", MemberRouterApp.GetPublicMemberById)
+		PublicGroup.GET("members/", MemberRouterApp.GetPublicMemberByPage)
+		PublicGroup.POST("members/:MemberId/token", MemberRouterApp.CreateToken)
+	}
 
-		MemberGroup.GET("/", MemberRouterApp.GetByPage)
-		MemberGroup.GET("/:MemberId", MemberRouterApp.GetMemberById)
+	Router.PUT("member/activate",
+		middleware.Auth("member_inactive,admin_inactive"),
+		MemberRouterApp.Activate)
 
-		MemberGroup.POST("/:MemberId", MemberRouterApp.Create)
-
-		MemberGroup.POST("/:MemberId/token", MemberRouterApp.CreateToken)
-
+	MemberGroup := Router.Group("/")
+	MemberGroup.Use(middleware.Auth("member", "admin"))
+	{
+		MemberGroup.GET("/member", MemberRouterApp.GetMemberById)
+		MemberGroup.PUT("/member", MemberRouterApp.Update)
+		MemberGroup.PUT("/member/avatar", MemberRouterApp.UpdateAvatar)
+	}
+	AdminGroup := Router.Group("/")
+	AdminGroup.Use(middleware.Auth("admin"))
+	{
+		AdminGroup.POST("/members/", MemberRouterApp.CreateMany)
+		AdminGroup.POST("/members/:MemberId", MemberRouterApp.Create)
+		AdminGroup.PUT("/members/:MemberId", MemberRouterApp.UpdateBasic)
 	}
 
 	return Router

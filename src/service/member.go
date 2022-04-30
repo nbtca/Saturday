@@ -3,7 +3,6 @@ package service
 import (
 	"net/http"
 	"saturday/src/model"
-	"saturday/src/model/dto"
 	"saturday/src/repo"
 	"saturday/src/util"
 )
@@ -22,35 +21,44 @@ func (service *MemberService) GetMemberById(id string) (model.Member, error) {
 		return member, nil
 	}
 }
-func (service *MemberService) GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
-	return repo.GetMembers(offset, limit)
+
+func (service *MemberService) GetPublicMemberById(id string) (model.PublicMember, error) {
+	member, err := service.GetMemberById(id)
+	if err != nil {
+		return model.PublicMember{}, err
+	}
+	return model.CreatePublicMember(member), nil
+}
+
+func (service *MemberService) GetPublicMembers(offset uint64, limit uint64) ([]model.PublicMember, error) {
+	members, err := repo.GetMembers(offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	var publicMembers []model.PublicMember
+	for _, member := range members {
+		publicMembers = append(publicMembers, model.CreatePublicMember(member))
+	}
+	return publicMembers, nil
 }
 
 func (service *MemberService) CreateMember(member *model.Member) (model.Member, error) {
+	exist, err := repo.ExistMember(member.MemberId)
+	if err != nil {
+		return model.Member{}, err
+	}
+	if exist {
+		error := util.MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
+		return model.Member{}, error
+	}
 	if err := repo.CreateMember(member); err != nil {
 		return model.Member{}, err
 	}
 	return service.GetMemberById(member.MemberId)
 }
 
-type MemberAccount struct {
-	MemberId string `json:"member_id" validate:"required,len=10,numeric"`
-	Password string `json:"password" validate:"required"`
-}
-
-func (service *MemberService) CreateToken(account MemberAccount) (dto.CreateMemberTokenResponse, error) {
-	member, err := service.GetMemberById(account.MemberId)
-	if err != nil {
-		return dto.CreateMemberTokenResponse{}, err
-	}
-	if member.Password != account.Password {
-		serviceError := util.MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
-		return dto.CreateMemberTokenResponse{}, serviceError
-	}
-	res := dto.CreateMemberTokenResponse{
-		Member: member,
-		Token:  "token", //TODO jwt
-	}
+func (service *MemberService) CreateToken(member model.Member) (string, error) {
+	res := util.CreateToken(util.Payload{}) //TODO
 	return res, nil
 }
 

@@ -11,7 +11,7 @@
  Target Server Version : 80022
  File Encoding         : 65001
 
- Date: 23/04/2022 18:03:00
+ Date: 30/04/2022 23:10:14
 */
 
 SET NAMES utf8mb4;
@@ -184,7 +184,9 @@ CREATE TABLE `member` (
 -- Records of member
 -- ----------------------------
 BEGIN;
-INSERT INTO `member` VALUES ('2333333333', 'huaji', '123456', '滑稽', '计算机233', '', '', '', '', '', '2022-04-23 15:49:59', '2022-04-23 15:50:01');
+INSERT INTO `member` VALUES ('0000000000', '管理', '000000', '管理', '计算机000', '', '', '', '', '', '2022-04-30 17:28:42', '2022-04-30 17:28:44');
+INSERT INTO `member` VALUES ('2333333333', '滑稽', '123456', '滑稽', '计算机233', 'relaxing', '12356839487', '123456', '', '0000000000', '2022-04-23 15:49:59', '2022-04-30 17:29:46');
+INSERT INTO `member` VALUES ('3000000001', '小稽', '', '滑小稽', '计算机233', '。。。', '', '123456', '', '2333333333', '2022-04-30 23:06:44', '2022-04-30 23:06:44');
 COMMIT;
 
 -- ----------------------------
@@ -204,7 +206,8 @@ CREATE TABLE `member_role_relation` (
 -- Records of member_role_relation
 -- ----------------------------
 BEGIN;
-INSERT INTO `member_role_relation` VALUES ('2333333333', 1);
+INSERT INTO `member_role_relation` VALUES ('2333333333', 2);
+INSERT INTO `member_role_relation` VALUES ('0000000000', 3);
 COMMIT;
 
 -- ----------------------------
@@ -221,7 +224,10 @@ CREATE TABLE `role` (
 -- Records of role
 -- ----------------------------
 BEGIN;
-INSERT INTO `role` VALUES (1, 'member');
+INSERT INTO `role` VALUES (0, 'member_inactive');
+INSERT INTO `role` VALUES (1, 'admin_inavtive');
+INSERT INTO `role` VALUES (2, 'member');
+INSERT INTO `role` VALUES (3, 'admin');
 COMMIT;
 
 -- ----------------------------
