@@ -27,8 +27,11 @@ func GetRoleId(role string) (sql.NullInt64, error) {
 	return id, nil
 }
 
-func SetMemberRole(memberId string, role string, conn *sql.Tx) {
+
+
+func SetMemberRole(memberId string, role string, conn *sql.Tx) error {
 	sql := `INSERT INTO member_role_relation (member_id, role_id)
-	 		VALUES (?, Select role_id from role where role = ?)`
-	conn.Exec(sql, memberId, role)
+	 		VALUES (?, (Select role_id from role where role = ?))`
+	_, err := conn.Exec(sql, memberId, role)
+	return err
 }

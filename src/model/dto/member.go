@@ -14,6 +14,7 @@ type CreateMemberReq struct {
 	Profile  string `json:"profile"`
 	Phone    string `json:"phone" binding:"omitempty,len=11,numeric"`
 	Qq       string `json:"qq" binding:"omitempty,min=5,max=12,numeric"`
+	Role     string `json:"role" binding:"required"`
 }
 
 type CreateMemberTokenReq struct {

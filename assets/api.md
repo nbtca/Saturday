@@ -337,6 +337,7 @@ POST /members/{member_id}
 | member_id      | integer | path   | 学号 |
 | name           | string  | body   | 姓名 |
 | section        | string  | body   | 班级 |
+| role           | string  | body   | 权限 |
 | alias `可选`   | string  | body   | 昵称 |
 | phone `可选`   | string  | body   |
 | qq `可选`      | string  | body   |
@@ -354,6 +355,7 @@ POST /members/3000000000
   "name": "滑小稽",
   "section": "计算机233",
   "profile": "。。。",
+  "role": "member_inactive",
   "phone": "12352439487",
   "qq": "123456"
 }
@@ -367,7 +369,7 @@ POST /members/3000000000
   "alias": "小稽",
   "name": "滑小稽",
   "section": "计算机233",
-  "role": "member",
+  "role": "member_inactive",
   "profile": "。。。",
   "phone": "",
   "qq": "123456",

@@ -86,6 +86,7 @@ func (MemberRouter) Create(c *gin.Context) {
 		Section:   req.Section,
 		Profile:   req.Profile,
 		Qq:        req.Qq,
+		Role:	  req.Role,
 		CreatedBy: c.GetString("id"),
 	}
 	res, err := service.MemberServiceApp.CreateMember(member)
