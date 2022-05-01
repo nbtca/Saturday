@@ -38,7 +38,7 @@ func SetupRouter() *gin.Engine {
 	{
 		AdminGroup.POST("/members/", MemberRouterApp.CreateMany)
 		AdminGroup.POST("/members/:MemberId", MemberRouterApp.Create)
-		AdminGroup.PUT("/members/:MemberId", MemberRouterApp.UpdateBasic)
+		AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
 	}
 
 	return Router

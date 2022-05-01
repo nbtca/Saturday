@@ -7,6 +7,7 @@ type Member struct {
 	Name        string `json:"name" visible:"private"`
 	Section     string `json:"section" visible:"private"`
 	Role        string `json:"role"`
+	RoleId      int64  `json:"-" db:"role_id"`
 	Profile     string `json:"profile"`
 	Phone       string `json:"phone" visible:"private"`
 	Qq          string `json:"qq" visible:"private"`

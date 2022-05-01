@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log"
 	"net/http"
 	"saturday/src/model"
 	"saturday/src/model/dto"
@@ -109,6 +110,32 @@ func (MemberRouter) Update(c *gin.Context) {
 
 func (MemberRouter) UpdateBasic(c *gin.Context) {
 	//TODO not implemented
+
+
+	req := &dto.UpdateMemberBasicReq{}
+	if err := util.BindAll(c, req); util.CheckError(c, err) {
+		return
+	}
+	member, err := service.MemberServiceApp.GetMemberById(req.MemberId)
+	if util.CheckError(c, err) {
+		return
+	}
+	log.Println(member)
+	log.Println(req.Role == "")
+	if req.Name != "" {
+		member.Name = req.Name
+	}
+	if req.Section != "" {
+		member.Section = req.Section
+	}
+	if req.Role != "" {
+		member.Role = req.Role
+	}
+	err = service.MemberServiceApp.UpdateBasic(member)
+	if util.CheckError(c, err) {
+		return
+	}
+	c.JSON(200, member)
 }
 
 func (MemberRouter) UpdateAvatar(c *gin.Context) {
