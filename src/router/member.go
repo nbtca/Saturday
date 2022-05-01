@@ -1,7 +1,6 @@
 package router
 
 import (
-	"log"
 	"net/http"
 	"saturday/src/model"
 	"saturday/src/model/dto"
@@ -120,8 +119,6 @@ func (MemberRouter) UpdateBasic(c *gin.Context) {
 	if util.CheckError(c, err) {
 		return
 	}
-	log.Println(member)
-	log.Println(req.Role == "")
 	if req.Name != "" {
 		member.Name = req.Name
 	}
