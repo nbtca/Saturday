@@ -2,7 +2,11 @@
 > still relaxing
 
 ## 简介
-维修队后端
++ 使用golang，gin搭建的维修队后端
++ [API文档](assets/api.md)
++ 使用此后端服务的项目
+   + [Sunday](https://github.com/nbtca/Sunday) (管理系统)
+   + [Hawaii](https://github.com/nbtca/Hawaii) (维修小程序)
 
 ## 如何运行
 1. 安装`golang`,`mysql`
@@ -27,12 +31,12 @@
    ``` sh
    go run main.go
    ```
+6. 服务运行在`8080`端口
 
 ## 测试
 1. 安装`docker`
 2. 运行测试
 
-   测试文件位于test文件夹内
    ```sh
-   go test <TEST_FILE>
+   go test <floder>
    ```
