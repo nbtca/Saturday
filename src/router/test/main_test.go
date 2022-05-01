@@ -15,10 +15,10 @@ var db *sqlx.DB
 
 func TestMain(m *testing.M) {
 	util.InitValidator()
-	db, _ = util.GetDB()
+	db, _ = GetDB()
 	repo.SetDB(db)
 	defer repo.CloseDB()
-	defer util.Close()
+	defer CloseResource()
 
 	r = router.SetupRouter()
 
