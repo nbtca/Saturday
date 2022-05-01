@@ -8,6 +8,7 @@ import (
 
 func main() {
 	util.InitEnv()
+	util.InitValidator()
 
 	repo.InitDB()
 	defer repo.CloseDB()
