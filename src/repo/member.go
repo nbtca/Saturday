@@ -85,7 +85,11 @@ func UpdateMember(member model.Member) error {
 		return err
 	}
 	conn.Exec(sql, args...)
-	SetMemberRole(member.MemberId, member.Role, conn)
+	err = SetMemberRole(member.MemberId, member.Role, conn)
+	if err != nil {
+		conn.Rollback()
+		return err
+	}
 	if err = conn.Commit(); err != nil {
 		conn.Rollback()
 		return err

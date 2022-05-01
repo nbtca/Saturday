@@ -170,6 +170,7 @@ var CreateMemberData = []TestData{
 			gin.H{
 				"alias":   "小稽",
 				"name":    "滑小稽",
+				"role":    "member_inactive",
 				"section": "计算机233",
 				"profile": "。。。",
 				"phone":   "12352439487",
