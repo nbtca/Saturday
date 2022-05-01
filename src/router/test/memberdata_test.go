@@ -240,7 +240,7 @@ var UpdateMemberBasicInfoData = []TestData{
 				"phone":        "12356839487",
 				"qq":           "123456",
 				"avatar":       "",
-				"created_by":   "",
+				"created_by":   "0000000000",
 				"gmt_create":   "2022-04-17T19:35:55.000Z",
 				"gmt_modified": "2022-04-17T19:35:55.000Z",
 				"role":         "admin",
