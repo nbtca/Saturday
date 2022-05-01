@@ -220,12 +220,13 @@ var UpdateMemberBasicInfoData = []TestData{
 	{
 		"success",
 		Request{
-			"PUT",
+			"PATCH",
 			"/members/2333333333",
 			"",
 			gin.H{
 				"name":    "滑稽",
 				"section": "计算机322",
+				"role":    "admin",
 			},
 		},
 		Response{
@@ -239,10 +240,10 @@ var UpdateMemberBasicInfoData = []TestData{
 				"phone":        "12356839487",
 				"qq":           "123456",
 				"avatar":       "",
-				"created_by":   "",
+				"created_by":   "0000000000",
 				"gmt_create":   "2022-04-17T19:35:55.000Z",
 				"gmt_modified": "2022-04-17T19:35:55.000Z",
-				"role":         "member",
+				"role":         "admin",
 			},
 		},
 	},

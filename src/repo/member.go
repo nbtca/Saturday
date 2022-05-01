@@ -57,13 +57,35 @@ func CreateMember(member *model.Member) error {
 		member.MemberId, member.Alias, member.Name, member.Section,
 		member.Profile, member.Phone, member.Qq, member.CreatedBy,
 		util.GetDate(), util.GetDate()).ToSql()
-	sqlRole, argsRole, _ := squirrel.Insert("member_role_relation").Columns("member_id", "role_id").Values(member.MemberId, 0).ToSql()
 	conn, err := db.Begin()
 	if err != nil {
 		return err
 	}
 	conn.Exec(sqlMember, argsMember...)
-	conn.Exec(sqlRole, argsRole...)
+	SetMemberRole(member.MemberId, member.Role, conn)
+	if err = conn.Commit(); err != nil {
+		conn.Rollback()
+		return err
+	}
+	return nil
+}
+
+func UpdateMember(member model.Member) error {
+	sql, args, _ := squirrel.Update("member").
+		Set("alias", member.Alias).
+		Set("name", member.Name).
+		Set("section", member.Section).
+		Set("profile", member.Profile).
+		Set("phone", member.Phone).
+		Set("qq", member.Qq).
+		Set("gmt_modified", util.GetDate()).
+		Where(squirrel.Eq{"member_id": member.MemberId}).ToSql()
+	conn, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	conn.Exec(sql, args...)
+	SetMemberRole(member.MemberId, member.Role, conn)
 	if err = conn.Commit(); err != nil {
 		conn.Rollback()
 		return err

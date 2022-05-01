@@ -25,13 +25,14 @@ type ServiceError struct {
 	}
 }
 
-func (serviceError *ServiceError) AddDetailError(resource string, field string, error string) {
+func (serviceError *ServiceError) AddDetailError(resource string, field string, error string) *ServiceError {
 	detailError := DetailError{
 		Resource: resource,
 		Field:    field,
 		Error:    error,
 	}
 	serviceError.Body.Errors = append(serviceError.Body.Errors, detailError)
+	return serviceError
 }
 
 func (error ServiceError) Build() (int, interface{}) {
