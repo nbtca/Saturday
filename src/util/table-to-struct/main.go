@@ -16,7 +16,7 @@ func main() {
 
 		// @2
 		loader := structMaker.NewMysql(db, "saturday_dev")
-		err = structMaker.New().SetSourceDB(loader).MakeFile()
+		err = structMaker.New().SetSourceDB(loader).SetOutput("models2", false).MakeFile()
 
 		// @3
 		// err = structMaker.New().SetSourceDB(loader).SetOutput("models2", true).MakeFile()
