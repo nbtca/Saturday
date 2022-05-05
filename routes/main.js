@@ -7,15 +7,6 @@ const elementsRouter = require("./elements");
 const eventsRouter = require("./events");
 const settingRouter = require("./setting");
 
-
-// const Bot = require("../utils/bot");
-// router.get("/mirai", (request, response) => {
-//   Bot.msgTest();
-//   response.send("mirai");
-// })
-
-
-
 router.use("/user", userRouter);
 router.use("/elements", elementsRouter);
 router.use("/events", auth, eventsRouter);
