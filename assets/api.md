@@ -270,8 +270,8 @@ PUT /member
 | 名称            | 类型    | in     | 描述 |
 | --------------- | ------- | ------ | ---- |
 | Authorizeation  | string  | header |      |
-| member_id       | integer | path   | 学号 |
 | alias `可选`    | string  | body   | 昵称 |
+| member_id       | integer | path   | 学号 |
 | phone `可选`    | string  | body   |      |
 | qq `可选`       | string  | body   |      |
 | avatar `可选`   | string  | body   | 头像 |
@@ -452,3 +452,212 @@ PATCH /members/2333333333
 | 200              | OK                   |
 | 404              | Resource not found   |
 | 422              | Unprocessable Entity |
+
+
+
+## 事件
+
+
+
+### 获取指定事件
+
+```
+PUT /events/{event_id}
+```
+
+#### 参数
+
+| 名称     | 类型   | in   | 描述 |
+| -------- | ------ | ---- | ---- |
+| event_id | String | path | 学号 |
+
+#### 示例
+
+##### 请求
+
+```
+GET /members/event_id
+```
+
+##### 响应
+
+```
+{
+	"event_id":""
+  "client_id": "",
+  "model": "",
+  "problem": "",
+  "member_id": "",
+  "closed_by": "",
+  "status": "",
+  "logs":{
+  	"log_id":"",
+		"member_id":"",
+		"description":"",
+		"action":"",
+  	"gmt_create": "2022-04-17T19:35:55.000Z"
+  },
+  "gmt_create": "2022-04-17T19:35:55.000Z",
+  "gmt_modified": "2022-04-17T19:35:55.000Z"
+}
+```
+
+#### Http 状态码
+
+| HTTP Status Code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | OK                   |
+| 422              | Unprocessable Entity |
+
+
+
+### 获取全部事件
+
+```
+GET /events
+```
+
+
+
+### 成员接受事件
+
+```
+PATCH /events/{event_id}/accept
+```
+
+
+
+### 获取认证成员接受的指定事件
+
+```
+GET /member/events/{event_id}
+```
+
+
+
+### 获取认证成员接受的全部事件
+
+```
+GET /member/events
+```
+
+
+
+### 认证成员提交事件
+
+```
+POST /member/events/{event_id}/commit
+```
+
+
+
+### 认证成员修改事件提交
+
+```
+PATCH /member/events/{event_id}/commit
+```
+
+
+
+### 认证成员放弃事件
+
+```
+DELETE /member/events/{event_id}/accept
+```
+
+
+
+### 管理员退回成员事件提交
+
+```
+DELETE /events/{event_id}/commit
+```
+
+
+
+### 管理员关闭事件
+
+```
+POST /events/{event_id}/close
+```
+
+
+
+### 报修人员创建事件
+
+```
+POST /clients/event
+```
+
+
+
+### 报修人员更改事件
+
+```
+POST /clients/events/{event_id}
+```
+
+
+
+### 报修人员取消事件
+
+```
+POST /clients/events/{event_id}
+```
+
+
+
+### 获取报修人员事件
+
+```
+GET /client/events/{event_id}
+```
+
+
+
+### 获取报修人员全部事件
+
+```
+GET /client/events
+```
+
+
+
+
+
+## 报修人员
+
+
+
+### 获取指定报修人员
+
+```
+GET /clients/{client_id}
+```
+
+
+
+### 获取全部报修人员
+
+```
+GET /clients/{client_id}
+```
+
+
+
+### 创建报修人员
+
+```
+POST /client
+```
+
+
+
+### 创建报修人员Token
+
+```
+POST /client/{client_id}/token
+```
+
+
+

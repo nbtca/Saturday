@@ -37,7 +37,7 @@ func TestMemberActive(t *testing.T) {
 	}
 }
 
-func UpdateMember(t *testing.T) {
+func TestUpdateMember(t *testing.T) {
 	for _, data := range UpdateMemberData {
 		t.Run(data.Name, func(t *testing.T) {
 			err := DataHandler(data)
