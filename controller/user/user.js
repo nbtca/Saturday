@@ -1,9 +1,9 @@
 const UserModel = require("../../models/UserModel");
 const { respond, uuid, createToken } = require("../../utils/utils");
+const { weChatConfig } = require("../../config")
 const axios = require("axios");
-const log4js = require("../../utils/log4js");
 class UserController {
-  constructor() {}
+  constructor() { }
   getUid(req, res, next) {
     UserModel.findByFilter(["uid"], { uopenid: req.body.openid })
       .then(result => {
@@ -47,8 +47,8 @@ class UserController {
     axios
       .get(wxAuthUrl, {
         params: {
-          appid: "***REMOVED***",
-          secret: "***REMOVED***",
+          appid: weChatConfig.appid,
+          secret: weChatConfig.secret,
           js_code: req.body.code,
           grant_type: "authorization_code",
         },

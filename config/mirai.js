@@ -1,5 +1,5 @@
 const { Bot } = require("mirai-js");
-const { MiraiConfig, BotAccount } = require("./config");
+const { MiraiConfig, BotAccount } = require("../config");
 
 const bot = new Bot();
 

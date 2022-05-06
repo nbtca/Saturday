@@ -138,34 +138,7 @@ class ElementController {
       .then(respond(res, 0))
       .catch(error => console.log(error));
   }
-  // activate(req, res, next) {
-  //   try {
-  //     let file = req.files.file;
-  //     let ext = "." + file.type.substring(file.type.indexOf("/") + 1);
-  //     let timestamps = new Date().getTime();
-  //     let fileName = "/element/" + res.locals.data.rid + "/" + timestamps + ext;
-  //     let path = req.files.file.path;
-  //     console.log(fileName, path);
-  //     put(fileName, path).then(result => {
-  //       console.log(result);
-  //       ElementModel.update(
-  //         {
-  //           rid: res.locals.data.rid,
-  //           ralias: req.fields.alias,
-  //           rpassword: req.fields.password,
-  //           name: req.fields.name,
-  //           class: req.fields.class,
-  //           rqq: req.fields.rqq,
-  //           rphone: req.fields.rphone,
-  //           ravatar: result.res.requestUrls[0],
-  //         },
-  //         { rid: res.locals.data.rid }
-  //       ).then(respond(res, 0));
-  //     });
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // }
+  
   updateAvatar(req, res, next) {
     console.log("update Avatar");
     let file = req.files.file;

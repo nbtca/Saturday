@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { cert } = require("../config/config");
+const { cert } = require("../config");
 exports.jsonPush = (str, data) => {
   if (!str) {
     str = "[]";
@@ -64,7 +64,7 @@ exports.uuid = () => {
 };
 
 const OSS = require("ali-oss");
-const { ossConfig } = require("../config/config");
+const { ossConfig } = require("../config");
 
 let client = new OSS(ossConfig);
 

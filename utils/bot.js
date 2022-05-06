@@ -1,6 +1,6 @@
 const { Message, Middleware } = require("mirai-js");
 const bot = require("../config/mirai");
-const { GroupList } = require("../config/config");
+const { GroupList } = require("../config");
 const TestGroupID = "960601785"; // test
 
 class Bot {

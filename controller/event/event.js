@@ -3,7 +3,8 @@ const actionSheet = require("../../config/actionSheet");
 const ElementModel = require("../../models/ElementModel");
 const EventModel = require("../../models/EventModel");
 const { appendLog } = require("./action");
-const Bot = require("../../utils/bot");
+// const Bot = require("../../utils/bot");
+
 // A:admin U:user E:element CE:current element
 // delete (1-3)->0 U
 // accept 1->2 E
@@ -20,9 +21,6 @@ class Event {
     try {
       let temp = JSON.parse(data.event_log);
       for (let item of temp) {
-        // if (item.rid) {
-        //   item.alias = await ElementModel.findByFilter({ ralias }, { rid: req.params.rid });
-        // }
         item.time = item.time.substring(0, 10) + " " + item.time.substring(11, 19);
         item.icon = actionSheet[item.type].icon;
         item.title = actionSheet[item.type].title;
@@ -67,8 +65,8 @@ class Event {
     };
     try {
       await EventModel.create(newEvent);
-      const msg = Bot.newEventTemplate(newEvent);
-      await Bot.broadcast(msg)
+      // const msg = Bot.newEventTemplate(newEvent);
+      // await Bot.broadcast(msg)
       respond(res, 0);
     } catch (error) {
       console.log(error);

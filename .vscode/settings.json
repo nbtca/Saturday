@@ -5,6 +5,7 @@
 		"ralias",
 		"ravatar",
 		"rpassword",
-		"rphone"
+		"rphone",
+		"uopenid"
 	]
 }
