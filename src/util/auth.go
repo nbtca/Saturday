@@ -3,8 +3,9 @@ package util
 import (
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
+
 var key = []byte("qwejlkqwjelkqwlkqwejlqjelk")
 
 type Payload struct {
