@@ -2,7 +2,7 @@
 
 ## 成员（Member）
 
-### 获取指定成员
+### 获取指定成员 已完成
 
 ```
 GET /members/{member_id}
@@ -44,7 +44,7 @@ GET /members/2333333333
 | **200**          | OK                 |
 | 404              | Resource not found |
 
-### 获取全部成员
+### 获取全部成员 已完成
 
 ```
 GET /members
@@ -99,7 +99,7 @@ GET /members
 | **200**          | OK                 |
 | 404              | Resource not found |
 
-### 创建用户 Token
+### 创建用户 Token 未完成
 
 返回认证用户信息以及 token
 
@@ -154,7 +154,7 @@ POST /members/2333333333
 | 404              | Resource not found   |
 | 422              | Unprocessable Entity |
 
-### 获取认证用户信息
+### 获取认证用户信息 已完成
 
 ```
 GET /member
@@ -200,7 +200,7 @@ GET /member
 | **200**          | OK                 |
 | 404              | Resource not found |
 
-### 用户激活
+### 用户激活 未完成
 
 - 用户在初次设定密码后激活
 - member_inactive=>member
@@ -257,9 +257,9 @@ PUT /member
 }
 ```
 
-###
 
-### 用户更新信息
+
+### 用户更新信息 未完成
 
 ```
 PUT /member
@@ -314,13 +314,13 @@ PUT /member
 }
 ```
 
-### 用户修改头像
+### 用户修改头像 未完成
 
 ```
 PUT /member/avater
 ```
 
-### 创建成员
+### 创建成员 已完成
 
 - 需要身份为管理员
 - member_id（学号）需为唯一
@@ -388,7 +388,7 @@ POST /members/3000000000
 | 404              | Resource not found   |
 | 422              | Unprocessable Entity |
 
-### 创建多个用户
+### 创建多个用户 未完成
 
 ```
 POST /members
@@ -396,7 +396,7 @@ POST /members
 
 // TODO
 
-### 修改用户基本信息
+### 修改用户基本信息 已完成
 
 ```
 PUT /members/{member_id}
@@ -462,7 +462,7 @@ PATCH /members/2333333333
 ### 获取指定事件
 
 ```
-PUT /events/{event_id}
+GET /events/{event_id}
 ```
 
 #### 参数
@@ -658,6 +658,3 @@ POST /client
 ```
 POST /client/{client_id}/token
 ```
-
-
-

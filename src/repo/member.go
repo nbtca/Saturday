@@ -8,11 +8,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var fields = []string{"member_id", "alias", "password", "name", "section", "role", "profile",
+var memberFields = []string{"member_id", "alias", "password", "name", "section", "role", "profile",
 	"phone", "qq", "avatar", "created_by", "gmt_create", "gmt_modified"}
 
 func getMemberStatement() squirrel.SelectBuilder {
-	members := squirrel.Select(fields...).From("member")
+	members := squirrel.Select(memberFields...).From("member")
 	return members.LeftJoin("member_role_relation USING (member_id)").LeftJoin("role USING (role_id)")
 }
 
