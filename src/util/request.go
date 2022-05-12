@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -9,9 +10,16 @@ import (
 
 func BindAll(c *gin.Context, target interface{}) error {
 	c.ShouldBindUri(target)
-	c.ShouldBindJSON(target)
+	jsonBindingErr := c.ShouldBindJSON(target)
+	if jsonBindingErr != nil {
+		if jsonBindingErr.Error() == "unexpected EOF" {
+			return MakeServiceError(http.StatusBadRequest).
+				SetMessage("Problems parsing JSON")
+		}
+	}
 	err := c.ShouldBindQuery(target)
 	if err != nil {
+		Logger.Print(err)
 		return MakeValidationError(c.Request.URL.Path, err)
 	}
 	return nil
