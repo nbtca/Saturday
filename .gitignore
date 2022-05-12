@@ -1,4 +1,5 @@
 node_modules
-logs/*
+*.log
 wait-for-it.sh
 config.js
+.env

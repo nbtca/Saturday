@@ -3,7 +3,7 @@ const actionSheet = require("../../config/actionSheet");
 const ElementModel = require("../../models/ElementModel");
 const EventModel = require("../../models/EventModel");
 const { appendLog } = require("./action");
-// const Bot = require("../../utils/bot");
+const Bot = require("../../utils/bot");
 
 // A:admin U:user E:element CE:current element
 // delete (1-3)->0 U
@@ -65,8 +65,8 @@ class Event {
     };
     try {
       await EventModel.create(newEvent);
-      // const msg = Bot.newEventTemplate(newEvent);
-      // await Bot.broadcast(msg)
+      const msg = Bot.newEventTemplate(newEvent);
+      await Bot.broadcast(msg)
       respond(res, 0);
     } catch (error) {
       console.log(error);
