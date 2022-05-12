@@ -7,7 +7,7 @@ type Event struct {
 	Phone             string     `json:"phone"`
 	Qq                string     `json:"qq"`
 	ContactPreference string     `json:"contact_preference" db:"contact_preference" `
-	Problem           string     `json:"problem" db:"event_description"`
+	Problem           string     `json:"problem" db:"problem"`
 	MemberId          string     `json:"member_id" db:"member_id"`
 	ClosedBy          string     `json:"closed_by" db:"closed_by"`
 	Status            string     `json:"status"`
@@ -26,12 +26,12 @@ type EventEventStatusRelation struct {
 }
 
 type EventLog struct {
-	EventLogId  int64  `json:"log_id"`
-	EventId     int64  `json:"-"`
+	EventLogId int64 `json:"log_id" db:"event_log_id"`
+	// EventId     int64  `json:"-"
 	Description string `json:"description"`
-	GmtCreate   string `json:"gmt_create"`
-	MemberId    string `json:"member_id"`
+	MemberId    string `json:"member_id" db:"member_id"`
 	Action      string `json:"action"`
+	GmtCreate   string `json:"gmt_create" db:"gmt_create"`
 }
 
 type EventActionRelation struct {

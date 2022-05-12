@@ -20,6 +20,8 @@ func SetupRouter() *gin.Engine {
 		PublicGroup.GET("members/:MemberId", MemberRouterApp.GetPublicMemberById)
 		PublicGroup.GET("members/", MemberRouterApp.GetPublicMemberByPage)
 		PublicGroup.POST("members/:MemberId/token", MemberRouterApp.CreateToken)
+
+		PublicGroup.GET("events/:EventId", EventRouterApp.GetPublicEventById)
 	}
 
 	Router.PUT("member/activate",
@@ -32,6 +34,10 @@ func SetupRouter() *gin.Engine {
 		MemberGroup.GET("/member", MemberRouterApp.GetMemberById)
 		MemberGroup.PUT("/member", MemberRouterApp.Update)
 		MemberGroup.PUT("/member/avatar", MemberRouterApp.UpdateAvatar)
+
+		// TODO: set auth requirements
+		// allow current member and current user
+		PublicGroup.GET("member/events/:EventId", EventRouterApp.GetEventById)
 	}
 	AdminGroup := Router.Group("/")
 	AdminGroup.Use(middleware.Auth("admin"))
