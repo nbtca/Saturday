@@ -46,7 +46,7 @@ class Bot {
   }
 
   async broadcast(msg) {
-    for (group of GroupList) {
+    for (let group of GroupList) {
       await this.sendGroupMsg(msg, group);
     }
   }
