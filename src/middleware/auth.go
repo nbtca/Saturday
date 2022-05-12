@@ -10,27 +10,22 @@ import (
 type Role string
 
 const (
-	member Role = "member"
-	admin  Role = "admin"
+	Member Role = "member"
+	Admin  Role = "admin"
 )
 
-func TokenInvalid(c *gin.Context){
-	c.AbortWithStatusJSON(util.
-		MakeServiceError(http.StatusUnprocessableEntity).
-		SetMessage("Token Invalid").
-		Build())
-}
-
 func Auth(role ...Role) func(c *gin.Context) {
+	TokenInvalidErr := util.MakeServiceError(http.StatusUnprocessableEntity).
+		SetMessage("Token Invalid")
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
-			TokenInvalid(c)
+			c.AbortWithStatusJSON(TokenInvalidErr.Build())
 			return
 		}
 		token, claims, err := util.ParseToken(tokenString)
 		if err != nil || !token.Valid {
-			TokenInvalid(c)
+			c.AbortWithStatusJSON(TokenInvalidErr.Build())
 			return
 		}
 		for _, roleObj := range role {
@@ -38,6 +33,6 @@ func Auth(role ...Role) func(c *gin.Context) {
 				return
 			}
 		}
-		TokenInvalid(c)
+		c.AbortWithStatusJSON(TokenInvalidErr.Build())
 	}
 }
