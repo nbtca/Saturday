@@ -27,9 +27,8 @@ func GetRoleId(role string) (sql.NullInt64, error) {
 	return id, nil
 }
 
-
-
 func SetMemberRole(memberId string, role string, conn *sql.Tx) error {
+	//TODO change to update or on duplicate key update
 	sql := `INSERT INTO member_role_relation (member_id, role_id)
 	 		VALUES (?, (Select role_id from role where role = ?))`
 	_, err := conn.Exec(sql, memberId, role)

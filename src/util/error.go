@@ -57,6 +57,9 @@ func (serviceError *ServiceError) SetMessage(message string) *ServiceError {
 }
 
 func IsServiceError(err error) (*ServiceError, bool) {
+	if err == nil {
+		return nil, false
+	}
 	serviceError, ok := err.(*ServiceError)
 	return serviceError, ok
 }
@@ -69,9 +72,10 @@ func CheckError(c *gin.Context, err error) bool {
 		serviceError, ok := IsServiceError(err)
 		if ok {
 			c.AbortWithStatusJSON(serviceError.Build())
-			return true
+		} else {
+			c.Error(err)
 		}
-		c.Error(err)
+		return true
 	}
 	return false
 }

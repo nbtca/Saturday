@@ -99,7 +99,7 @@ GET /members
 | **200**          | OK                 |
 | 404              | Resource not found |
 
-### 创建用户 Token 未完成
+### 创建用户 Token 已完成
 
 返回认证用户信息以及 token
 
@@ -483,22 +483,31 @@ GET /members/event_id
 
 ```
 {
-	"event_id":""
-  "client_id": "",
-  "model": "",
-  "problem": "",
+  "event_id": 1,
+  "client_id": 1,
+  "model": "7590",
+  "problem": "hackintosh",
   "member_id": "",
   "closed_by": "",
-  "status": "",
-  "logs":{
-  	"log_id":"",
-		"member_id":"",
-		"description":"",
-		"action":"",
-  	"gmt_create": "2022-04-17T19:35:55.000Z"
-  },
-  "gmt_create": "2022-04-17T19:35:55.000Z",
-  "gmt_modified": "2022-04-17T19:35:55.000Z"
+  "status": "open",
+  "logs": [
+    {
+      "log_id": 1,
+      "description": "",
+      "member_id": "",
+      "action": "create",
+      "gmt_create": "2022-05-10 11:00:26"
+    },
+    {
+      "log_id": 2,
+      "description": "",
+      "member_id": "2333333333",
+      "action": "accept",
+      "gmt_create": "2022-05-10 11:03:18"
+    }
+  ],
+  "gmt_create": "2022-05-10 10:23:54",
+  "gmt_modified": "2022-05-12 23:22:44"
 }
 ```
 

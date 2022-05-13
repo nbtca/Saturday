@@ -15,11 +15,11 @@ func (EventRouter) GetPublicEventById(c *gin.Context) {
 	if err := util.BindAll(c, eventId); util.CheckError(c, err) {
 		return
 	}
-	member, err := service.EventServiceApp.GetPublicEventById(eventId.EventID)
+	event, err := service.EventServiceApp.GetPublicEventById(eventId.EventID)
 	if util.CheckError(c, err) {
 		return
 	}
-	c.JSON(200, member)
+	c.JSON(200, event)
 }
 
 func (EventRouter) GetEventById(c *gin.Context) {
@@ -27,11 +27,28 @@ func (EventRouter) GetEventById(c *gin.Context) {
 	if err := util.BindAll(c, eventId); util.CheckError(c, err) {
 		return
 	}
-	member, err := service.EventServiceApp.GetEventById(eventId.EventID)
+	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
 	if util.CheckError(c, err) {
 		return
 	}
-	c.JSON(200, member)
+	c.JSON(200, event)
+}
+
+func (EventRouter) AcceptEvent(c *gin.Context) {
+	eventId := &dto.EventID{}
+	memberId := "2333333333"
+	if err := util.BindAll(c, eventId); util.CheckError(c, err) {
+		return
+	}
+	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
+	if util.CheckError(c, err) {
+		return
+	}
+	event, err = service.EventServiceApp.Accept(event, memberId)
+	if util.CheckError(c, err) {
+		return
+	}
+	c.JSON(200, event)
 }
 
 var EventRouterApp = EventRouter{}

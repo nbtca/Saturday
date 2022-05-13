@@ -28,6 +28,8 @@ func SetupRouter() *gin.Engine {
 		middleware.Auth("member_inactive,admin_inactive"),
 		MemberRouterApp.Activate)
 
+	Router.POST("member/events/:EventId/accept", EventRouterApp.AcceptEvent)
+
 	MemberGroup := Router.Group("/")
 	MemberGroup.Use(middleware.Auth("member", "admin"))
 	{
@@ -39,6 +41,7 @@ func SetupRouter() *gin.Engine {
 		// allow current member and current user
 		PublicGroup.GET("member/events/:EventId", EventRouterApp.GetEventById)
 	}
+
 	AdminGroup := Router.Group("/")
 	AdminGroup.Use(middleware.Auth("admin"))
 	{

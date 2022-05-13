@@ -26,7 +26,6 @@ func getLogStatement() squirrel.SelectBuilder {
 func GetEventById(id int64) (model.Event, error) {
 	getEventSql, getEventArgs, _ := getEventStatement().Where(squirrel.Eq{"event_id": id}).ToSql()
 	getLogSql, getLogArgs, _ := getLogStatement().Where(squirrel.Eq{"event_id": id}).ToSql()
-	log.Println(getLogSql)
 	event := model.Event{}
 	conn, err := db.Beginx()
 	if err != nil {
@@ -36,8 +35,43 @@ func GetEventById(id int64) (model.Event, error) {
 		return model.Event{}, err
 	}
 	if err := conn.Select(&event.Logs, getLogSql, getLogArgs...); err != nil {
+		log.Println(err)
 		return model.Event{}, err
 	}
-	// event.Logs = logs
+	if err = conn.Commit(); err != nil {
+		conn.Rollback()
+		return model.Event{}, err
+	}
 	return event, nil
+}
+
+func UpdateEvent(event model.Event) (model.Event, error) {
+	sql, args, _ := squirrel.Update("event").
+		Set("model", event.Model).
+		Set("phone", event.Phone).
+		Set("qq", event.Qq).
+		Set("contact_preference", event.ContactPreference).
+		Set("problem", event.Problem).
+		Set("member_id", event.MemberId).
+		Set("closed_by", event.ClosedBy).
+		Set("gmt_modified", event.GmtModified).
+		Where(squirrel.Eq{"event_id": event.EventId}).ToSql()
+	conn, err := db.Beginx()
+	if err != nil {
+		return model.Event{}, err
+	}
+	res, err := conn.Exec(sql, args...)
+	log.Println(res)
+	if err != nil {
+		return model.Event{}, err
+	}
+	_, err = SetEventStatus(event.EventId, event.Status, conn)
+	if err != nil {
+		return model.Event{}, err
+	}
+	if err = conn.Commit(); err != nil {
+		conn.Rollback()
+		return model.Event{}, err
+	}
+	return model.Event{}, nil
 }

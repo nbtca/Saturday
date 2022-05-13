@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"saturday/src/util"
 
@@ -13,6 +14,7 @@ func ErrorHandler(c *gin.Context) {
 		return
 	}
 	for _, err := range c.Errors {
+		log.Println(err)
 		_, ok := util.IsServiceError(err)
 		if !ok {
 			util.Logger.Error(err)

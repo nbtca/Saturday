@@ -26,8 +26,8 @@ type EventEventStatusRelation struct {
 }
 
 type EventLog struct {
-	EventLogId int64 `json:"log_id" db:"event_log_id"`
-	// EventId     int64  `json:"-"
+	EventLogId  int64  `json:"log_id" db:"event_log_id"`
+	EventId     int64  `json:"-" db:"-"`
 	Description string `json:"description"`
 	MemberId    string `json:"member_id" db:"member_id"`
 	Action      string `json:"action"`
