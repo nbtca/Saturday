@@ -22,13 +22,13 @@ func SetupRouter() *gin.Engine {
 		PublicGroup.POST("members/:MemberId/token", MemberRouterApp.CreateToken)
 
 		PublicGroup.GET("events/:EventId", EventRouterApp.GetPublicEventById)
+		PublicGroup.GET("events/", EventRouterApp.GetPublicEventByPage)
+
 	}
 
 	Router.PUT("member/activate",
 		middleware.Auth("member_inactive,admin_inactive"),
 		MemberRouterApp.Activate)
-
-	Router.POST("member/events/:EventId/accept", EventRouterApp.AcceptEvent)
 
 	MemberGroup := Router.Group("/")
 	MemberGroup.Use(middleware.Auth("member", "admin"))
@@ -39,7 +39,15 @@ func SetupRouter() *gin.Engine {
 
 		// TODO: set auth requirements
 		// allow current member and current user
-		PublicGroup.GET("member/events/:EventId", EventRouterApp.GetEventById)
+		MemberGroup.GET("member/events/:EventId", EventRouterApp.GetEventById)
+		MemberGroup.GET("member/events/", EventRouterApp.GetEventByPage)
+
+		MemberGroup.POST("member/events/:EventId/accept", EventRouterApp.Accept)
+		MemberGroup.DELETE("member/events/:EventId/accept", EventRouterApp.Drop)
+
+		MemberGroup.POST("member/events/:EventId/commit", EventRouterApp.Commit)
+		MemberGroup.PATCH("member/events/:EventId/commit", EventRouterApp.AlterCommit)
+
 	}
 
 	AdminGroup := Router.Group("/")
@@ -48,6 +56,10 @@ func SetupRouter() *gin.Engine {
 		AdminGroup.POST("/members/", MemberRouterApp.CreateMany)
 		AdminGroup.POST("/members/:MemberId", MemberRouterApp.Create)
 		AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
+
+		AdminGroup.DELETE("/events/:EventId/commit", EventRouterApp.RejectCommit)
+		AdminGroup.POST("/events/:EventId/close", EventRouterApp.Close)
+
 	}
 
 	return Router

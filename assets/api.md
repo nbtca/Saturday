@@ -1,5 +1,7 @@
 # API 文档
 
+
+
 ## 成员（Member）
 
 ### 获取指定成员 已完成
@@ -457,6 +459,10 @@ PATCH /members/2333333333
 
 ## 事件
 
+![](https://clas-bucket.oss-cn-hangzhou.aliyuncs.com/uPic/GhhXcd.png)
+
+
+
 
 
 ### 获取指定事件
@@ -528,11 +534,65 @@ GET /events
 
 
 
-### 成员接受事件
+### 认证成员接受事件
 
 ```
-PATCH /events/{event_id}/accept
+POST /member/events/{event_id}/accept
 ```
+
+#### 参数
+
+| 名称           | 类型   | in     | 描述 |
+| -------------- | ------ | ------ | ---- |
+| Authorizeation | string | header |      |
+| event_id       | String | path   | 学号 |
+
+#### 示例
+
+##### 请求
+
+```
+GET /members/event_id
+```
+
+##### 响应
+
+```
+{
+  "event_id": 1,
+  "client_id": 1,
+  "model": "7590",
+  "problem": "hackintosh",
+  "member_id": "",
+  "closed_by": "",
+  "status": "open",
+  "logs": [
+    {
+      "log_id": 1,
+      "description": "",
+      "member_id": "",
+      "action": "create",
+      "gmt_create": "2022-05-10 11:00:26"
+    },
+    {
+      "log_id": 2,
+      "description": "",
+      "member_id": "2333333333",
+      "action": "accept",
+      "gmt_create": "2022-05-10 11:03:18"
+    }
+  ],
+  "gmt_create": "2022-05-10 10:23:54",
+  "gmt_modified": "2022-05-12 23:22:44"
+}
+```
+
+#### Http 状态码
+
+| HTTP Status Code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | OK                   |
+| 422              | Unprocessable Entity |
 
 
 

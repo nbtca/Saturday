@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os/exec"
+	"saturday/src/util"
 	"strings"
 	"time"
 
@@ -67,8 +68,11 @@ func DataHandler(data TestData) error {
 	} else {
 		req, _ = http.NewRequest(data.Req.Method, data.Req.Url, nil)
 	}
+	token, _ := util.CreateToken(util.Payload{Who: "2333333333", Role: "member"})
+	req.Header.Add("Authorization", token)
 	r.ServeHTTP(w, req)
 	if data.Res.Code != w.Code {
+		log.Println(body)
 		return fmt.Errorf("inconsistent code\n expected:%v\n got:%v", data.Res.Code, w.Code)
 	}
 
