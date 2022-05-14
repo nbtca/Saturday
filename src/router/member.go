@@ -86,7 +86,7 @@ func (MemberRouter) Create(c *gin.Context) {
 		Section:   req.Section,
 		Profile:   req.Profile,
 		Qq:        req.Qq,
-		Role:	  req.Role,
+		Role:      req.Role,
 		CreatedBy: c.GetString("id"),
 	}
 	res, err := service.MemberServiceApp.CreateMember(member)
@@ -106,11 +106,41 @@ func (MemberRouter) Activate(c *gin.Context) {
 
 func (MemberRouter) Update(c *gin.Context) {
 	//TODO not implemented
+	req := &dto.UpdateMember{}
+	if err := util.BindAll(c, req); util.CheckError(c, err) {
+		return
+	}
+	member, err := service.MemberServiceApp.GetMemberById(req.MemberId)
+	if util.CheckError(c, err) {
+		return
+	}
+	if req.Alias != "" {
+		member.Alias = req.Alias
+	}
+	if req.Phone != "" {
+		member.Phone = req.Phone
+	}
+	if req.Qq != "" {
+		member.Qq = req.Qq
+	}
+	if req.Avatar != "" {
+		member.Avatar = req.Avatar
+	}
+	if req.Profile != "" {
+		member.Profile = req.Profile
+	}
+	if req.Password != "" {
+		member.Password = req.Password
+	}
+	err = service.MemberServiceApp.UpdateMember(member)
+	if util.CheckError(c,err){
+		return
+	}
+	c.JSON(200, member)
 }
 
 func (MemberRouter) UpdateBasic(c *gin.Context) {
 	//TODO not implemented
-
 
 	req := &dto.UpdateMemberBasicReq{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {

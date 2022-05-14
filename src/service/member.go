@@ -79,4 +79,20 @@ func (service *MemberService) UpdateBasic(member model.Member) error {
 	return nil
 }
 
+func (service *MemberService) UpdateMember(member model.Member) error {
+	exist, err := repo.ExistRole(member.Role)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return util.
+			MakeServiceError(http.StatusUnprocessableEntity).
+			SetMessage("Validation Failed").
+			AddDetailError("member", "role", "invalid role")
+	}
+	if err := repo.UpdateMember(member); err != nil {
+		return err
+	}
+	return nil
+}
 var MemberServiceApp = new(MemberService)
