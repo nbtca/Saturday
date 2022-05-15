@@ -13,7 +13,7 @@ type CreateMemberReq struct {
 	Section  string `json:"section" binding:"required,section"`
 	Profile  string `json:"profile"`
 	Phone    string `json:"phone" binding:"omitempty,len=11,numeric"`
-	Qq       string `json:"qq" binding:"omitempty,min=5,max=12,numeric"`
+	QQ       string `json:"qq" binding:"omitempty,min=5,max=12,numeric"`
 	Role     string `json:"role" binding:"required"`
 }
 
@@ -38,7 +38,7 @@ type UpdateMember struct {
 	MemberId string `uri:"MemberId" json:"member_id" binding:"required,len=10,numeric"`
 	Alias    string `json:"alias" binding:"omitempty"`
 	Phone    string `json:"phone" binding:"omitempty,len=11"`
-	Qq       string `json:"qq" binding:"omitempty,min=5,max=9"`
+	QQ       string `json:"qq" binding:"omitempty,min=5,max=9"`
 	Avatar   string `json:"avatar" binding:"omitempty"`
 	Profile  string `json:"profile" binding:"omitempty"`
 	Password string `json:"password" binding:"omitempty"`

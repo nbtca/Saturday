@@ -49,14 +49,15 @@ func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
 	return members, nil
 }
 
-// TODO use 'row affected'
 func CreateMember(member *model.Member) error {
+	member.GmtCreate = util.GetDate()
+	member.GmtCreate = util.GetDate()
 	sqlMember, argsMember, _ := squirrel.Insert("member").Columns(
 		"member_id", "alias", "name", "section", "profile",
 		"phone", "qq", "created_by", "gmt_create", "gmt_modified").Values(
 		member.MemberId, member.Alias, member.Name, member.Section,
-		member.Profile, member.Phone, member.Qq, member.CreatedBy,
-		util.GetDate(), util.GetDate()).ToSql()
+		member.Profile, member.Phone, member.QQ, member.CreatedBy,
+		member.GmtCreate, member.GmtModified).ToSql()
 	conn, err := db.Begin()
 	if err != nil {
 		return err
@@ -77,7 +78,7 @@ func UpdateMember(member model.Member) error {
 		Set("section", member.Section).
 		Set("profile", member.Profile).
 		Set("phone", member.Phone).
-		Set("qq", member.Qq).
+		Set("qq", member.QQ).
 		Set("gmt_modified", util.GetDate()).
 		Where(squirrel.Eq{"member_id": member.MemberId}).ToSql()
 	conn, err := db.Begin()

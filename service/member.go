@@ -42,19 +42,19 @@ func (service *MemberService) GetPublicMembers(offset uint64, limit uint64) ([]m
 	return publicMembers, nil
 }
 
-func (service *MemberService) CreateMember(member *model.Member) (model.Member, error) {
+func (service *MemberService) CreateMember(member *model.Member) error {
 	exist, err := repo.ExistMember(member.MemberId)
 	if err != nil {
-		return model.Member{}, err
+		return err
 	}
 	if exist {
 		error := util.MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
-		return model.Member{}, error
+		return error
 	}
 	if err := repo.CreateMember(member); err != nil {
-		return model.Member{}, err
+		return err
 	}
-	return service.GetMemberById(member.MemberId)
+	return nil
 }
 
 func (service *MemberService) CreateToken(member model.Member) (string, error) {

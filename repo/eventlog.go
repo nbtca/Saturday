@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"log"
 	"saturday/model"
 	"saturday/util"
 
@@ -25,6 +24,7 @@ func CreateEventLog(eventLog *model.EventLog) error {
 	eventLog.EventLogId = int64(eventLogId)
 	err = SetEventAction(eventLogId, eventLog.Action, conn)
 	if err != nil {
+		conn.Rollback()
 		return err
 	}
 	if err = conn.Commit(); err != nil {
@@ -47,17 +47,10 @@ func ExistEventAction(action string) (bool, error) {
 }
 
 func SetEventAction(eventLogId int64, action string, conn *sqlx.Tx) error {
-	log.Println(eventLogId)
-	sql := `INSERT INTO event_action_relation VALUES (?,(
+	sql := `INSERT INTO event_event_action_relation VALUES (?,(
 		SELECT event_action_id FROM event_action WHERE action=?))
 		ON DUPLICATE KEY UPDATE event_action_id=(
 		SELECT event_action_id FROM event_action WHERE action= ? )`
 	_, err := conn.Exec(sql, eventLogId, action, action)
-	log.Println("Event action", err)
 	return err
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// var p Place
-	// err = row.StructScan(&p)
 }

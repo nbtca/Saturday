@@ -5,7 +5,7 @@ type Event struct {
 	ClientId          int64      `json:"client_id" db:"client_id"`
 	Model             string     `json:"model"`
 	Phone             string     `json:"phone"`
-	Qq                string     `json:"qq"`
+	QQ                string     `json:"qq"`
 	ContactPreference string     `json:"contact_preference" db:"contact_preference" `
 	Problem           string     `json:"problem" db:"problem"`
 	MemberId          string     `json:"member_id" db:"member_id"`

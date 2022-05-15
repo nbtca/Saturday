@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+// TODO gen key
 var key = []byte("qwejlkqwjelkqwlkqwejlqjelk")
 
 type Payload struct {

@@ -1,7 +1,6 @@
 package util
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -35,12 +34,4 @@ func GetPaginationQuery(c *gin.Context) (offset uint64, limit uint64, err error)
 		return
 	}
 	return
-}
-
-func SwapObject(from interface{}, to interface{}) error {
-	dataByte, err := json.Marshal(from)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(dataByte, to)
 }

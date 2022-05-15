@@ -16,7 +16,8 @@ const (
 )
 
 func Auth(role ...Role) func(c *gin.Context) {
-	TokenInvalidErr := util.MakeServiceError(http.StatusUnprocessableEntity).
+	TokenInvalidErr := util.
+		MakeServiceError(http.StatusUnprocessableEntity).
 		SetMessage("Token Invalid")
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")

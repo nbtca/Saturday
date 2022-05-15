@@ -8,8 +8,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// TODO refact
-
 type DetailError struct {
 	Resource string `json:"resource"`
 	Field    string `json:"field"`

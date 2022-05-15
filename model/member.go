@@ -9,7 +9,7 @@ type Member struct {
 	Role        string `json:"role"`
 	Profile     string `json:"profile"`
 	Phone       string `json:"phone" `
-	Qq          string `json:"qq" `
+	QQ          string `json:"qq" `
 	Avatar      string `json:"avatar"`
 	CreatedBy   string `json:"created_by" db:"created_by"`
 	GmtCreate   string `json:"gmt_create" db:"gmt_create"`

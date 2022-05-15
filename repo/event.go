@@ -19,7 +19,7 @@ func getEventStatement() squirrel.SelectBuilder {
 }
 func getLogStatement() squirrel.SelectBuilder {
 	return squirrel.Select(EventLogFields...).From("event_log").
-		LeftJoin("event_action_relation USING (event_log_id)").
+		LeftJoin("event_event_action_relation USING (event_log_id)").
 		LeftJoin("event_action USING (event_action_id)")
 }
 
@@ -45,11 +45,11 @@ func GetEventById(id int64) (model.Event, error) {
 	return event, nil
 }
 
-func UpdateEvent(event model.Event) (model.Event, error) {
+func UpdateEvent(event *model.Event) error {
 	sql, args, _ := squirrel.Update("event").
 		Set("model", event.Model).
 		Set("phone", event.Phone).
-		Set("qq", event.Qq).
+		Set("qq", event.QQ).
 		Set("contact_preference", event.ContactPreference).
 		Set("problem", event.Problem).
 		Set("member_id", event.MemberId).
@@ -58,20 +58,17 @@ func UpdateEvent(event model.Event) (model.Event, error) {
 		Where(squirrel.Eq{"event_id": event.EventId}).ToSql()
 	conn, err := db.Beginx()
 	if err != nil {
-		return model.Event{}, err
+		return err
 	}
-	res, err := conn.Exec(sql, args...)
-	log.Println(res)
-	if err != nil {
-		return model.Event{}, err
+	if _, err = conn.Exec(sql, args...); err != nil {
+		return err
 	}
-	_, err = SetEventStatus(event.EventId, event.Status, conn)
-	if err != nil {
-		return model.Event{}, err
+	if _, err = SetEventStatus(event.EventId, event.Status, conn); err != nil {
+		return err
 	}
 	if err = conn.Commit(); err != nil {
 		conn.Rollback()
-		return model.Event{}, err
+		return err
 	}
-	return model.Event{}, nil
+	return nil
 }

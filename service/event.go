@@ -1,11 +1,11 @@
 package service
 
 import (
-	"log"
 	"net/http"
 	"saturday/model"
 	"saturday/repo"
 	"saturday/util"
+	eventutil "saturday/util/event-util"
 )
 
 type EventService struct {
@@ -24,6 +24,7 @@ func MakeEventService(id int64) (*EventService, error) {
 func (service EventService) GetEventById(id int64) (model.Event, error) {
 	event, err := repo.GetEventById(id)
 	if err != nil || event.EventId == 0 {
+		util.Logger.Error(err)
 		return model.Event{}, util.
 			MakeServiceError(http.StatusUnprocessableEntity).
 			SetMessage("Validation Failed")
@@ -40,30 +41,19 @@ func (service EventService) GetPublicEventById(id int64) (model.PublicEvent, err
 }
 
 func (service EventService) Accept(event *model.Event, memberId string) error {
-	// judge whether the event is acceptable
-	if event.Status != "open" {
-		return util.MakeServiceError(http.StatusUnprocessableEntity).
-			SetMessage("This event is not open")
-	}
-	event.Status = "accepted"
-	event.MemberId = memberId
-	acceptLog := model.EventLog{
-		EventId:  event.EventId,
-		MemberId: memberId,
-		Action:   "Accept",
-	}
-	_, err := repo.UpdateEvent(*event)
+	acceptLog, err := eventutil.PerformEventAction(event, eventutil.Identity{
+		Id:   memberId,
+		Role: "member",
+	}, eventutil.Accept)
 	if err != nil {
-		// TODO  wrap error
-		log.Println(err)
+		return err
+	}
+	if err = repo.UpdateEvent(event); err != nil {
 		return err
 	}
 	if err = repo.CreateEventLog(&acceptLog); err != nil {
-		// TODO  wrap error
-		log.Println(err)
 		return err
 	}
-	event.Logs = append(event.Logs, acceptLog)
 	return nil
 }
 

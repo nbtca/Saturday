@@ -85,15 +85,15 @@ func (MemberRouter) Create(c *gin.Context) {
 		Name:      req.Name,
 		Section:   req.Section,
 		Profile:   req.Profile,
-		Qq:        req.Qq,
+		QQ:        req.QQ,
 		Role:      req.Role,
 		CreatedBy: c.GetString("id"),
 	}
-	res, err := service.MemberServiceApp.CreateMember(member)
+	err := service.MemberServiceApp.CreateMember(member)
 	if util.CheckError(c, err) {
 		return
 	}
-	c.JSON(200, res)
+	c.JSON(200, member)
 }
 
 func (MemberRouter) CreateMany(c *gin.Context) {
@@ -120,8 +120,8 @@ func (MemberRouter) Update(c *gin.Context) {
 	if req.Phone != "" {
 		member.Phone = req.Phone
 	}
-	if req.Qq != "" {
-		member.Qq = req.Qq
+	if req.QQ != "" {
+		member.QQ = req.QQ
 	}
 	if req.Avatar != "" {
 		member.Avatar = req.Avatar

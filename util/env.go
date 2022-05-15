@@ -1,8 +1,6 @@
 package util
 
-import (
-	"github.com/joho/godotenv"
-)
+import "github.com/joho/godotenv"
 
 func InitEnv() {
 	err := godotenv.Load()
