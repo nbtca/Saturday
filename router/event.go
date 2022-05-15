@@ -1,9 +1,9 @@
 package router
 
 import (
-	"saturday/src/model/dto"
-	"saturday/src/service"
-	"saturday/src/util"
+	"saturday/model/dto"
+	"saturday/service"
+	"saturday/util"
 
 	"github.com/gin-gonic/gin"
 )

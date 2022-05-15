@@ -2,8 +2,8 @@ package repo
 
 import (
 	"log"
-	"saturday/src/model"
-	"saturday/src/util"
+	"saturday/model"
+	"saturday/util"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"

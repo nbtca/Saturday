@@ -2,7 +2,7 @@ package repo
 
 import (
 	"log"
-	"saturday/src/model"
+	"saturday/model"
 
 	"github.com/Masterminds/squirrel"
 )

@@ -2,9 +2,9 @@ package service
 
 import (
 	"net/http"
-	"saturday/src/model"
-	"saturday/src/repo"
-	"saturday/src/util"
+	"saturday/model"
+	"saturday/repo"
+	"saturday/util"
 )
 
 type MemberService struct{}
@@ -95,4 +95,5 @@ func (service *MemberService) UpdateMember(member model.Member) error {
 	}
 	return nil
 }
+
 var MemberServiceApp = new(MemberService)

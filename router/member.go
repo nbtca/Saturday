@@ -2,10 +2,10 @@ package router
 
 import (
 	"net/http"
-	"saturday/src/model"
-	"saturday/src/model/dto"
-	"saturday/src/service"
-	"saturday/src/util"
+	"saturday/model"
+	"saturday/model/dto"
+	"saturday/service"
+	"saturday/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -105,7 +105,6 @@ func (MemberRouter) Activate(c *gin.Context) {
 }
 
 func (MemberRouter) Update(c *gin.Context) {
-	//TODO not implemented
 	req := &dto.UpdateMember{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
@@ -114,6 +113,7 @@ func (MemberRouter) Update(c *gin.Context) {
 	if util.CheckError(c, err) {
 		return
 	}
+	// TODO simplify
 	if req.Alias != "" {
 		member.Alias = req.Alias
 	}
@@ -133,15 +133,13 @@ func (MemberRouter) Update(c *gin.Context) {
 		member.Password = req.Password
 	}
 	err = service.MemberServiceApp.UpdateMember(member)
-	if util.CheckError(c,err){
+	if util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, member)
 }
 
 func (MemberRouter) UpdateBasic(c *gin.Context) {
-	//TODO not implemented
-
 	req := &dto.UpdateMemberBasicReq{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return

@@ -1,9 +1,9 @@
 package router_test
 
 import (
-	"saturday/src/repo"
-	"saturday/src/router"
-	"saturday/src/util"
+	"saturday/repo"
+	"saturday/router"
+	"saturday/util"
 	"testing"
 
 	"github.com/gin-gonic/gin"

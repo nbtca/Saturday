@@ -3,7 +3,7 @@ package middleware
 import (
 	"log"
 	"net/http"
-	"saturday/src/util"
+	"saturday/util"
 
 	"github.com/gin-gonic/gin"
 )

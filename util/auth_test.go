@@ -1,7 +1,7 @@
 package util_test
 
 import (
-	"saturday/src/util"
+	"saturday/util"
 	"testing"
 )
 

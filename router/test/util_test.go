@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os/exec"
-	"saturday/src/util"
+	"saturday/util"
 	"strings"
 	"time"
 

@@ -459,11 +459,32 @@ PATCH /members/2333333333
 
 ## 事件
 
+### 基础
+
 ![](https://clas-bucket.oss-cn-hangzhou.aliyuncs.com/uPic/GhhXcd.png)
 
+#### 事件状态表(status)
 
+| 状态名 |           | 描述                                 |
+| ------ | --------- | ------------------------------------ |
+| 待处理 | open      | 维修事件未被成员接受                 |
+| 取消   | canceled  | 维修事件被用户取消，不需要再进行处理 |
+| 受理   | accepted  | 维修事件已被成员接受                 |
+| 待审核 | committed | 成员提交了维修描述，管理员尚未审核   |
+| 关闭   | closed    | 维修事件已解决，不能再更改该事件     |
 
+#### 事件行为表(action)
 
+| 操作名   |             | 操作权限       | 事件状态变更           | 描述                                         |
+| -------- | ----------- | -------------- | ---------------------- | -------------------------------------------- |
+| 创建     | create      | client         | nil => open            | 用户创建了维修事件                           |
+| 受理     | accept      | member         | open => accepted       | 成员接受了维修事件                           |
+| 取消     | cancel      | current client | open => canceled       | 用户取消了自己创建的维修事件                 |
+| 放弃     | drop        | current member | accept => open         | 成员放弃了自己接受的维修事件                 |
+| 提交     | commit      | current member | accept => committed    | 成员维修完成，添加维修描述后提交给管理员审核 |
+| 修改提交 | alterCommit | current member | committed => committed | 成员修改 未被审核的维修提交                  |
+| 拒绝提交 | reject      | admin          | committed => accepted  | 管理员拒绝提交                               |
+| 关闭     | close       | admin          | committed => closed    | 管理员通过提交                               |
 
 ### 获取指定事件
 

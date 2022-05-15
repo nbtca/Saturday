@@ -3,9 +3,9 @@ package service
 import (
 	"log"
 	"net/http"
-	"saturday/src/model"
-	"saturday/src/repo"
-	"saturday/src/util"
+	"saturday/model"
+	"saturday/repo"
+	"saturday/util"
 )
 
 type EventService struct {

@@ -1,7 +1,7 @@
 package router
 
 import (
-	"saturday/src/middleware"
+	"saturday/middleware"
 
 	"github.com/gin-gonic/gin"
 )

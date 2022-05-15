@@ -1,8 +1,8 @@
 package repo
 
 import (
-	"saturday/src/model"
-	"saturday/src/util"
+	"saturday/model"
+	"saturday/util"
 
 	"github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
