@@ -23,7 +23,7 @@ func (EventRouter) GetPublicEventById(c *gin.Context) {
 }
 
 func (EventRouter) GetPublicEventByPage(c *gin.Context) {
-	// not implemented
+	//TODO not implemented
 }
 
 func (EventRouter) GetEventById(c *gin.Context) {
@@ -39,17 +39,15 @@ func (EventRouter) GetEventById(c *gin.Context) {
 }
 
 func (EventRouter) GetEventByPage(c *gin.Context) {
-	// not implemented
+	//TODO not implemented
 }
 
 func (EventRouter) Accept(c *gin.Context) {
 	eventId := &dto.EventID{}
-	memberId := "2333333333"
-	// memberId := c.GetString("id")
+	memberId := c.GetString("id")
 	if err := util.BindAll(c, eventId); util.CheckError(c, err) {
 		return
 	}
-
 	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
 	if util.CheckError(c, err) {
 		return
@@ -61,23 +59,36 @@ func (EventRouter) Accept(c *gin.Context) {
 }
 
 func (EventRouter) Drop(c *gin.Context) {
-	// not implemented
+	eventId := &dto.EventID{}
+	memberId := c.GetString("id")
+	if err := util.BindAll(c, eventId); util.CheckError(c, err) {
+		return
+	}
+
+	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
+	if util.CheckError(c, err) {
+		return
+	}
+	if err = service.EventServiceApp.Drop(&event, memberId); util.CheckError(c, err) {
+		return
+	}
+	c.JSON(200, event)
 }
 
 func (EventRouter) Commit(c *gin.Context) {
-	// not implemented
+	//TODO not implemented
 }
 
 func (EventRouter) AlterCommit(c *gin.Context) {
-	// not implemented
+	//TODO not implemented
 }
 
 func (EventRouter) RejectCommit(c *gin.Context) {
-	// not implemented
+	//TODO not implemented
 }
 
 func (EventRouter) Close(c *gin.Context) {
-	// not implemented
+	//TODO not implemented
 }
 
 var EventRouterApp = EventRouter{}

@@ -1,4 +1,6 @@
-package util
+package action
+
+import "saturday/model"
 
 const (
 	Open      string = "open"
@@ -20,6 +22,19 @@ const (
 	Reject      Action = "reject"
 	Close       Action = "close"
 )
+
+var idLog CustomLogFunc = func(eh *EventActionHandler) model.EventLog {
+	return eh.CreateEventLog(createEventLogArgs{
+		Id: eh.Actor.Id,
+	})
+}
+
+var idAndDescriptionLog CustomLogFunc = func(eh *EventActionHandler) model.EventLog {
+	return eh.CreateEventLog(createEventLogArgs{
+		Id:          eh.Actor.Id,
+		Description: eh.description,
+	})
+}
 
 var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler{
 	Create: {
@@ -46,7 +61,7 @@ var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler
 		action:     Drop,
 		role:       []string{"currentMember"},
 		prevStatus: Accepted,
-		nextStatus: Cancelled,
+		nextStatus: Open,
 		customLog:  idLog,
 	},
 	Commit: {

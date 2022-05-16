@@ -1,10 +1,11 @@
-package util
+package action
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 	"saturday/model"
+	"saturday/repo"
 	"saturday/util"
 )
 
@@ -66,10 +67,11 @@ func (eh *EventActionHandler) CreateEventLog(args createEventLogArgs) model.Even
 		Action:      string(eh.action),
 		MemberId:    args.Id,
 		Description: args.Description,
+		GmtCreate:   util.GetDate(),
 	}
 }
 
-func (eh *EventActionHandler) Handle() model.EventLog {
+func (eh *EventActionHandler) Handle() error {
 	// set the next status
 	eh.Event.Status = eh.nextStatus
 	var log model.EventLog
@@ -80,40 +82,27 @@ func (eh *EventActionHandler) Handle() model.EventLog {
 		log = eh.CreateEventLog(createEventLogArgs{})
 	}
 	// append log
+	// eh.Event.Logs = append(eh.Event.Logs, log)
+
+	// persist event
+	err := repo.UpdateEvent(eh.Event, &log)
 	eh.Event.Logs = append(eh.Event.Logs, log)
-	return log
-}
-
-var idLog CustomLogFunc = func(eh *EventActionHandler) model.EventLog {
-	return eh.CreateEventLog(createEventLogArgs{
-		Id: eh.Actor.Id,
-	})
-}
-
-var idAndDescriptionLog CustomLogFunc = func(eh *EventActionHandler) model.EventLog {
-	return eh.CreateEventLog(createEventLogArgs{
-		Id:          eh.Actor.Id,
-		Description: eh.description,
-	})
+	return err
 }
 
 /*
- this function validates the action and then handles the event,
- it does not persist the event, only modifies the event.
- you need to call repo methods to persist the event and log.
- description arg corresponses to the EventLog's description field,
- default not to use.
+ this function validates the action and then perform action to the event.
+ it also persists the event and event log.
 */
-func PerformEventAction(event *model.Event, identity Identity, action Action, description ...string) (model.EventLog, error) {
+func PerformEventAction(event *model.Event, identity Identity, action Action, description ...string) error {
 	handler := EventActionMap[action]
+	log.Println(action)
 	handler.Init(event, identity)
-	handler.Event = event
-	handler.Actor = identity
 	for _, d := range description {
 		handler.description = fmt.Sprint(handler.description, d)
 	}
 	if err := handler.validateAction(); err != nil {
-		return model.EventLog{}, err
+		return err
 	}
-	return handler.Handle(), nil
+	return handler.Handle()
 }
