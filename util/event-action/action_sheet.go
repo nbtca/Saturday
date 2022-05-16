@@ -48,21 +48,30 @@ var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler
 		role:       []string{"member"},
 		prevStatus: Open,
 		nextStatus: Accepted,
-		customLog:  idLog,
+		customLog: func(eh *EventActionHandler) model.EventLog {
+			eh.Event.MemberId = eh.Actor.Id
+			return eh.CreateEventLog(createEventLogArgs{
+				Id: eh.Actor.Id,
+			})
+		},
 	},
 	Cancel: {
 		action:     Cancel,
 		role:       []string{"currentClient"},
 		prevStatus: Open,
 		nextStatus: Cancelled,
-		customLog:  idLog,
 	},
 	Drop: {
 		action:     Drop,
 		role:       []string{"currentMember"},
 		prevStatus: Accepted,
 		nextStatus: Open,
-		customLog:  idLog,
+		customLog: func(eh *EventActionHandler) model.EventLog {
+			eh.Event.MemberId = ""
+			return eh.CreateEventLog(createEventLogArgs{
+				Id: eh.Actor.Id,
+			})
+		},
 	},
 	Commit: {
 		action:     Commit,
@@ -90,6 +99,11 @@ var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler
 		role:       []string{"admin"},
 		prevStatus: Committed,
 		nextStatus: Closed,
-		customLog:  idLog,
+		customLog: func(eh *EventActionHandler) model.EventLog {
+			eh.Event.ClosedBy = eh.Actor.Id
+			return eh.CreateEventLog(createEventLogArgs{
+				Id: eh.Actor.Id,
+			})
+		},
 	},
 }

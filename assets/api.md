@@ -555,7 +555,26 @@ GET /events
 
 
 
+### 获取认证成员接受的指定事件
+
+```
+GET /member/events/{event_id}
+```
+
+
+
+### 获取认证成员接受的全部事件
+
+```
+GET /member/events
+```
+
+
+
 ### 认证成员接受事件
+
++ 事件状态变更为`accepted`
++ 事件member_id变为成员id
 
 ```
 POST /member/events/{event_id}/accept
@@ -573,7 +592,7 @@ POST /member/events/{event_id}/accept
 ##### 请求
 
 ```
-GET /members/event_id
+POST /member/events/1/accept
 ```
 
 ##### 响应
@@ -584,9 +603,9 @@ GET /members/event_id
   "client_id": 1,
   "model": "7590",
   "problem": "hackintosh",
-  "member_id": "",
+  "member_id": "2333333333",
   "closed_by": "",
-  "status": "open",
+  "status": "accepted",
   "logs": [
     {
       "log_id": 1,
@@ -617,27 +636,80 @@ GET /members/event_id
 
 
 
-### 获取认证成员接受的指定事件
-
-```
-GET /member/events/{event_id}
-```
-
-
-
-### 获取认证成员接受的全部事件
-
-```
-GET /member/events
-```
-
-
-
 ### 认证成员提交事件
+
++ 事件状态变更为`committed`
++ 提醒管理员审核
 
 ```
 POST /member/events/{event_id}/commit
 ```
+
+#### 参数
+
+| 名称           | 类型   | in     | 描述     |
+| -------------- | ------ | ------ | -------- |
+| Authorizeation | string | header |          |
+| event_id       | String | path   | 学号     |
+| content        | string | body   | 维修描述 |
+
+#### 示例
+
+##### 请求
+
+```
+POST /member/events/1/commit
+
+{
+	"content":"重装系统"
+}
+```
+
+##### 响应
+
+```
+{
+  "event_id": 1,
+  "client_id": 1,
+  "model": "7590",
+  "problem": "hackintosh",
+  "member_id": "2333333333",
+  "closed_by": "",
+  "status": "committed",
+  "logs": [
+    {
+      "log_id": 1,
+      "description": "",
+      "member_id": "",
+      "action": "create",
+      "gmt_create": "2022-05-10 11:00:26"
+    },
+    {
+      "log_id": 2,
+      "description": "",
+      "member_id": "2333333333",
+      "action": "accept",
+      "gmt_create": "2022-05-10 11:03:18"
+    },
+    {
+      "log_id": 3,
+      "description": "重装系统",
+      "member_id": "2333333333",
+      "action": "commit",
+      "gmt_create": "2022-05-10 11:03:18"
+    },
+  ],
+  "gmt_create": "2022-05-10 10:23:54",
+  "gmt_modified": "2022-05-12 23:22:44"
+}
+```
+
+#### Http 状态码
+
+| HTTP Status Code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | OK                   |
+| 422              | Unprocessable Entity |
 
 
 
@@ -647,29 +719,306 @@ POST /member/events/{event_id}/commit
 PATCH /member/events/{event_id}/commit
 ```
 
+#### 参数
+
+| 名称           | 类型   | in     | 描述 |
+| -------------- | ------ | ------ | ---- |
+| Authorizeation | string | header |      |
+| event_id       | String | path   | 学号 |
+
+#### 示例
+
+##### 请求
+
+```
+PATCH /member/events/1/commit
+
+{
+	"content":"重装系统(ghost)"
+}
+```
+
+##### 响应
+
+```
+{
+  "event_id": 1,
+  "client_id": 1,
+  "model": "7590",
+  "problem": "hackintosh",
+  "member_id": "2333333333",
+  "closed_by": "",
+  "status": "committed",
+  "logs": [
+    {
+      "log_id": 1,
+      "description": "",
+      "member_id": "",
+      "action": "create",
+      "gmt_create": "2022-05-10 11:00:26"
+    },
+    {
+      "log_id": 2,
+      "description": "",
+      "member_id": "2333333333",
+      "action": "accept",
+      "gmt_create": "2022-05-10 11:03:18"
+    },
+    {
+      "log_id": 3,
+      "description": "重装系统",
+      "member_id": "2333333333",
+      "action": "commit",
+      "gmt_create": "2022-05-10 11:05:18"
+    },
+       {
+      "log_id": 4,
+      "description": "重装系统(ghost)",
+      "member_id": "2333333333",
+      "action": "alterCommit",
+      "gmt_create": "2022-05-10 12:03:18"
+    }
+  ],
+  "gmt_create": "2022-05-10 10:23:54",
+  "gmt_modified": "2022-05-12 23:22:44"
+}
+```
+
+#### Http 状态码
+
+| HTTP Status Code | 描述 |
+| ---------------- | ---- |
+| 200              | OK   |
+| 422              |      |
+
 
 
 ### 认证成员放弃事件
+
++ 事件状态变更为`open`
++ 清空事件member_id字段
 
 ```
 DELETE /member/events/{event_id}/accept
 ```
 
+#### 参数
+
+| 名称           | 类型   | in     | 描述 |
+| -------------- | ------ | ------ | ---- |
+| Authorizeation | string | header |      |
+| event_id       | String | path   | 学号 |
+
+#### 示例
+
+##### 请求
+
+```
+DELETE /member/events/1/accept
+```
+
+##### 响应
+
+```
+{
+  "event_id": 1,
+  "client_id": 1,
+  "model": "7590",
+  "problem": "hackintosh",
+  "member_id": "",
+  "closed_by": "",
+  "status": "open",
+  "logs": [
+    {
+      "log_id": 1,
+      "description": "",
+      "member_id": "",
+      "action": "create",
+      "gmt_create": "2022-05-10 11:00:26"
+    },
+    {
+      "log_id": 2,
+      "description": "",
+      "member_id": "2333333333",
+      "action": "accept",
+      "gmt_create": "2022-05-10 11:03:18"
+    },
+    {
+      "log_id": 3,
+      "description": "",
+      "member_id": "2333333333",
+      "action": "drop",
+      "gmt_create": "2022-05-10 11:03:18"
+    },
+  ],
+  "gmt_create": "2022-05-10 10:23:54",
+  "gmt_modified": "2022-05-12 23:22:44"
+}
+```
+
+#### Http 状态码
+
+| HTTP Status Code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | OK                   |
+| 422              | Unprocessable Entity |
+
 
 
 ### 管理员退回成员事件提交
+
++ 事件状态变更为`accepted`
 
 ```
 DELETE /events/{event_id}/commit
 ```
 
+#### 参数
+
+| 名称           | 类型   | in     | 描述 |
+| -------------- | ------ | ------ | ---- |
+| Authorizeation | string | header |      |
+| event_id       | String | path   | 学号 |
+
+#### 示例
+
+##### 请求
+
+```
+DELETE /events/events/1/commit
+```
+
+##### 响应
+
+```
+{
+  "event_id": 1,
+  "client_id": 1,
+  "model": "7590",
+  "problem": "hackintosh",
+  "member_id": "2333333333",
+  "closed_by": "",
+  "status": "accepted",
+  "logs": [
+    {
+      "log_id": 1,
+      "description": "",
+      "member_id": "",
+      "action": "create",
+      "gmt_create": "2022-05-10 11:00:26"
+    },
+    {
+      "log_id": 2,
+      "description": "",
+      "member_id": "2333333333",
+      "action": "accept",
+      "gmt_create": "2022-05-10 11:03:18"
+    },
+    {
+      "log_id": 3,
+      "description": "重装系统",
+      "member_id": "2333333333",
+      "action": "commit",
+      "gmt_create": "2022-05-10 11:03:18"
+    },
+    {
+      "log_id": 4,
+      "description": "",
+      "member_id": "0000000000",
+      "action": "reject",
+      "gmt_create": "2022-05-10 11:03:18"
+    }
+  ],
+  "gmt_create": "2022-05-10 10:23:54",
+  "gmt_modified": "2022-05-12 23:22:44"
+}
+```
+
+#### Http 状态码
+
+| HTTP Status Code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | OK                   |
+| 422              | Unprocessable Entity |
+
 
 
 ### 管理员关闭事件
 
++ 事件状态变更为`closed`
++ 事件closed_by字段变更为管理员id
+
 ```
 POST /events/{event_id}/close
 ```
+
+#### 参数
+
+| 名称           | 类型   | in     | 描述 |
+| -------------- | ------ | ------ | ---- |
+| Authorizeation | string | header |      |
+| event_id       | String | path   | 学号 |
+
+#### 示例
+
+##### 请求
+
+```
+POST /events/events/1/close
+```
+
+##### 响应
+
+```
+{
+  "event_id": 1,
+  "client_id": 1,
+  "model": "7590",
+  "problem": "hackintosh",
+  "member_id": "2333333333",
+  "closed_by": "0000000000",
+  "status": "closed",
+  "logs": [
+    {
+      "log_id": 1,
+      "description": "",
+      "member_id": "",
+      "action": "create",
+      "gmt_create": "2022-05-10 11:00:26"
+    },
+    {
+      "log_id": 2,
+      "description": "",
+      "member_id": "2333333333",
+      "action": "accept",
+      "gmt_create": "2022-05-10 11:03:18"
+    },
+    {
+      "log_id": 3,
+      "description": "重装系统",
+      "member_id": "2333333333",
+      "action": "commit",
+      "gmt_create": "2022-05-10 11:03:18"
+    },
+    {
+      "log_id": 4,
+      "description": "",
+      "member_id": "0000000000",
+      "action": "close",
+      "gmt_create": "2022-05-10 11:03:18"
+    }
+  ],
+  "gmt_create": "2022-05-10 10:23:54",
+  "gmt_modified": "2022-05-12 23:22:44"
+}
+```
+
+#### Http 状态码
+
+| HTTP Status Code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | OK                   |
+| 422              | Unprocessable Entity |
 
 
 
