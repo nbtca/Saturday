@@ -11,7 +11,7 @@
  Target Server Version : 80022
  File Encoding         : 65001
 
- Date: 30/04/2022 23:10:14
+ Date: 17/05/2022 11:10:35
 */
 
 SET NAMES utf8mb4;
@@ -27,12 +27,13 @@ CREATE TABLE `client` (
   `gmt_create` datetime NOT NULL,
   `gmt_modified` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`client_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of client
 -- ----------------------------
 BEGIN;
+INSERT INTO `client` (`client_id`, `openid`, `gmt_create`, `gmt_modified`) VALUES (1, '', '2022-05-10 10:23:19', '2022-05-10 10:23:21');
 COMMIT;
 
 -- ----------------------------
@@ -46,25 +47,23 @@ CREATE TABLE `event` (
   `phone` varchar(11) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
   `qq` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
   `contact_preference` varchar(20) NOT NULL DEFAULT 'qq' COMMENT '联系偏好',
-  `event_description` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '事件（用户）描述',
-  `repair_description` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '维修描述',
-  `member_id` char(10) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '最后由谁维修',
-  `closed_by` char(10) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '由谁关闭',
+  `problem` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '事件（用户）描述',
+  `member_id` char(10) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '最后由谁维修',
+  `closed_by` char(10) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '由谁关闭',
   `gmt_create` datetime NOT NULL,
   `gmt_modified` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`event_id`) USING BTREE,
   KEY `fk_Event_Admin_2` (`closed_by`) USING BTREE,
   KEY `fk_Event_User_1` (`client_id`) USING BTREE,
   KEY `fk_Event_repairElements_1` (`member_id`) USING BTREE,
-  CONSTRAINT `event_ibfk_1` FOREIGN KEY (`closed_by`) REFERENCES `member` (`member_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `event_ibfk_2` FOREIGN KEY (`client_id`) REFERENCES `client` (`client_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_Event_repairElements_1` FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  CONSTRAINT `event_ibfk_2` FOREIGN KEY (`client_id`) REFERENCES `client` (`client_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Records of event
 -- ----------------------------
 BEGIN;
+INSERT INTO `event` (`client_id`, `event_id`, `model`, `phone`, `qq`, `contact_preference`, `problem`, `member_id`, `closed_by`, `gmt_create`, `gmt_modified`) VALUES (1, 1, '7590', '17557209007', '709196390', 'qq', 'hackintosh', '2333333333', '', '2022-05-10 10:23:54', '2022-05-16 14:48:34');
 COMMIT;
 
 -- ----------------------------
@@ -81,25 +80,40 @@ CREATE TABLE `event_action` (
 -- Records of event_action
 -- ----------------------------
 BEGIN;
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (1, 'create');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (2, 'accept');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (3, 'cancel');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (4, 'submit');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (5, 'drop');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (6, 'close');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (7, 'reject');
 COMMIT;
 
 -- ----------------------------
--- Table structure for event_action_relation
+-- Table structure for event_event_action_relation
 -- ----------------------------
-DROP TABLE IF EXISTS `event_action_relation`;
-CREATE TABLE `event_action_relation` (
+DROP TABLE IF EXISTS `event_event_action_relation`;
+CREATE TABLE `event_event_action_relation` (
   `event_log_id` bigint NOT NULL AUTO_INCREMENT,
   `event_action_id` tinyint NOT NULL,
-  PRIMARY KEY (`event_log_id`,`event_action_id`),
+  PRIMARY KEY (`event_log_id`) USING BTREE,
   KEY `fk_event_action_relation_event_action_1` (`event_action_id`),
-  CONSTRAINT `fk_event_action_relation_event_action_1` FOREIGN KEY (`event_action_id`) REFERENCES `event_action` (`event_action_id`),
-  CONSTRAINT `fk_event_action_relation_event_log_1` FOREIGN KEY (`event_log_id`) REFERENCES `event_log` (`event_log_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  CONSTRAINT `event_event_action_relation_ibfk_1` FOREIGN KEY (`event_log_id`) REFERENCES `event_log` (`event_log_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `event_event_action_relation_ibfk_2` FOREIGN KEY (`event_action_id`) REFERENCES `event_action` (`event_action_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
--- Records of event_action_relation
+-- Records of event_event_action_relation
 -- ----------------------------
 BEGIN;
+INSERT INTO `event_event_action_relation` (`event_log_id`, `event_action_id`) VALUES (8, 1);
+INSERT INTO `event_event_action_relation` (`event_log_id`, `event_action_id`) VALUES (30, 2);
+INSERT INTO `event_event_action_relation` (`event_log_id`, `event_action_id`) VALUES (32, 2);
+INSERT INTO `event_event_action_relation` (`event_log_id`, `event_action_id`) VALUES (34, 2);
+INSERT INTO `event_event_action_relation` (`event_log_id`, `event_action_id`) VALUES (36, 2);
+INSERT INTO `event_event_action_relation` (`event_log_id`, `event_action_id`) VALUES (31, 5);
+INSERT INTO `event_event_action_relation` (`event_log_id`, `event_action_id`) VALUES (33, 5);
+INSERT INTO `event_event_action_relation` (`event_log_id`, `event_action_id`) VALUES (35, 5);
 COMMIT;
 
 -- ----------------------------
@@ -107,18 +121,20 @@ COMMIT;
 -- ----------------------------
 DROP TABLE IF EXISTS `event_event_status_relation`;
 CREATE TABLE `event_event_status_relation` (
-  `event_status_id` tinyint NOT NULL,
   `event_id` bigint NOT NULL,
-  PRIMARY KEY (`event_status_id`,`event_id`),
+  `event_status_id` tinyint NOT NULL,
+  PRIMARY KEY (`event_id`) USING BTREE,
   KEY `fk_event_event_status_relation_event_1` (`event_id`),
-  CONSTRAINT `fk_event_event_status_relation_event_1` FOREIGN KEY (`event_id`) REFERENCES `event` (`event_id`),
-  CONSTRAINT `fk_event_event_status_relation_event_status_1` FOREIGN KEY (`event_status_id`) REFERENCES `event_status` (`event_status_id`)
+  KEY `event_status_id` (`event_status_id`),
+  CONSTRAINT `event_event_status_relation_ibfk_1` FOREIGN KEY (`event_id`) REFERENCES `event` (`event_id`),
+  CONSTRAINT `event_event_status_relation_ibfk_2` FOREIGN KEY (`event_status_id`) REFERENCES `event_status` (`event_status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of event_event_status_relation
 -- ----------------------------
 BEGIN;
+INSERT INTO `event_event_status_relation` (`event_id`, `event_status_id`) VALUES (1, 2);
 COMMIT;
 
 -- ----------------------------
@@ -129,19 +145,26 @@ CREATE TABLE `event_log` (
   `event_log_id` bigint NOT NULL AUTO_INCREMENT,
   `event_id` bigint NOT NULL,
   `description` varchar(255) DEFAULT '',
-  `member_id` char(10) DEFAULT NULL,
+  `member_id` char(10) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
   `gmt_create` datetime NOT NULL,
   PRIMARY KEY (`event_log_id`),
   KEY `fk_event_log_element_1` (`member_id`),
   KEY `fk_event_log_event_1` (`event_id`),
-  CONSTRAINT `fk_event_log_element_1` FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`),
   CONSTRAINT `fk_event_log_event_1` FOREIGN KEY (`event_id`) REFERENCES `event` (`event_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of event_log
 -- ----------------------------
 BEGIN;
+INSERT INTO `event_log` (`event_log_id`, `event_id`, `description`, `member_id`, `gmt_create`) VALUES (8, 1, '', '', '2022-05-13 16:50:55');
+INSERT INTO `event_log` (`event_log_id`, `event_id`, `description`, `member_id`, `gmt_create`) VALUES (30, 1, '', '2333333333', '2022-05-16 14:49:55');
+INSERT INTO `event_log` (`event_log_id`, `event_id`, `description`, `member_id`, `gmt_create`) VALUES (31, 1, '', '2333333333', '2022-05-16 14:49:55');
+INSERT INTO `event_log` (`event_log_id`, `event_id`, `description`, `member_id`, `gmt_create`) VALUES (32, 1, '', '2333333333', '2022-05-17 10:39:55');
+INSERT INTO `event_log` (`event_log_id`, `event_id`, `description`, `member_id`, `gmt_create`) VALUES (33, 1, '', '2333333333', '2022-05-17 10:58:55');
+INSERT INTO `event_log` (`event_log_id`, `event_id`, `description`, `member_id`, `gmt_create`) VALUES (34, 1, '', '2333333333', '2022-05-17 10:58:55');
+INSERT INTO `event_log` (`event_log_id`, `event_id`, `description`, `member_id`, `gmt_create`) VALUES (35, 1, '', '2333333333', '2022-05-17 11:08:55');
+INSERT INTO `event_log` (`event_log_id`, `event_id`, `description`, `member_id`, `gmt_create`) VALUES (36, 1, '', '2333333333', '2022-05-17 11:08:55');
 COMMIT;
 
 -- ----------------------------
@@ -158,6 +181,11 @@ CREATE TABLE `event_status` (
 -- Records of event_status
 -- ----------------------------
 BEGIN;
+INSERT INTO `event_status` (`event_status_id`, `status`) VALUES (1, 'open');
+INSERT INTO `event_status` (`event_status_id`, `status`) VALUES (2, 'accepted');
+INSERT INTO `event_status` (`event_status_id`, `status`) VALUES (3, 'cancelled');
+INSERT INTO `event_status` (`event_status_id`, `status`) VALUES (4, 'committed');
+INSERT INTO `event_status` (`event_status_id`, `status`) VALUES (5, 'closed');
 COMMIT;
 
 -- ----------------------------
@@ -184,9 +212,8 @@ CREATE TABLE `member` (
 -- Records of member
 -- ----------------------------
 BEGIN;
-INSERT INTO `member` VALUES ('0000000000', '管理', '000000', '管理', '计算机000', '', '', '', '', '', '2022-04-30 17:28:42', '2022-04-30 17:28:44');
-INSERT INTO `member` VALUES ('2333333333', '滑稽', '123456', '滑稽', '计算机233', 'relaxing', '12356839487', '123456', '', '0000000000', '2022-04-23 15:49:59', '2022-04-30 17:29:46');
-INSERT INTO `member` VALUES ('3000000001', '小稽', '', '滑小稽', '计算机233', '。。。', '', '123456', '', '2333333333', '2022-04-30 23:06:44', '2022-04-30 23:06:44');
+INSERT INTO `member` (`member_id`, `alias`, `password`, `name`, `section`, `profile`, `phone`, `qq`, `avatar`, `created_by`, `gmt_create`, `gmt_modified`) VALUES ('0000000000', '管理', '000000', '管理', '计算机000', '', '', '', '', '', '2022-04-30 17:28:42', '2022-04-30 17:28:44');
+INSERT INTO `member` (`member_id`, `alias`, `password`, `name`, `section`, `profile`, `phone`, `qq`, `avatar`, `created_by`, `gmt_create`, `gmt_modified`) VALUES ('2333333333', '滑稽', '123456', '滑稽', '计算机233', 'relaxing', '12356839487', '123456', '', '0000000000', '2022-04-23 15:49:59', '2022-04-30 17:29:46');
 COMMIT;
 
 -- ----------------------------
@@ -196,7 +223,7 @@ DROP TABLE IF EXISTS `member_role_relation`;
 CREATE TABLE `member_role_relation` (
   `member_id` varchar(10) NOT NULL,
   `role_id` tinyint NOT NULL,
-  PRIMARY KEY (`member_id`,`role_id`),
+  PRIMARY KEY (`member_id`) USING BTREE,
   KEY `fk_member_role_role_1` (`role_id`),
   CONSTRAINT `fk_member_role_member_1` FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`),
   CONSTRAINT `fk_member_role_role_1` FOREIGN KEY (`role_id`) REFERENCES `role` (`role_id`)
@@ -206,8 +233,8 @@ CREATE TABLE `member_role_relation` (
 -- Records of member_role_relation
 -- ----------------------------
 BEGIN;
-INSERT INTO `member_role_relation` VALUES ('2333333333', 2);
-INSERT INTO `member_role_relation` VALUES ('0000000000', 3);
+INSERT INTO `member_role_relation` (`member_id`, `role_id`) VALUES ('0000000000', 0);
+INSERT INTO `member_role_relation` (`member_id`, `role_id`) VALUES ('2333333333', 2);
 COMMIT;
 
 -- ----------------------------
@@ -224,10 +251,10 @@ CREATE TABLE `role` (
 -- Records of role
 -- ----------------------------
 BEGIN;
-INSERT INTO `role` VALUES (0, 'member_inactive');
-INSERT INTO `role` VALUES (1, 'admin_inavtive');
-INSERT INTO `role` VALUES (2, 'member');
-INSERT INTO `role` VALUES (3, 'admin');
+INSERT INTO `role` (`role_id`, `role`) VALUES (0, 'member_inactive');
+INSERT INTO `role` (`role_id`, `role`) VALUES (1, 'admin_inavtive');
+INSERT INTO `role` (`role_id`, `role`) VALUES (2, 'member');
+INSERT INTO `role` (`role_id`, `role`) VALUES (3, 'admin');
 COMMIT;
 
 -- ----------------------------
@@ -240,22 +267,6 @@ CREATE TABLE `setting` (
 
 -- ----------------------------
 -- Records of setting
--- ----------------------------
-BEGIN;
-COMMIT;
-
--- ----------------------------
--- Table structure for status
--- ----------------------------
-DROP TABLE IF EXISTS `status`;
-CREATE TABLE `status` (
-  `status_id` tinyint NOT NULL,
-  `status` varchar(255) NOT NULL,
-  PRIMARY KEY (`status_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- ----------------------------
--- Records of status
 -- ----------------------------
 BEGIN;
 COMMIT;
