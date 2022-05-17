@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"saturday/util"
 
@@ -26,7 +25,6 @@ func Auth(role ...Role) func(c *gin.Context) {
 			return
 		}
 		token, claims, err := util.ParseToken(tokenString)
-		log.Println(claims)
 		if err != nil || !token.Valid {
 			c.AbortWithStatusJSON(TokenInvalidErr.Build())
 			return
@@ -38,6 +36,14 @@ func Auth(role ...Role) func(c *gin.Context) {
 				return
 			}
 		}
+		// TODO another err
 		c.AbortWithStatusJSON(TokenInvalidErr.Build())
+	}
+}
+
+// admin is also member
+func StepDown(role string) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		c.Set("role", role)
 	}
 }

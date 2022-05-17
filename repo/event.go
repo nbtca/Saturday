@@ -136,5 +136,13 @@ func SetEventStatus(eventId int64, status string, conn *sqlx.Tx) (sql.Result, er
 	ON DUPLICATE KEY UPDATE event_status_id=(SELECT event_status_id FROM event_status WHERE status=?)`
 	res, err := conn.Exec(sql, eventId, status, status)
 	return res, err
+}
 
+func GetEventClientId(eventId int64) (int64, error) {
+	var clientId int64
+	err := db.Get(&clientId, "SELECT client_id FROM event WHERE event_id = ?", eventId)
+	if err != nil {
+		return 0, err
+	}
+	return clientId, nil
 }

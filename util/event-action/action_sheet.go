@@ -57,13 +57,13 @@ var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler
 	},
 	Cancel: {
 		action:     Cancel,
-		role:       []string{"currentClient"},
+		role:       []string{"client_current"},
 		prevStatus: Open,
 		nextStatus: Cancelled,
 	},
 	Drop: {
 		action:     Drop,
-		role:       []string{"currentMember"},
+		role:       []string{"member_current"},
 		prevStatus: Accepted,
 		nextStatus: Open,
 		customLog: func(eh *EventActionHandler) model.EventLog {
@@ -75,14 +75,14 @@ var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler
 	},
 	Commit: {
 		action:     Commit,
-		role:       []string{"currentMember"},
+		role:       []string{"member_current"},
 		prevStatus: Accepted,
 		nextStatus: Committed,
 		customLog:  idAndDescriptionLog,
 	},
 	AlterCommit: {
 		action:     AlterCommit,
-		role:       []string{"currentMember"},
+		role:       []string{"member_current"},
 		prevStatus: Committed,
 		nextStatus: Committed,
 		customLog:  idAndDescriptionLog,

@@ -2,6 +2,7 @@ package util
 
 import (
 	"net/http"
+	"saturday/model"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -34,4 +35,13 @@ func GetPaginationQuery(c *gin.Context) (offset uint64, limit uint64, err error)
 		return
 	}
 	return
+}
+
+func GetIdentity(c *gin.Context) model.Identity {
+	id := c.GetString("id")
+	role := c.GetString("role")
+	return model.Identity{
+		Id:   id,
+		Role: role,
+	}
 }

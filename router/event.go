@@ -1,9 +1,11 @@
 package router
 
 import (
+	"saturday/model"
 	"saturday/model/dto"
 	"saturday/service"
 	"saturday/util"
+	action "saturday/util/event-action"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,33 +45,20 @@ func (EventRouter) GetEventByPage(c *gin.Context) {
 }
 
 func (EventRouter) Accept(c *gin.Context) {
-	eventId := &dto.EventID{}
-	memberId := c.GetString("id")
-	if err := util.BindAll(c, eventId); util.CheckError(c, err) {
-		return
-	}
-	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
-	if util.CheckError(c, err) {
-		return
-	}
-	if err = service.EventServiceApp.Accept(&event, memberId); util.CheckError(c, err) {
+	rawEvent, _ := c.Get("event")
+	event := rawEvent.(model.Event)
+	identity := util.GetIdentity(c)
+	if err := action.PerformEventAction(&event, identity, action.Accept); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
 }
 
 func (EventRouter) Drop(c *gin.Context) {
-	eventId := &dto.EventID{}
-	memberId := c.GetString("id")
-	if err := util.BindAll(c, eventId); util.CheckError(c, err) {
-		return
-	}
-
-	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
-	if util.CheckError(c, err) {
-		return
-	}
-	if err = service.EventServiceApp.Drop(&event, memberId); util.CheckError(c, err) {
+	rawEvent, _ := c.Get("event")
+	event := rawEvent.(model.Event)
+	identity := util.GetIdentity(c)
+	if err := action.PerformEventAction(&event, identity, action.Drop); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)

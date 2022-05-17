@@ -5,7 +5,6 @@ import (
 	"saturday/model"
 	"saturday/repo"
 	"saturday/util"
-	action "saturday/util/event-action"
 )
 
 type EventService struct {
@@ -40,20 +39,14 @@ func (service EventService) GetPublicEventById(id int64) (model.PublicEvent, err
 	return model.CreatePublicEvent(event), nil
 }
 
-func (service EventService) Accept(event *model.Event, memberId string) error {
-	err := action.PerformEventAction(event, action.Identity{
-		Id:   memberId,
-		Role: "member",
-	}, action.Accept)
-	return err
-}
+// func (service EventService) Accept(event *model.Event, identity model.Identity) error {
+// 	err := action.PerformEventAction(event, identity, action.Accept)
+// 	return err
+// }
 
-func (service EventService) Drop(event *model.Event, memberId string) error {
-	err := action.PerformEventAction(event, action.Identity{
-		Id:   memberId,
-		Role: "currentMember",
-	}, action.Drop)
-	return err
-}
+// func (service EventService) Drop(event *model.Event, identity model.Identity) error {
+// 	err := action.PerformEventAction(event, identity, action.Drop)
+// 	return err
+// }
 
 var EventServiceApp = EventService{}

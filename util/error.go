@@ -78,7 +78,9 @@ func CheckError(c *gin.Context, err error) bool {
 	return false
 }
 
-func MakeValidationError(resource string, err error) error {
+// parse error from validator
+// return a *ServiceError with status code http.StatusUnprocessableEntity
+func MakeValidationError(resource string, err error) *ServiceError {
 	var ve validator.ValidationErrors
 	serviceError := MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
 	if err == nil {
@@ -93,6 +95,6 @@ func MakeValidationError(resource string, err error) error {
 	return serviceError
 }
 
-func MakeInternalServerError() error {
+func MakeInternalServerError() *ServiceError {
 	return MakeServiceError(http.StatusInternalServerError).SetMessage("Internal Server Error")
 }

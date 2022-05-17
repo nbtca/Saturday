@@ -9,16 +9,11 @@ import (
 	"saturday/util"
 )
 
-type Identity struct {
-	Id   string
-	Role string
-}
-
 type CustomLogFunc func(*EventActionHandler) model.EventLog
 
 type EventActionHandler struct {
 	Event       *model.Event
-	Actor       Identity
+	Actor       model.Identity
 	action      Action
 	role        []string
 	prevStatus  string
@@ -28,7 +23,7 @@ type EventActionHandler struct {
 }
 
 // inject the event and actor to the handler
-func (eh *EventActionHandler) Init(event *model.Event, identity Identity) {
+func (eh *EventActionHandler) Init(event *model.Event, identity model.Identity) {
 	eh.Event = event
 	eh.Actor = identity
 }
@@ -94,7 +89,7 @@ func (eh *EventActionHandler) Handle() error {
  this function validates the action and then perform action to the event.
  it also persists the event and event log.
 */
-func PerformEventAction(event *model.Event, identity Identity, action Action, description ...string) error {
+func PerformEventAction(event *model.Event, identity model.Identity, action Action, description ...string) error {
 	handler := EventActionMap[action]
 	log.Println(action)
 	handler.Init(event, identity)
