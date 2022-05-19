@@ -7,9 +7,10 @@ nav_order: 1
 
 # 成员（Member）
 
+{:toc}
+
 ## 获取指定成员 已完成
 
-{:toc}
 
 ```
 GET /members/{member_id}
