@@ -80,4 +80,20 @@ func (EventRouter) Close(c *gin.Context) {
 	//TODO not implemented
 }
 
+func (EventRouter) GetClientEventByPage(c *gin.Context) {
+	//TODO not implemented
+}
+
+func (EventRouter) Create(c *gin.Context) {
+	//TODO not implemented
+}
+
+func (EventRouter) Update(c *gin.Context) {
+	//TODO not implemented
+}
+
+func (EventRouter) Cancel(c *gin.Context) {
+	//TODO not implemented
+}
+
 var EventRouterApp = EventRouter{}
