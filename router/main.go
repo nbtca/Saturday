@@ -21,9 +21,13 @@ func SetupRouter() *gin.Engine {
 		PublicGroup.GET("members/", MemberRouterApp.GetPublicMemberByPage)
 		PublicGroup.POST("members/:MemberId/token", MemberRouterApp.CreateToken)
 
+		// TODO Restful
+		PublicGroup.POST("clients/token/wechat", ClientRouterApp.CreateTokenViaWeChat)
+
 		PublicGroup.GET("events/:EventId", EventRouterApp.GetPublicEventById)
 		PublicGroup.GET("events/", EventRouterApp.GetPublicEventByPage)
 
+		PublicGroup.GET("setting", SettingRouterApp.GetMiniAppSetting)
 	}
 
 	Router.PUT("member/activate",
@@ -37,8 +41,6 @@ func SetupRouter() *gin.Engine {
 		MemberGroup.PUT("/member", MemberRouterApp.Update)
 		MemberGroup.PUT("/member/avatar", MemberRouterApp.UpdateAvatar)
 
-		// TODO: set auth requirements
-		// allow current member and current user
 		MemberGroup.GET("member/events/", EventRouterApp.GetEventByPage)
 
 		MemberGroup.Use(middleware.EventActionPerProcess)
@@ -60,6 +62,16 @@ func SetupRouter() *gin.Engine {
 		AdminGroup.DELETE("/events/:EventId/commit", EventRouterApp.RejectCommit)
 		AdminGroup.POST("/events/:EventId/close", EventRouterApp.Close)
 
+	}
+
+	ClientGroup := Router.Group("/")
+	ClientGroup.Use(middleware.Auth("client"))
+	{
+		ClientGroup.GET("/client/events/:EventId", EventRouterApp.GetEventById)
+		ClientGroup.GET("/client/events/", EventRouterApp.GetClientEventByPage)
+		ClientGroup.POST("/client/events", EventRouterApp.Create)
+		ClientGroup.PATCH("/client/events/:EventId", EventRouterApp.Update)
+		ClientGroup.DELETE("/client/events/:EventId", EventRouterApp.Cancel)
 	}
 
 	return Router
