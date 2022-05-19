@@ -2,7 +2,7 @@
 layout: default
 title: 成员
 parent: API
-nav_order: 2
+nav_order: 1
 ---
 
 ## 成员（Member）
