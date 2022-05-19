@@ -5,13 +5,13 @@ parent: API
 nav_order: 2
 ---
 
-## 事件
+# 事件
 
-### 基础
+## 基础
 
 ![](https://clas-bucket.oss-cn-hangzhou.aliyuncs.com/uPic/GhhXcd.png)
 
-#### 事件状态表(status)
+## 事件状态表(status)
 
 | 状态名 |           | 描述                                 |
 | ------ | --------- | ------------------------------------ |
@@ -21,7 +21,7 @@ nav_order: 2
 | 待审核 | committed | 成员提交了维修描述，管理员尚未审核   |
 | 关闭   | closed    | 维修事件已解决，不能再更改该事件     |
 
-#### 事件行为表(action)
+## 事件行为表(action)
 
 | 操作名   |             | 操作权限       | 事件状态变更           | 描述                                         |
 | -------- | ----------- | -------------- | ---------------------- | -------------------------------------------- |
@@ -34,27 +34,27 @@ nav_order: 2
 | 拒绝提交 | reject      | admin          | committed => accepted  | 管理员拒绝提交                               |
 | 关闭     | close       | admin          | committed => closed    | 管理员通过提交                               |
 
-### 获取指定事件
+## 获取指定事件
 
 ```
 GET /events/{event_id}
 ```
 
-#### 参数
+## 参数
 
 | 名称     | 类型   | in   | 描述 |
 | -------- | ------ | ---- | ---- |
 | event_id | String | path | 学号 |
 
-#### 示例
+## 示例
 
-##### 请求
+### 请求
 
 ```
 GET /members/event_id
 ```
 
-##### 响应
+### 响应
 
 ```
 {
@@ -86,7 +86,7 @@ GET /members/event_id
 }
 ```
 
-#### Http 状态码
+## Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -95,7 +95,7 @@ GET /members/event_id
 
 
 
-### 获取全部事件
+## 获取全部事件
 
 ```
 GET /events
@@ -103,7 +103,7 @@ GET /events
 
 
 
-### 获取认证成员接受的指定事件
+## 获取认证成员接受的指定事件
 
 ```
 GET /member/events/{event_id}
@@ -111,7 +111,7 @@ GET /member/events/{event_id}
 
 
 
-### 获取认证成员接受的全部事件
+## 获取认证成员接受的全部事件
 
 ```
 GET /member/events
@@ -119,7 +119,7 @@ GET /member/events
 
 
 
-### 认证成员接受事件
+## 认证成员接受事件
 
 + 事件状态变更为`accepted`
 + 事件member_id变为成员id
@@ -128,22 +128,22 @@ GET /member/events
 POST /member/events/{event_id}/accept
 ```
 
-#### 参数
+## 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 | event_id       | String | path   | 学号 |
 
-#### 示例
+## 示例
 
-##### 请求
+### 请求
 
 ```
 POST /member/events/1/accept
 ```
 
-##### 响应
+### 响应
 
 ```
 {
@@ -175,7 +175,7 @@ POST /member/events/1/accept
 }
 ```
 
-#### Http 状态码
+## Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -184,7 +184,7 @@ POST /member/events/1/accept
 
 
 
-### 认证成员提交事件
+## 认证成员提交事件
 
 + 事件状态变更为`committed`
 + 提醒管理员审核
@@ -193,7 +193,7 @@ POST /member/events/1/accept
 POST /member/events/{event_id}/commit
 ```
 
-#### 参数
+## 参数
 
 | 名称           | 类型   | in     | 描述     |
 | -------------- | ------ | ------ | -------- |
@@ -201,9 +201,9 @@ POST /member/events/{event_id}/commit
 | event_id       | String | path   | 学号     |
 | content        | string | body   | 维修描述 |
 
-#### 示例
+## 示例
 
-##### 请求
+### 请求
 
 ```
 POST /member/events/1/commit
@@ -213,7 +213,7 @@ POST /member/events/1/commit
 }
 ```
 
-##### 响应
+### 响应
 
 ```
 {
@@ -252,7 +252,7 @@ POST /member/events/1/commit
 }
 ```
 
-#### Http 状态码
+## Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -261,22 +261,22 @@ POST /member/events/1/commit
 
 
 
-### 认证成员修改事件提交
+## 认证成员修改事件提交
 
 ```
 PATCH /member/events/{event_id}/commit
 ```
 
-#### 参数
+## 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 | event_id       | String | path   | 学号 |
 
-#### 示例
+## 示例
 
-##### 请求
+### 请求
 
 ```
 PATCH /member/events/1/commit
@@ -286,7 +286,7 @@ PATCH /member/events/1/commit
 }
 ```
 
-##### 响应
+### 响应
 
 ```
 {
@@ -332,7 +332,7 @@ PATCH /member/events/1/commit
 }
 ```
 
-#### Http 状态码
+## Http 状态码
 
 | HTTP Status Code | 描述 |
 | ---------------- | ---- |
@@ -341,7 +341,7 @@ PATCH /member/events/1/commit
 
 
 
-### 认证成员放弃事件
+## 认证成员放弃事件
 
 + 事件状态变更为`open`
 + 清空事件member_id字段
@@ -350,22 +350,22 @@ PATCH /member/events/1/commit
 DELETE /member/events/{event_id}/accept
 ```
 
-#### 参数
+## 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 | event_id       | String | path   | 学号 |
 
-#### 示例
+## 示例
 
-##### 请求
+### 请求
 
 ```
 DELETE /member/events/1/accept
 ```
 
-##### 响应
+### 响应
 
 ```
 {
@@ -404,7 +404,7 @@ DELETE /member/events/1/accept
 }
 ```
 
-#### Http 状态码
+## Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -413,7 +413,7 @@ DELETE /member/events/1/accept
 
 
 
-### 管理员退回成员事件提交
+## 管理员退回成员事件提交
 
 + 事件状态变更为`accepted`
 
@@ -421,22 +421,22 @@ DELETE /member/events/1/accept
 DELETE /events/{event_id}/commit
 ```
 
-#### 参数
+## 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 | event_id       | String | path   | 学号 |
 
-#### 示例
+## 示例
 
-##### 请求
+### 请求
 
 ```
 DELETE /events/events/1/commit
 ```
 
-##### 响应
+### 响应
 
 ```
 {
@@ -482,7 +482,7 @@ DELETE /events/events/1/commit
 }
 ```
 
-#### Http 状态码
+## Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -491,7 +491,7 @@ DELETE /events/events/1/commit
 
 
 
-### 管理员关闭事件
+## 管理员关闭事件
 
 + 事件状态变更为`closed`
 + 事件closed_by字段变更为管理员id
@@ -500,22 +500,22 @@ DELETE /events/events/1/commit
 POST /events/{event_id}/close
 ```
 
-#### 参数
+## 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 | event_id       | String | path   | 学号 |
 
-#### 示例
+## 示例
 
-##### 请求
+### 请求
 
 ```
 POST /events/events/1/close
 ```
 
-##### 响应
+### 响应
 
 ```
 {
@@ -561,7 +561,7 @@ POST /events/events/1/close
 }
 ```
 
-#### Http 状态码
+## Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -570,7 +570,7 @@ POST /events/events/1/close
 
 
 
-### 报修人员创建事件
+## 报修人员创建事件
 
 ```
 POST /clients/event
@@ -578,7 +578,7 @@ POST /clients/event
 
 
 
-### 报修人员更改事件
+## 报修人员更改事件
 
 ```
 POST /clients/events/{event_id}
@@ -586,7 +586,7 @@ POST /clients/events/{event_id}
 
 
 
-### 报修人员取消事件
+## 报修人员取消事件
 
 ```
 POST /clients/events/{event_id}
@@ -594,7 +594,7 @@ POST /clients/events/{event_id}
 
 
 
-### 获取报修人员事件
+## 获取报修人员事件
 
 ```
 GET /client/events/{event_id}
@@ -602,7 +602,7 @@ GET /client/events/{event_id}
 
 
 
-### 获取报修人员全部事件
+## 获取报修人员全部事件
 
 ```
 GET /client/events
