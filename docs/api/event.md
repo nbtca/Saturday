@@ -6,6 +6,15 @@ nav_order: 2
 ---
 
 # 事件
+{: .no_toc}
+
+## 目录
+{: .no_toc}
+
+1. TOC
+{:toc}
+
+---
 
 ## 基础
 
@@ -40,21 +49,21 @@ nav_order: 2
 GET /events/{event_id}
 ```
 
-## 参数
+### 参数
 
 | 名称     | 类型   | in   | 描述 |
 | -------- | ------ | ---- | ---- |
 | event_id | String | path | 学号 |
 
-## 示例
+### 示例
 
-### 请求
+#### 请求
 
 ```
 GET /members/event_id
 ```
 
-### 响应
+#### 响应
 
 ```
 {
@@ -86,7 +95,7 @@ GET /members/event_id
 }
 ```
 
-## Http 状态码
+### Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -128,22 +137,22 @@ GET /member/events
 POST /member/events/{event_id}/accept
 ```
 
-## 参数
+### 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 | event_id       | String | path   | 学号 |
 
-## 示例
+### 示例
 
-### 请求
+#### 请求
 
 ```
 POST /member/events/1/accept
 ```
 
-### 响应
+#### 响应
 
 ```
 {
@@ -175,7 +184,7 @@ POST /member/events/1/accept
 }
 ```
 
-## Http 状态码
+### Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -193,7 +202,7 @@ POST /member/events/1/accept
 POST /member/events/{event_id}/commit
 ```
 
-## 参数
+### 参数
 
 | 名称           | 类型   | in     | 描述     |
 | -------------- | ------ | ------ | -------- |
@@ -201,9 +210,9 @@ POST /member/events/{event_id}/commit
 | event_id       | String | path   | 学号     |
 | content        | string | body   | 维修描述 |
 
-## 示例
+### 示例
 
-### 请求
+#### 请求
 
 ```
 POST /member/events/1/commit
@@ -213,7 +222,7 @@ POST /member/events/1/commit
 }
 ```
 
-### 响应
+#### 响应
 
 ```
 {
@@ -252,7 +261,7 @@ POST /member/events/1/commit
 }
 ```
 
-## Http 状态码
+### Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -267,16 +276,16 @@ POST /member/events/1/commit
 PATCH /member/events/{event_id}/commit
 ```
 
-## 参数
+### 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 | event_id       | String | path   | 学号 |
 
-## 示例
+### 示例
 
-### 请求
+#### 请求
 
 ```
 PATCH /member/events/1/commit
@@ -286,7 +295,7 @@ PATCH /member/events/1/commit
 }
 ```
 
-### 响应
+#### 响应
 
 ```
 {
@@ -332,7 +341,7 @@ PATCH /member/events/1/commit
 }
 ```
 
-## Http 状态码
+### Http 状态码
 
 | HTTP Status Code | 描述 |
 | ---------------- | ---- |
@@ -350,22 +359,22 @@ PATCH /member/events/1/commit
 DELETE /member/events/{event_id}/accept
 ```
 
-## 参数
+### 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 | event_id       | String | path   | 学号 |
 
-## 示例
+### 示例
 
-### 请求
+#### 请求
 
 ```
 DELETE /member/events/1/accept
 ```
 
-### 响应
+#### 响应
 
 ```
 {
@@ -404,7 +413,7 @@ DELETE /member/events/1/accept
 }
 ```
 
-## Http 状态码
+### Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -421,22 +430,22 @@ DELETE /member/events/1/accept
 DELETE /events/{event_id}/commit
 ```
 
-## 参数
+### 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 | event_id       | String | path   | 学号 |
 
-## 示例
+### 示例
 
-### 请求
+#### 请求
 
 ```
 DELETE /events/events/1/commit
 ```
 
-### 响应
+#### 响应
 
 ```
 {
@@ -482,7 +491,7 @@ DELETE /events/events/1/commit
 }
 ```
 
-## Http 状态码
+### Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -500,22 +509,22 @@ DELETE /events/events/1/commit
 POST /events/{event_id}/close
 ```
 
-## 参数
+### 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 | event_id       | String | path   | 学号 |
 
-## 示例
+### 示例
 
-### 请求
+#### 请求
 
 ```
 POST /events/events/1/close
 ```
 
-### 响应
+#### 响应
 
 ```
 {
@@ -561,7 +570,7 @@ POST /events/events/1/close
 }
 ```
 
-## Http 状态码
+### Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |

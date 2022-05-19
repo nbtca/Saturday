@@ -22,23 +22,23 @@ nav_order: 1
 GET /members/{member_id}
 ```
 
-### 参数
+#### 参数
 {: .no_toc}
 
 | 名称      | 类型    | in   | 描述 |
 | --------- | ------- | ---- | ---- |
 | member_id | integer | path |      |
 
-### 示例
+#### 示例
 
-#### 请求
+##### 请求
 {: .no_toc}
 
 ```
 GET /members/2333333333
 ```
 
-#### 响应
+##### 响应
 
 ```
 {
@@ -53,7 +53,7 @@ GET /members/2333333333
 }
 ```
 
-### Http 状态码
+#### Http 状态码
 
 | HTTP Status Code | 描述               |
 | ---------------- | ------------------ |
@@ -66,22 +66,22 @@ GET /members/2333333333
 GET /members
 ```
 
-### 参数
+#### 参数
 
 | 名称   | 类型    | in    | 描述      |
 | ------ | ------- | ----- | --------- |
 | offset | integer | query |           |
 | limit  | integer | query | 默认为 30 |
 
-### 示例
+#### 示例
 
-#### 请求
+##### 请求
 
 ```
 GET /members
 ```
 
-#### 响应
+##### 响应
 
 ```
 [
@@ -108,7 +108,7 @@ GET /members
 ]
 ```
 
-### Http 状态码
+#### Http 状态码
 
 | HTTP Status Code | 描述               |
 | ---------------- | ------------------ |
@@ -123,16 +123,16 @@ GET /members
 POST /members/{member_id}/token
 ```
 
-### 参数
+#### 参数
 
 | 名称      | 类型   | in   | 描述 |
 | --------- | ------ | ---- | ---- |
 | member_id | string | path | 学号 |
 | password  | string | body | 姓名 |
 
-### 示例
+#### 示例
 
-#### 请求
+##### 请求
 
 ```
 POST /members/2333333333
@@ -142,7 +142,7 @@ POST /members/2333333333
 }
 ```
 
-#### 响应
+##### 响应
 
 ```
 {
@@ -162,7 +162,7 @@ POST /members/2333333333
 }
 ```
 
-### Http 状态码
+#### Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -176,21 +176,21 @@ POST /members/2333333333
 GET /member
 ```
 
-### 参数
+#### 参数
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
 | Authorizeation | string | header |      |
 
-### 示例
+#### 示例
 
-#### 请求
+##### 请求
 
 ```
 GET /member
 ```
 
-#### 响应
+##### 响应
 
 ```
 {
@@ -209,7 +209,7 @@ GET /member
 }
 ```
 
-### Http 状态码
+#### Http 状态码
 
 | HTTP Status Code | 描述               |
 | ---------------- | ------------------ |
@@ -226,7 +226,7 @@ GET /member
 PUT /member/active
 ```
 
-### 参数
+#### 参数
 
 | 名称           | 类型    | in     | 描述 |
 | -------------- | ------- | ------ | ---- |
@@ -239,9 +239,9 @@ PUT /member/active
 | avatar `可选`  | string  | body   | 头像 |
 | profile `可选` | string  | body   | 简介 |
 
-### 示例
+#### 示例
 
-#### 请求
+##### 请求
 
 ```
 PUT /member
@@ -254,7 +254,7 @@ PUT /member
 }
 ```
 
-#### 响应
+##### 响应
 
 ```
 {
@@ -281,7 +281,7 @@ PUT /member
 PUT /member
 ```
 
-### 参数
+#### 参数
 
 | 名称            | 类型    | in     | 描述 |
 | --------------- | ------- | ------ | ---- |
@@ -294,9 +294,9 @@ PUT /member
 | profile `可选`  | string  | body   | 简介 |
 | password `可选` | string  | body   | 密码 |
 
-### 示例
+#### 示例
 
-#### 请求
+##### 请求
 
 ```
 PUT /member
@@ -311,7 +311,7 @@ PUT /member
 }
 ```
 
-#### 响应
+##### 响应
 
 ```
 {
@@ -345,7 +345,7 @@ PUT /member/avater
 POST /members/{member_id}
 ```
 
-### 参数
+#### 参数
 
 | 名称           | 类型    | in     | 描述 |
 | -------------- | ------- | ------ | ---- |
@@ -359,9 +359,9 @@ POST /members/{member_id}
 | qq `可选`      | string  | body   |
 | avatar `可选`  | string  | body   | 头像 |
 
-### 示例
+#### 示例
 
-#### 请求
+##### 请求
 
 ```
 POST /members/3000000000
@@ -377,7 +377,7 @@ POST /members/3000000000
 }
 ```
 
-#### 响应
+##### 响应
 
 ```
 {
@@ -396,7 +396,7 @@ POST /members/3000000000
 }
 ```
 
-### Http 状态码
+#### Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
@@ -418,7 +418,7 @@ POST /members
 PUT /members/{member_id}
 ```
 
-### 参数
+#### 参数
 
 | 名称           | 类型    | in     | 描述 |
 | -------------- | ------- | ------ | ---- |
@@ -428,9 +428,9 @@ PUT /members/{member_id}
 | section        | string  | body   | 班级 |
 | role           | string  | body   | 权限 |
 
-### 示例
+#### 示例
 
-#### 请求
+##### 请求
 
 ```
 PATCH /members/2333333333
@@ -442,7 +442,7 @@ PATCH /members/2333333333
 }
 ```
 
-#### 响应
+##### 响应
 
 ```
 {
@@ -461,7 +461,7 @@ PATCH /members/2333333333
 }
 ```
 
-### Http 状态码
+#### Http 状态码
 
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
