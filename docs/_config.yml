@@ -1,4 +1,4 @@
 title: "维修队文档"
 remote_theme: just-the-docs/just-the-docs
 
-baseurl: "/saturday/docs" # the subpath of your site, e.g. /blog
+baseurl: "." # the subpath of your site, e.g. /blog
