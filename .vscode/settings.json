@@ -6,6 +6,7 @@
     "joho",
     "Queryx",
     "sqlx",
-    "stretchr"
+    "stretchr",
+    "wechat"
   ]
 }

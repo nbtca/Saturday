@@ -1,7 +1,6 @@
 package action
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"saturday/model"
@@ -18,7 +17,7 @@ type EventActionHandler struct {
 	role        []string
 	prevStatus  string
 	nextStatus  string
-	description string
+	Description string
 	customLog   CustomLogFunc
 }
 
@@ -29,7 +28,7 @@ func (eh *EventActionHandler) Init(event *model.Event, identity model.Identity) 
 }
 
 // check if the action is valid
-func (eh *EventActionHandler) validateAction() error {
+func (eh *EventActionHandler) ValidateAction() error {
 	if len(eh.role) != 0 {
 		exist := false
 		for _, role := range eh.role {
@@ -89,15 +88,15 @@ func (eh *EventActionHandler) Handle() error {
  this function validates the action and then perform action to the event.
  it also persists the event and event log.
 */
-func PerformEventAction(event *model.Event, identity model.Identity, action Action, description ...string) error {
-	handler := EventActionMap[action]
-	log.Println(action)
-	handler.Init(event, identity)
-	for _, d := range description {
-		handler.description = fmt.Sprint(handler.description, d)
-	}
-	if err := handler.validateAction(); err != nil {
-		return err
-	}
-	return handler.Handle()
-}
+// func PerformEventAction(event *model.Event, identity model.Identity, action Action, description ...string) error {
+// 	handler := EventActionMap[action]
+// 	log.Println(action)
+// 	handler.Init(event, identity)
+// 	for _, d := range description {
+// 		handler.description = fmt.Sprint(handler.description, d)
+// 	}
+// 	if err := handler.validateAction(); err != nil {
+// 		return err
+// 	}
+// 	return handler.Handle()
+// }
