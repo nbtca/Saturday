@@ -48,7 +48,7 @@ func (EventRouter) Accept(c *gin.Context) {
 	rawEvent, _ := c.Get("event")
 	event := rawEvent.(model.Event)
 	identity := util.GetIdentity(c)
-	if err := action.PerformEventAction(&event, identity, action.Accept); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, action.Accept); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -58,7 +58,7 @@ func (EventRouter) Drop(c *gin.Context) {
 	rawEvent, _ := c.Get("event")
 	event := rawEvent.(model.Event)
 	identity := util.GetIdentity(c)
-	if err := action.PerformEventAction(&event, identity, action.Drop); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, action.Drop); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
