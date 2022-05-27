@@ -8,5 +8,6 @@
     "sqlx",
     "stretchr",
     "wechat"
-  ]
+  ],
+  "markdown.extension.toc.levels": "2..2",
 }
