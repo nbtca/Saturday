@@ -50,6 +50,8 @@ func SetupRouter() *gin.Engine {
 		MemberGroup.POST("member/events/:EventId/commit", EventRouterApp.Commit)
 		MemberGroup.PATCH("member/events/:EventId/commit", EventRouterApp.AlterCommit)
 
+		MemberGroup.GET("client/:ClientId/events/", EventRouterApp.GetEventByClientAndPage)
+
 	}
 
 	AdminGroup := Router.Group("/")

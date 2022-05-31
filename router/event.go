@@ -65,7 +65,17 @@ func (EventRouter) Drop(c *gin.Context) {
 }
 
 func (EventRouter) Commit(c *gin.Context) {
-	//TODO not implemented
+	rawEvent, _ := c.Get("event")
+	event := rawEvent.(model.Event)
+	req := &dto.CommitReq{}
+	if err := util.BindAll(c, req); util.CheckError(c, err) {
+		return
+	}
+	identity := util.GetIdentity(c)
+	if err := service.EventServiceApp.Act(&event, identity, action.Commit, req.Content); util.CheckError(c, err) {
+		return
+	}
+	c.JSON(200, event)
 }
 
 func (EventRouter) AlterCommit(c *gin.Context) {
@@ -94,6 +104,10 @@ func (EventRouter) Update(c *gin.Context) {
 
 func (EventRouter) Cancel(c *gin.Context) {
 	//TODO not implemented
+}
+
+func (EventRouter) GetEventByClientAndPage(c *gin.Context) {
+	// TODO not implemented
 }
 
 var EventRouterApp = EventRouter{}
