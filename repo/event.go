@@ -2,7 +2,6 @@ package repo
 
 import (
 	"database/sql"
-	"log"
 	"saturday/model"
 	"saturday/util"
 
@@ -19,7 +18,11 @@ func getEventStatement() squirrel.SelectBuilder {
 	prefixedMember := util.Prefixer("member", memberFields)
 	prefixedAdmin := util.Prefixer("admin", memberFields)
 	prefixedEvent := util.Prefixer("event", eventFields)
+	// join columns
 	fields := append(prefixedMember, append(prefixedAdmin, prefixedEvent...)...)
+
+	// when column prefix is set, table must set with correspond alias(first letter of alias)
+	// for example: when column prefix is "member", the table should be aliased to "m".
 	return squirrel.Select(fields...).
 		From("event_view as e").
 		LeftJoin("member_view as m USING (member_id)").
@@ -30,6 +33,11 @@ func getLogStatement() squirrel.SelectBuilder {
 	return squirrel.Select(EventLogFields...).From("event_log_view")
 }
 
+/*
+ when a struct contains sub struct, the struct's field has the db tag of "struct'dbTag.subStruct.dbTag"
+ for example: the db tag here for event is event, the db tag for mode.Event has field "EventId" with db tag "event_id"
+ therefore the JoinEvent.Event.EventId has db tag of event.event_id.
+*/
 type JoinEvent struct {
 	Event  model.Event  `db:"event"`
 	Member model.Member `db:"member"`
@@ -53,7 +61,6 @@ func GetEventById(id int64) (model.Event, error) {
 	defer func() {
 		if err != nil {
 			conn.Rollback()
-			db.Close()
 		}
 	}()
 	joinEvent := JoinEvent{}
@@ -99,10 +106,14 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err != nil {
+			conn.Rollback()
+		}
+	}()
 	if _, err = conn.Exec(sql, args...); err != nil {
 		return err
 	}
-	log.Println(event.Status)
 	if _, err = SetEventStatus(event.EventId, event.Status, conn); err != nil {
 		return err
 	}
@@ -110,9 +121,30 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 		return err
 	}
 	if err = conn.Commit(); err != nil {
-		conn.Rollback()
 		return err
 	}
+	return nil
+}
+
+func CreateEvent(event *model.Event) error {
+	event.GmtCreate = util.GetDate()
+	event.GmtModified = util.GetDate()
+	createEventSql, args, _ := squirrel.Insert("event").Columns(
+		"event_id", "client_id", "model", "phone", "qq",
+		"contact_preference", "problem", "member_id", "closed_by",
+		"gmt_create", "gmt_modified").Values(
+		event.EventId, event.ClientId, event.Model, event.Phone, event.QQ,
+		event.ContactPreference, event.Problem, event.MemberId, event.ClosedBy,
+		event.GmtCreate, event.GmtModified).ToSql()
+	conn, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	res, err := conn.Exec(createEventSql, args...)
+	if err != nil {
+		return err
+	}
+	event.EventId, _ = res.LastInsertId()
 	return nil
 }
 
