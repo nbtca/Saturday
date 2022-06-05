@@ -25,7 +25,17 @@ func (EventRouter) GetPublicEventById(c *gin.Context) {
 }
 
 func (EventRouter) GetPublicEventByPage(c *gin.Context) {
-	//TODO not implemented
+	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	events, err := service.EventServiceApp.GetPublicEvents(offset, limit)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, events)
 }
 
 func (EventRouter) GetEventById(c *gin.Context) {

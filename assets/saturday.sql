@@ -11,7 +11,7 @@
  Target Server Version : 80022
  File Encoding         : 65001
 
- Date: 17/05/2022 11:10:35
+ Date: 05/06/2022 13:39:42
 */
 
 SET NAMES utf8mb4;
@@ -63,7 +63,7 @@ CREATE TABLE `event` (
 -- Records of event
 -- ----------------------------
 BEGIN;
-INSERT INTO `event` (`client_id`, `event_id`, `model`, `phone`, `qq`, `contact_preference`, `problem`, `member_id`, `closed_by`, `gmt_create`, `gmt_modified`) VALUES (1, 1, '7590', '17557209007', '709196390', 'qq', 'hackintosh', '2333333333', '', '2022-05-10 10:23:54', '2022-05-16 14:48:34');
+INSERT INTO `event` (`client_id`, `event_id`, `model`, `phone`, `qq`, `contact_preference`, `problem`, `member_id`, `closed_by`, `gmt_create`, `gmt_modified`) VALUES (1, 1, '7590', '17557209007', '709196390', 'qq', 'hackintosh', '2333333333', '0000000000', '2022-05-10 10:23:54', '2022-06-02 16:18:52');
 COMMIT;
 
 -- ----------------------------
@@ -233,8 +233,8 @@ CREATE TABLE `member_role_relation` (
 -- Records of member_role_relation
 -- ----------------------------
 BEGIN;
-INSERT INTO `member_role_relation` (`member_id`, `role_id`) VALUES ('0000000000', 0);
 INSERT INTO `member_role_relation` (`member_id`, `role_id`) VALUES ('2333333333', 2);
+INSERT INTO `member_role_relation` (`member_id`, `role_id`) VALUES ('0000000000', 3);
 COMMIT;
 
 -- ----------------------------
@@ -270,5 +270,23 @@ CREATE TABLE `setting` (
 -- ----------------------------
 BEGIN;
 COMMIT;
+
+-- ----------------------------
+-- View structure for event_log_view
+-- ----------------------------
+DROP VIEW IF EXISTS `event_log_view`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `event_log_view` AS select `event_log`.`event_log_id` AS `event_log_id`,`event_log`.`event_id` AS `event_id`,`event_log`.`description` AS `description`,`event_log`.`member_id` AS `member_id`,`event_log`.`gmt_create` AS `gmt_create`,`event_action`.`action` AS `action` from ((`event_log` left join `event_event_action_relation` on((`event_log`.`event_log_id` = `event_event_action_relation`.`event_log_id`))) left join `event_action` on((`event_event_action_relation`.`event_action_id` = `event_action`.`event_action_id`)));
+
+-- ----------------------------
+-- View structure for event_view
+-- ----------------------------
+DROP VIEW IF EXISTS `event_view`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `event_view` AS select `event`.`event_id` AS `event_id`,`event`.`client_id` AS `client_id`,`event`.`model` AS `model`,`event`.`phone` AS `phone`,`event`.`qq` AS `qq`,`event`.`contact_preference` AS `contact_preference`,`event`.`problem` AS `problem`,`event`.`member_id` AS `member_id`,`event`.`closed_by` AS `closed_by`,`event`.`gmt_create` AS `gmt_create`,`event`.`gmt_modified` AS `gmt_modified`,`event_status`.`status` AS `status` from ((((`event` left join `event_event_status_relation` on((`event`.`event_id` = `event_event_status_relation`.`event_id`))) left join `event_status` on((`event_event_status_relation`.`event_status_id` = `event_status`.`event_status_id`))) left join `member` on((`event`.`member_id` = `member`.`member_id`))) left join `member` `admin` on((`event`.`closed_by` = `member`.`member_id`)));
+
+-- ----------------------------
+-- View structure for member_view
+-- ----------------------------
+DROP VIEW IF EXISTS `member_view`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `member_view` AS select `member`.`member_id` AS `member_id`,`member`.`alias` AS `alias`,`member`.`password` AS `password`,`member`.`name` AS `name`,`member`.`section` AS `section`,`member`.`profile` AS `profile`,`member`.`phone` AS `phone`,`member`.`qq` AS `qq`,`member`.`avatar` AS `avatar`,`member`.`created_by` AS `created_by`,`member`.`gmt_create` AS `gmt_create`,`member`.`gmt_modified` AS `gmt_modified`,`role`.`role` AS `role` from ((`member` left join `member_role_relation` on((`member`.`member_id` = `member_role_relation`.`member_id`))) left join `role` on((`member_role_relation`.`role_id` = `role`.`role_id`)));
 
 SET FOREIGN_KEY_CHECKS = 1;

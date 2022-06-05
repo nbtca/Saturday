@@ -9,7 +9,9 @@ type Event struct {
 	ContactPreference string     `json:"contact_preference" db:"contact_preference" `
 	Problem           string     `json:"problem" db:"problem"`
 	MemberId          string     `json:"member_id" db:"member_id"`
-	ClosedBy          string     `json:"closed_by" db:"closed_by"`
+	Member            Member     `json:"member" db:"-"`
+	ClosedBy          string     `json:"closed_by_id" db:"closed_by"`
+	ClosedByMember    Member     `json:"closed_by" db:"-"`
 	Status            string     `json:"status"`
 	Logs              []EventLog `json:"logs"`
 	GmtCreate         string     `json:"gmt_create" db:"gmt_create"`
@@ -45,29 +47,33 @@ type EventAction struct {
 }
 
 type PublicEvent struct {
-	EventId     int64      `json:"event_id" db:"event_id"`
-	ClientId    int64      `json:"client_id" db:"client_id"`
-	Model       string     `json:"model"`
-	Problem     string     `json:"problem" db:"event_description"`
-	MemberId    string     `json:"member_id" db:"member_id"`
-	ClosedBy    string     `json:"closed_by" db:"closed_by"`
-	Status      string     `json:"status"`
-	Logs        []EventLog `json:"logs"`
-	GmtCreate   string     `json:"gmt_create" db:"gmt_create"`
-	GmtModified string     `json:"gmt_modified" db:"gmt_modified"`
+	EventId        int64      `json:"event_id" db:"event_id"`
+	ClientId       int64      `json:"client_id" db:"client_id"`
+	Model          string     `json:"model"`
+	Problem        string     `json:"problem" db:"event_description"`
+	MemberId       string     `json:"-" db:"member_id"`
+	Member         Member     `json:"member"`
+	ClosedBy       string     `json:"-" db:"closed_by"`
+	ClosedByMember Member     `json:"closed_by"`
+	Status         string     `json:"status"`
+	Logs           []EventLog `json:"logs"`
+	GmtCreate      string     `json:"gmt_create" db:"gmt_create"`
+	GmtModified    string     `json:"gmt_modified" db:"gmt_modified"`
 }
 
 func CreatePublicEvent(e Event) PublicEvent {
 	return PublicEvent{
-		EventId:     e.EventId,
-		ClientId:    e.ClientId,
-		Model:       e.Model,
-		Problem:     e.Problem,
-		MemberId:    e.MemberId,
-		ClosedBy:    e.ClosedBy,
-		Status:      e.Status,
-		Logs:        e.Logs,
-		GmtCreate:   e.GmtCreate,
-		GmtModified: e.GmtModified,
+		EventId:        e.EventId,
+		ClientId:       e.ClientId,
+		Model:          e.Model,
+		Problem:        e.Problem,
+		MemberId:       e.MemberId,
+		Member:         e.Member,
+		ClosedBy:       e.ClosedBy,
+		ClosedByMember: e.ClosedByMember,
+		Status:         e.Status,
+		Logs:           e.Logs,
+		GmtCreate:      e.GmtCreate,
+		GmtModified:    e.GmtModified,
 	}
 }

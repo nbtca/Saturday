@@ -10,42 +10,78 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var EventFields = []string{"event_id", "client_id", "model", "phone", "qq", "contact_preference",
+var eventFields = []string{"event_id", "client_id", "model", "phone", "qq", "contact_preference",
 	"problem", "member_id", "closed_by", "status", "gmt_create", "gmt_modified", "status"}
 
 var EventLogFields = []string{"event_log_id", "description", "gmt_create", "member_id", "action"}
 
 func getEventStatement() squirrel.SelectBuilder {
-	return squirrel.Select(EventFields...).From("event").
-		LeftJoin("event_event_status_relation USING (event_id)").
-		LeftJoin("event_status USING (event_status_id)")
+	prefixedMember := util.Prefixer("member", memberFields)
+	prefixedAdmin := util.Prefixer("admin", memberFields)
+	prefixedEvent := util.Prefixer("event", eventFields)
+	fields := append(prefixedMember, append(prefixedAdmin, prefixedEvent...)...)
+	return squirrel.Select(fields...).
+		From("event_view as e").
+		LeftJoin("member_view as m USING (member_id)").
+		LeftJoin("member_view as a ON (e.closed_by=a.member_id)")
 }
+
 func getLogStatement() squirrel.SelectBuilder {
-	return squirrel.Select(EventLogFields...).From("event_log").
-		LeftJoin("event_event_action_relation USING (event_log_id)").
-		LeftJoin("event_action USING (event_action_id)")
+	return squirrel.Select(EventLogFields...).From("event_log_view")
+}
+
+type JoinEvent struct {
+	Event  model.Event  `db:"event"`
+	Member model.Member `db:"member"`
+	Admin  model.Member `db:"admin"`
+}
+
+func (je JoinEvent) ToEvent() model.Event {
+	event := je.Event
+	event.Member = je.Member
+	event.ClosedByMember = je.Admin
+	return event
 }
 
 func GetEventById(id int64) (model.Event, error) {
 	getEventSql, getEventArgs, _ := getEventStatement().Where(squirrel.Eq{"event_id": id}).ToSql()
 	getLogSql, getLogArgs, _ := getLogStatement().Where(squirrel.Eq{"event_id": id}).ToSql()
-	event := model.Event{}
 	conn, err := db.Beginx()
 	if err != nil {
 		return model.Event{}, err
 	}
-	if err := conn.Get(&event, getEventSql, getEventArgs...); err != nil {
+	defer func() {
+		if err != nil {
+			conn.Rollback()
+			db.Close()
+		}
+	}()
+	joinEvent := JoinEvent{}
+	if err := conn.Get(&joinEvent, getEventSql, getEventArgs...); err != nil {
 		return model.Event{}, err
 	}
-	if err := conn.Select(&event.Logs, getLogSql, getLogArgs...); err != nil {
-		log.Println(err)
+	event := joinEvent.ToEvent()
+	if err = conn.Select(&event.Logs, getLogSql, getLogArgs...); err != nil {
 		return model.Event{}, err
 	}
 	if err = conn.Commit(); err != nil {
-		conn.Rollback()
 		return model.Event{}, err
 	}
 	return event, nil
+}
+
+func GetEvents(offset uint64, limit uint64) ([]model.Event, error) {
+	getEventSql, getEventArgs, _ := getEventStatement().Offset(offset).Limit(limit).ToSql()
+	joinEvent := []JoinEvent{}
+	err := db.Select(&joinEvent, getEventSql, getEventArgs...)
+	if err != nil {
+		return []model.Event{}, err
+	}
+	events := make([]model.Event, len(joinEvent))
+	for i, v := range joinEvent {
+		events[i] = v.ToEvent()
+	}
+	return events, nil
 }
 
 func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {

@@ -1,10 +1,15 @@
 {
   "cSpell.words": [
     "Beginx",
+    "Deprefix",
     "godotenv",
     "jmoiron",
     "joho",
+    "logrus",
+    "Prefixer",
     "Queryx",
+    "reflectx",
+    "Rowx",
     "sqlx",
     "stretchr",
     "wechat"
