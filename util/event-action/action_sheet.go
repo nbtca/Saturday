@@ -33,7 +33,7 @@ var idLog CustomLogFunc = func(eh *EventActionHandler) model.EventLog {
 var idAndDescriptionLog CustomLogFunc = func(eh *EventActionHandler) model.EventLog {
 	return eh.CreateEventLog(createEventLogArgs{
 		Id:          eh.Actor.Id,
-		Description: eh.description,
+		Description: eh.Description,
 	})
 }
 

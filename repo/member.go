@@ -12,12 +12,7 @@ var memberFields = []string{"member_id", "alias", "password", "name", "section",
 	"phone", "qq", "avatar", "created_by", "gmt_create", "gmt_modified"}
 
 func getMemberStatement() squirrel.SelectBuilder {
-	members := squirrel.Select(memberFields...).From("member")
-	return members.LeftJoin("member_role_relation USING (member_id)").LeftJoin("role USING (role_id)")
-}
-
-func pagination(offset uint64, limit uint64) squirrel.SelectBuilder {
-	return getMemberStatement().Offset(offset).Limit(limit)
+	return squirrel.Select("*").From("member_view")
 }
 
 func ExistMember(id string) (bool, error) {
@@ -41,7 +36,7 @@ func GetMemberById(id string) (model.Member, error) {
 	return member, nil
 }
 func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
-	sql, args, _ := pagination(offset, limit).ToSql()
+	sql, args, _ := getMemberStatement().Offset(offset).Limit(limit).ToSql()
 	members := []model.Member{}
 	if err := db.Select(&members, sql, args...); err != nil {
 		return []model.Member{}, err
@@ -82,17 +77,21 @@ func UpdateMember(member model.Member) error {
 		Set("gmt_modified", util.GetDate()).
 		Where(squirrel.Eq{"member_id": member.MemberId}).ToSql()
 	conn, err := db.Begin()
+	defer func() {
+		if err != nil {
+			conn.Rollback()
+			db.Close()
+		}
+	}()
 	if err != nil {
 		return err
 	}
 	conn.Exec(sql, args...)
 	err = SetMemberRole(member.MemberId, member.Role, conn)
 	if err != nil {
-		conn.Rollback()
 		return err
 	}
 	if err = conn.Commit(); err != nil {
-		conn.Rollback()
 		return err
 	}
 	return nil

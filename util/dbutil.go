@@ -1,8 +1,12 @@
 package util
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"time"
+
+	"github.com/jmoiron/sqlx/reflectx"
 )
 
 func FieldsConstructor(q interface{}) []string {
@@ -11,7 +15,6 @@ func FieldsConstructor(q interface{}) []string {
 	var res []string
 	shouldAppendField := func(field reflect.StructField) (string, bool) {
 		dbTag := t.Field(i).Tag.Get("json")
-		// visibleTag := t.Field(i).Tag.Get("visible")
 		if dbTag == "" {
 			return "", false
 		}
@@ -33,3 +36,68 @@ func FieldsConstructor(q interface{}) []string {
 func GetDate() string {
 	return time.Now().Format("2006-01-02 15:04:11")
 }
+
+func SetColumnPrefix(prefix string, column string) string {
+	return fmt.Sprint(prefix, ".", strings.ToLower(column))
+}
+
+func Prefixer(prefix string, columns []string) []string {
+	ans := make([]string, len(columns))
+	for i, v := range columns {
+		ans[i] = fmt.Sprint(string(prefix[0]), ".", v, " as '", SetColumnPrefix(prefix, v), "'")
+	}
+	return ans
+}
+
+func Deprefix(prefix string) *reflectx.Mapper {
+	return reflectx.NewMapperTagFunc("db", func(s string) string {
+		return SetColumnPrefix(prefix, s)
+	}, func(tag string) string {
+		return SetColumnPrefix(prefix, tag)
+	})
+}
+
+// type RowStructMap map[string]interface{}
+
+// func MultiStructScan(source map[string]interface{}, target RowStructMap) error {
+// 	for prefix, v := range target {
+// 		refV := reflect.ValueOf(v).Elem()
+// 		if refV.Kind() != reflect.Struct {
+// 			return errors.New("not struct")
+// 		}
+// 		t := reflect.TypeOf(v).Elem()
+// 		for i := 0; i < t.NumField(); i++ {
+// 			f := t.Field(i)
+// 			vf := refV.FieldByName(f.Name)
+// 			if !vf.CanSet() {
+// 				return errors.New("can not set value")
+// 			}
+// 			// get column name
+// 			columnName := ""
+// 			dbTag := f.Tag.Get("db")
+// 			if dbTag == "-" {
+// 				// is ignored
+// 				continue
+// 			}
+// 			if dbTag == "" {
+// 				// there is no db tag, use field name
+// 				columnName = strings.ToLower(f.Name)
+// 			} else {
+// 				columnName = dbTag
+// 			}
+// 			// add prefix to column name
+// 			columnName = SetColumnPrefix(prefix, columnName)
+// 			sourceV, ok := source[columnName]
+// 			if !ok {
+// 				// TODO error
+// 				continue
+// 			}
+// 			refSourceV := reflect.ValueOf(sourceV)
+// 			if vf.Kind() != refSourceV.Kind() {
+// 				return errors.New("type invalid")
+// 			}
+// 			vf.Set(refSourceV)
+// 		}
+// 	}
+// 	return nil
+// }

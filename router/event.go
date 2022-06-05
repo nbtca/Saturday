@@ -25,7 +25,17 @@ func (EventRouter) GetPublicEventById(c *gin.Context) {
 }
 
 func (EventRouter) GetPublicEventByPage(c *gin.Context) {
-	//TODO not implemented
+	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	events, err := service.EventServiceApp.GetPublicEvents(offset, limit)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, events)
 }
 
 func (EventRouter) GetEventById(c *gin.Context) {
@@ -48,7 +58,7 @@ func (EventRouter) Accept(c *gin.Context) {
 	rawEvent, _ := c.Get("event")
 	event := rawEvent.(model.Event)
 	identity := util.GetIdentity(c)
-	if err := action.PerformEventAction(&event, identity, action.Accept); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, action.Accept); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -58,7 +68,7 @@ func (EventRouter) Drop(c *gin.Context) {
 	rawEvent, _ := c.Get("event")
 	event := rawEvent.(model.Event)
 	identity := util.GetIdentity(c)
-	if err := action.PerformEventAction(&event, identity, action.Drop); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, action.Drop); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -145,6 +155,10 @@ func (EventRouter) Update(c *gin.Context) {
 
 func (EventRouter) Cancel(c *gin.Context) {
 	//TODO not implemented
+}
+
+func (EventRouter) GetEventByClientAndPage(c *gin.Context) {
+	// TODO not implemented
 }
 
 var EventRouterApp = EventRouter{}
