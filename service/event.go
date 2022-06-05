@@ -56,6 +56,22 @@ func (service EventService) GetPublicEvents(offset uint64, limit uint64) ([]mode
 	return publicEvents, nil
 }
 
+func (service EventService) CreateEvent(event *model.Event) error {
+	// insert event
+	if err := repo.CreateEvent(event); err != nil {
+		return err
+	}
+	identity := model.Identity{
+		Id:   fmt.Sprint(event.ClientId),
+		Role: "client",
+	}
+	// insert event status and event log
+	if err := service.Act(event, identity, au.Create); err != nil {
+		return err
+	}
+	return nil
+}
+
 /*
  this function validates the action and then perform action to the event.
  it also persists the event and event log.
