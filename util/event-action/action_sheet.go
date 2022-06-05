@@ -21,6 +21,7 @@ const (
 	AlterCommit Action = "alterCommit"
 	Reject      Action = "reject"
 	Close       Action = "close"
+	Update      Action = "update"
 )
 
 var idLog CustomLogFunc = func(eh *EventActionHandler) model.EventLog {
@@ -105,5 +106,10 @@ var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler
 				Id: eh.Actor.Id,
 			})
 		},
+	},
+	Update: {
+		action:    Update,
+		role:      []string{"admin"},
+		customLog: idLog,
 	},
 }
