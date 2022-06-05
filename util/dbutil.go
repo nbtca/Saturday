@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"strings"
 	"time"
-
-	"github.com/jmoiron/sqlx/reflectx"
 )
 
 func FieldsConstructor(q interface{}) []string {
@@ -41,6 +39,7 @@ func SetColumnPrefix(prefix string, column string) string {
 	return fmt.Sprint(prefix, ".", strings.ToLower(column))
 }
 
+// return columns in the format of "prefix[0].column as prefix.column"
 func Prefixer(prefix string, columns []string) []string {
 	ans := make([]string, len(columns))
 	for i, v := range columns {
@@ -49,13 +48,13 @@ func Prefixer(prefix string, columns []string) []string {
 	return ans
 }
 
-func Deprefix(prefix string) *reflectx.Mapper {
-	return reflectx.NewMapperTagFunc("db", func(s string) string {
-		return SetColumnPrefix(prefix, s)
-	}, func(tag string) string {
-		return SetColumnPrefix(prefix, tag)
-	})
-}
+// func Deprefix(prefix string) *reflectx.Mapper {
+// 	return reflectx.NewMapperTagFunc("db", func(s string) string {
+// 		return SetColumnPrefix(prefix, s)
+// 	}, func(tag string) string {
+// 		return SetColumnPrefix(prefix, tag)
+// 	})
+// }
 
 // type RowStructMap map[string]interface{}
 
