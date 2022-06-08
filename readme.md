@@ -3,7 +3,7 @@
 
 ## 简介
 + 使用golang，gin搭建的维修队后端
-+ [API文档](assets/api.md)
++ [API文档](https://nbtca.github.io/Saturday/api)
 + 使用此后端服务的项目
    + [Sunday](https://github.com/nbtca/Sunday) (管理系统)
    + [Hawaii](https://github.com/nbtca/Hawaii) (维修小程序)

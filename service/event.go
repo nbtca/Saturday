@@ -6,7 +6,6 @@ import (
 	"saturday/model"
 	"saturday/repo"
 	"saturday/util"
-	au "saturday/util/event-action"
 )
 
 type EventService struct {
@@ -66,7 +65,7 @@ func (service EventService) CreateEvent(event *model.Event) error {
 		Role: "client",
 	}
 	// insert event status and event log
-	if err := service.Act(event, identity, au.Create); err != nil {
+	if err := service.Act(event, identity, util.Create); err != nil {
 		return err
 	}
 	return nil
@@ -76,16 +75,23 @@ func (service EventService) CreateEvent(event *model.Event) error {
  this function validates the action and then perform action to the event.
  it also persists the event and event log.
 */
-func (service EventService) Act(event *model.Event, identity model.Identity, action au.Action, description ...string) error {
-	handler := au.EventActionMap[action]
-	handler.Init(event, identity)
-	for _, d := range description {
-		handler.Description = fmt.Sprint(handler.Description, d)
-	}
+func (service EventService) Act(event *model.Event, identity model.Identity, action util.Action, description ...string) error {
+	handler := util.MakeEventActionHandler(action, event, identity)
 	if err := handler.ValidateAction(); err != nil {
 		return err
 	}
-	return handler.Handle()
+	for _, d := range description {
+		handler.Description = fmt.Sprint(handler.Description, d)
+	}
+
+	log := handler.Handle()
+	// persist event
+	if err := repo.UpdateEvent(event, &log); err != nil {
+		return err
+	}
+	// append log
+	event.Logs = append(event.Logs, log)
+	return nil
 }
 
 var EventServiceApp = EventService{}

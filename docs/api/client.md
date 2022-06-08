@@ -38,7 +38,9 @@ POST /client
 
 
 
-## 创建报修人员Token
+## 通过微信创建报修人员Token
+
+该接口接受微信小程序内获取的wx.login.code，并通过code，从微信提供的接口获取用户的openId，若code缺少或微信接口返回错误，则返回相应的错误。在获取到openId后，若已存对应openId的用户，则返回对应的报修人员信息以及令牌，若不存在拥有对应openId的用户，则创建一个相应openId的用户。
 
 ```
 POST /clients/token/wechat
