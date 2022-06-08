@@ -122,7 +122,7 @@ GET /members
 
 ## 创建用户 Token 已完成
 
-返回认证用户信息以及 token
+接受维修人员ID及密码两个参数，若密码正确，则返回对应的维修人员信息以及令牌，若缺少参数，参数类型错误，密码错误或用户不存在则返回相应的错误信息。
 
 ```
 POST /members/{member_id}/token
@@ -133,7 +133,7 @@ POST /members/{member_id}/token
 | 名称      | 类型   | in   | 描述 |
 | --------- | ------ | ---- | ---- |
 | member_id | string | path | 学号 |
-| password  | string | body | 姓名 |
+| password  | string | body | 密码 |
 
 #### 示例
 

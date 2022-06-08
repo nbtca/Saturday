@@ -5,7 +5,6 @@ import (
 	"saturday/model/dto"
 	"saturday/service"
 	"saturday/util"
-	action "saturday/util/event-action"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,7 +57,7 @@ func (EventRouter) Accept(c *gin.Context) {
 	rawEvent, _ := c.Get("event")
 	event := rawEvent.(model.Event)
 	identity := util.GetIdentity(c)
-	if err := service.EventServiceApp.Act(&event, identity, action.Accept); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, util.Accept); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -68,7 +67,7 @@ func (EventRouter) Drop(c *gin.Context) {
 	rawEvent, _ := c.Get("event")
 	event := rawEvent.(model.Event)
 	identity := util.GetIdentity(c)
-	if err := service.EventServiceApp.Act(&event, identity, action.Drop); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, util.Drop); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -82,7 +81,7 @@ func (EventRouter) Commit(c *gin.Context) {
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
-	if err := service.EventServiceApp.Act(&event, identity, action.Commit, req.Content); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, util.Commit, req.Content); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -96,7 +95,7 @@ func (EventRouter) AlterCommit(c *gin.Context) {
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
-	if err := service.EventServiceApp.Act(&event, identity, action.Commit, req.Content); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, util.Commit, req.Content); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -106,7 +105,7 @@ func (EventRouter) RejectCommit(c *gin.Context) {
 	raw_Event, _ := c.Get("event")
 	event := raw_Event.(model.Event)
 	identity := util.GetIdentity(c)
-	if err := service.EventServiceApp.Act(&event, identity, action.Reject); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, util.Reject); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -116,7 +115,7 @@ func (EventRouter) Close(c *gin.Context) {
 	raw_Event, _ := c.Get("event")
 	event := raw_Event.(model.Event)
 	identity := util.GetIdentity(c)
-	if err := service.EventServiceApp.Act(&event, identity, action.Close); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, util.Close); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -163,7 +162,7 @@ func (EventRouter) Update(c *gin.Context) {
 	if req.Phone != "" {
 		event.Problem = req.Problem
 	}
-	if err := service.EventServiceApp.Act(&event, identity, action.Update); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, util.Update); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -173,7 +172,7 @@ func (EventRouter) Cancel(c *gin.Context) {
 	raw_Event, _ := c.Get("event")
 	event := raw_Event.(model.Event)
 	identity := util.GetIdentity(c)
-	if err := service.EventServiceApp.Act(&event, identity, action.Cancel); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, util.Cancel); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
