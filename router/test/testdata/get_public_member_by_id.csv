@@ -1,0 +1,6 @@
+CaseId,id,code,success,Invalid_length,Invalid_number,uncorrect_password,nonexist_member
+1,2333333333,200,TRUE,,,,
+3,2222222222,422,,,,,TRUE
+4,233333333,422,,TRUE,,,
+5,23333333333,422,,TRUE,,,
+6,233333333A,422,,,TRUE,,

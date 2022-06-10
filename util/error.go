@@ -14,13 +14,15 @@ type DetailError struct {
 	Error    string `json:"error"`
 }
 
+type ResponseBody struct {
+	Message string        `json:"message"`
+	Errors  []DetailError `json:"errors,omitempty"`
+}
+
 type ServiceError struct {
 	error
 	HttpStatus int
-	Body       struct {
-		Message string        `json:"message"`
-		Errors  []DetailError `json:"errors,omitempty"`
-	}
+	Body       ResponseBody
 }
 
 func (serviceError *ServiceError) AddDetailError(resource string, field string, error string) *ServiceError {

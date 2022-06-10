@@ -62,6 +62,7 @@ func (MemberRouter) CreateToken(c *gin.Context) {
 			MakeServiceError(http.StatusUnprocessableEntity).
 			SetMessage("Validation Failed").
 			Build())
+		return
 	}
 	token, err := service.MemberServiceApp.CreateToken(member)
 	if util.CheckError(c, err) {

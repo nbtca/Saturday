@@ -37,7 +37,7 @@ func GetDB() (*sqlx.DB, error) {
 	if imageExists {
 		resource, err = pool.Run("test_db", "latest", []string{})
 	} else {
-		resource, err = pool.BuildAndRun("test_db", "../../../assets/dockerfile", []string{})
+		resource, err = pool.BuildAndRun("test_db", "../../assets/dockerfile", []string{})
 	}
 	if err != nil {
 		log.Fatalf("Could not start resource: %s", err)
@@ -63,7 +63,7 @@ func CloseResource() {
 }
 
 func SetSchema(db *sqlx.DB) error {
-	b, err := ioutil.ReadFile("../../../assets/saturday.sql")
+	b, err := ioutil.ReadFile("../../assets/saturday.sql")
 	if err != nil {
 		return err
 	}

@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-type Body struct {
+type jscode2sessionBody struct {
 	OpenId      string `json:"openid"`
 	Session_key string `json:"session_key"`
 	Union       string `json:"unionid"`
@@ -25,7 +25,7 @@ func CodeToSession(code string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	data := &Body{}
+	data := &jscode2sessionBody{}
 	if err = json.Unmarshal(body, &data); err != nil {
 		return "", err
 	}
