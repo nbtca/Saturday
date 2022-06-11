@@ -21,12 +21,24 @@ type APITestCase struct {
 type Request struct {
 	Method string
 	Url    string
-	Role   string
+	Auth   string
 	Body   gin.H
 }
 type Response struct {
 	Code int
 	Body gin.H
+}
+
+func GenToken(auth string, id ...string) string {
+	if auth == "INVALID" {
+		return "Invalid"
+	} else if auth == "EXPIRED" {
+		return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTM0NDMxNjIsImRhdGEiOnsidWlkIjoiNmYxZjk3MDItNjZkNi00NDdiLThlNTUtNWYwYzY0N2M4ZDNhIiwicm9sZSI6InVzZXIifSwiaWF0IjoxNjUzMzU2NzYyfQ.ocAxJGhw6Xt2vt7bwGcMeRPLOQOmaspznyu9aI7G670"
+	} else if auth == "NONE" {
+		return ""
+	}
+	token, _ := util.CreateToken(util.Payload{Who: id[0], Role: auth})
+	return token
 }
 
 func (t APITestCase) compare(got gin.H) error {
@@ -76,9 +88,9 @@ func (tc APITestCase) Test() error {
 	} else {
 		req, _ = http.NewRequest(tc.Request.Method, tc.Request.Url, nil)
 	}
-	if tc.Request.Role != "" {
-		token, _ := util.CreateToken(util.Payload{Who: "2333333333", Role: tc.Request.Role})
-		req.Header.Add("Authorization", token)
+	if tc.Request.Auth != "" {
+		// token, _ := util.CreateToken(util.Payload{Who: "2333333333", Role: tc.Request.Role})
+		req.Header.Add("Authorization", tc.Request.Auth)
 	}
 	r.ServeHTTP(w, req)
 	if tc.Response.Code != w.Code {
