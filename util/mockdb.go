@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os/exec"
+	"path"
 	"strings"
 	"time"
 
@@ -43,7 +44,7 @@ func (m *MockDB) Start() (*sqlx.DB, error) {
 		m.resource, err = m.pool.Run("test_db", "latest", []string{})
 	} else {
 		//TODO should just use mysql image since the schema is reset before each test
-		m.resource, err = m.pool.BuildAndRun("test_db", m.path+"dockerfile", []string{})
+		m.resource, err = m.pool.BuildAndRun("test_db", path.Join(m.path, "dockerfile"), []string{})
 	}
 	if err != nil {
 		return nil, fmt.Errorf("could not start resource %s", err)
@@ -62,13 +63,13 @@ func (m *MockDB) Start() (*sqlx.DB, error) {
 }
 func (m *MockDB) SetSchema(db *sqlx.DB) error {
 	if m.schema == "" {
-		b, err := ioutil.ReadFile(m.path + "saturday.sql")
+		b, err := ioutil.ReadFile(path.Join(m.path, "saturday.sql"))
 		if err != nil {
 			return err
 		}
 		m.schema = string(b)
 	}
-	db.MustExec(m.schema)
+	m.db.MustExec(m.schema)
 	return nil
 }
 

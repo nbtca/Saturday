@@ -1,5 +1,6 @@
 {
   "cSpell.words": [
+    "APITestCase",
     "Beginx",
     "Deprefix",
     "dockertest",
@@ -13,7 +14,7 @@
     "Rowx",
     "sqlx",
     "stretchr",
-    "APITestCase",
+    "testdata",
     "wechat"
   ],
   "markdown.extension.toc.levels": "2..2",

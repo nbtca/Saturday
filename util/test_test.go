@@ -16,13 +16,13 @@ func TestCreateToken(t *testing.T) {
 }
 
 func TestReadCsvFile(t *testing.T) {
-	records := util.ReadCsvFile("APITestCase/event-action.csv")
+	records := util.ReadCsvFile("testdata/event-action.csv")
 	for _, v := range records {
 		fmt.Println(v)
 	}
 }
 func TestGetCsvMap(t *testing.T) {
-	records, err := util.GetCsvMap("APITestCase/event-action.csv")
+	records, err := util.GetCsvMap("testdata/event-action.csv")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -38,12 +38,10 @@ func TestEventAction(t *testing.T) {
 	}
 	// event := model.Event{}
 	for _, v := range rawAPITestCase {
-		// log.Println(v["event.status"])
 		t.Run(v["CaseId"], func(t *testing.T) {
 			event := &model.Event{
 				Status: v["event.status"],
 			}
-			// log.Println(event)
 			actor := model.Identity{
 				Id:   "2333333333",
 				Role: v["actor.role"],
