@@ -8,7 +8,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type DetailError struct {
+type detailError struct {
 	Resource string `json:"resource"`
 	Field    string `json:"field"`
 	Error    string `json:"error"`
@@ -16,7 +16,7 @@ type DetailError struct {
 
 type ResponseBody struct {
 	Message string        `json:"message"`
-	Errors  []DetailError `json:"errors,omitempty"`
+	Errors  []detailError `json:"errors,omitempty"`
 }
 
 type ServiceError struct {
@@ -25,8 +25,8 @@ type ServiceError struct {
 	Body       ResponseBody
 }
 
-func (serviceError *ServiceError) AddDetailError(resource string, field string, error string) *ServiceError {
-	detailError := DetailError{
+func (serviceError ServiceError) AddDetailError(resource string, field string, error string) ServiceError {
+	detailError := detailError{
 		Resource: resource,
 		Field:    field,
 		Error:    error,
@@ -39,28 +39,29 @@ func (error ServiceError) Build() (int, interface{}) {
 	return error.HttpStatus, error.Body
 }
 
-func MakeServiceError(HttpStatus int) *ServiceError {
-	error := &ServiceError{
+func MakeServiceError(HttpStatus int) ServiceError {
+	error := ServiceError{
 		HttpStatus: HttpStatus,
 	}
 	return error
 }
 
-func (serviceError *ServiceError) SetStatus(status int) *ServiceError {
+func (serviceError ServiceError) SetStatus(status int) ServiceError {
 	serviceError.HttpStatus = status
 	return serviceError
 }
 
-func (serviceError *ServiceError) SetMessage(message string) *ServiceError {
+func (serviceError ServiceError) SetMessage(message string) ServiceError {
+	serviceError.error = errors.New(message)
 	serviceError.Body.Message = message
 	return serviceError
 }
 
-func IsServiceError(err error) (*ServiceError, bool) {
+func IsServiceError(err error) (ServiceError, bool) {
 	if err == nil {
-		return nil, false
+		return ServiceError{}, false
 	}
-	serviceError, ok := err.(*ServiceError)
+	serviceError, ok := err.(ServiceError)
 	return serviceError, ok
 }
 
@@ -82,7 +83,7 @@ func CheckError(c *gin.Context, err error) bool {
 
 // parse error from validator
 // return a *ServiceError with status code http.StatusUnprocessableEntity
-func MakeValidationError(resource string, err error) *ServiceError {
+func MakeValidationError(resource string, err error) ServiceError {
 	var ve validator.ValidationErrors
 	serviceError := MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
 	if err == nil {
@@ -97,6 +98,6 @@ func MakeValidationError(resource string, err error) *ServiceError {
 	return serviceError
 }
 
-func MakeInternalServerError() *ServiceError {
+func MakeInternalServerError() ServiceError {
 	return MakeServiceError(http.StatusInternalServerError).SetMessage("Internal Server Error")
 }

@@ -1,6 +1,7 @@
 package router_test
 
 import (
+	"log"
 	"saturday/repo"
 	"saturday/router"
 	"saturday/util"
@@ -12,15 +13,19 @@ import (
 
 var r *gin.Engine
 var db *sqlx.DB
+var mockDB *util.MockDB
 
 func TestMain(m *testing.M) {
 	util.InitValidator()
-	db, _ = util.GetDB()
+
+	mockDB = util.MakeMockDB("../../assets")
+	db, err := mockDB.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
 	repo.SetDB(db)
-	defer repo.CloseDB()
-	defer util.CloseResource()
+	defer mockDB.Close()
 
 	r = router.SetupRouter()
-
 	m.Run()
 }

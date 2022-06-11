@@ -1,7 +1,6 @@
 package util
 
 import (
-	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -30,7 +29,6 @@ func CreateToken(payload Payload) (string, error) {
 		},
 		Payload: payload,
 	}
-	log.Println(claims.Id)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(key)
 	return tokenString, err
