@@ -32,7 +32,7 @@ func TestGetCsvMap(t *testing.T) {
 }
 
 func TestEventAction(t *testing.T) {
-	rawAPITestCase, err := util.GetCsvMap("APITestCase/event-action.csv")
+	rawAPITestCase, err := util.GetCsvMap("testdata/event-action.csv")
 	if err != nil {
 		t.Error(err)
 	}

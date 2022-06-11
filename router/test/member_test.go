@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetPublicMemberById(t *testing.T) {
-	rawAPITestCase, err := util.GetCsvMap("APITestCase/get_public_member_by_id.csv")
+	rawAPITestCase, err := util.GetCsvMap("testdata/get_public_member_by_id.csv")
 	if err != nil {
 		t.Error(err)
 	}
@@ -53,10 +53,10 @@ func TestGetPublicMemberById(t *testing.T) {
 }
 
 func TestGetMemberById(t *testing.T) {
-	rawAPITestCase, err := util.GetCsvMap("APITestCase/get_public_member_by_id.csv")
-	if err != nil {
-		t.Error(err)
-	}
+	// rawAPITestCase, err := util.GetCsvMap("testdata/get_public_member_by_id.csv")
+	// if err != nil {
+	// 	t.Error(err)
+	// }
 	for _, data := range GetMemberData {
 		t.Run(data.Name, func(t *testing.T) {
 			err := DataHandler(data)
@@ -111,7 +111,7 @@ func TestCreateMember(t *testing.T) {
 }
 
 func TestCreateMemberToken(t *testing.T) {
-	rawAPITestCase, err := util.GetCsvMap("APITestCase/create_member_token.csv")
+	rawAPITestCase, err := util.GetCsvMap("testdata/create_member_token.csv")
 	if err != nil {
 		t.Error(err)
 	}
