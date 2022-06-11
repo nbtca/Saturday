@@ -2,7 +2,7 @@ package router_test
 
 import "github.com/gin-gonic/gin"
 
-var GetPublicMemberData = []TestData{
+var GetPublicMemberData = []APITestCase{
 	{
 		"success",
 		Request{
@@ -27,7 +27,7 @@ var GetPublicMemberData = []TestData{
 	},
 }
 
-var CreateMemberTokenData = []TestData{
+var CreateMemberTokenData = []APITestCase{
 	{
 		"success",
 		Request{
@@ -59,7 +59,7 @@ var CreateMemberTokenData = []TestData{
 	},
 }
 
-var GetMemberData = []TestData{
+var GetMemberData = []APITestCase{
 	{
 		"success",
 		Request{
@@ -88,7 +88,7 @@ var GetMemberData = []TestData{
 	},
 }
 
-var MemberActiveData = []TestData{
+var MemberActiveData = []APITestCase{
 	{
 		"success",
 		Request{
@@ -122,7 +122,7 @@ var MemberActiveData = []TestData{
 	},
 }
 
-var UpdateMemberData = []TestData{
+var UpdateMemberData = []APITestCase{
 	{
 		"success",
 		Request{
@@ -158,9 +158,9 @@ var UpdateMemberData = []TestData{
 	},
 }
 
-var UpdateMemberAvatarData = []TestData{}
+var UpdateMemberAvatarData = []APITestCase{}
 
-var CreateMemberData = []TestData{
+var CreateMemberData = []APITestCase{
 	{
 		"success",
 		Request{
@@ -217,7 +217,7 @@ var CreateMemberData = []TestData{
 	},
 }
 
-var UpdateMemberBasicInfoData = []TestData{
+var UpdateMemberBasicInfoData = []APITestCase{
 	{
 		"success",
 		Request{
