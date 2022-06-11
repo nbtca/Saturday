@@ -10,6 +10,7 @@ import (
 )
 
 func getLogger() *logrus.Logger {
+	
 	now := time.Now()
 	logFilePath := ""
 	if dir, err := os.Getwd(); err == nil {

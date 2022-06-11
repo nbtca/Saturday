@@ -11,26 +11,29 @@ nav_order: 1
 
 - [获取指定成员 已完成](#获取指定成员-已完成)
 - [获取全部成员 已完成](#获取全部成员-已完成)
-- [创建用户 Token 已完成](#创建用户-token-已完成)
-- [获取认证用户信息 已完成](#获取认证用户信息-已完成)
-- [用户激活 未完成](#用户激活-未完成)
-- [用户更新信息 未完成](#用户更新信息-未完成)
-- [用户修改头像 未完成](#用户修改头像-未完成)
+- [创建成员 Token 已完成](#创建成员-token-已完成)
+- [获取认证成员信息 已完成](#获取认证成员信息-已完成)
+- [成员激活 未完成](#成员激活-未完成)
+- [成员更新信息 未完成](#成员更新信息-未完成)
+- [成员修改头像 未完成](#成员修改头像-未完成)
 - [创建成员 已完成](#创建成员-已完成)
-- [创建多个用户 未完成](#创建多个用户-未完成)
-- [修改用户基本信息 已完成](#修改用户基本信息-已完成)
+- [创建多个成员 未完成](#创建多个成员-未完成)
+- [修改成员基本信息 已完成](#修改成员基本信息-已完成)
 
 ---
 
 ## 获取指定成员 已完成
-
+通过URI中指定的成员ID获取成员公开信息
 ```
 GET /members/{member_id}
 ```
 
 #### 参数
+<<<<<<< Updated upstream
 
 {: .no_toc}
+=======
+>>>>>>> Stashed changes
 
 | 名称      | 类型    | in   | 描述 |
 | --------- | ------- | ---- | ---- |
@@ -39,8 +42,11 @@ GET /members/{member_id}
 #### 示例
 
 ##### 请求
+<<<<<<< Updated upstream
 
 {: .no_toc}
+=======
+>>>>>>> Stashed changes
 
 ```
 GET /members/2333333333
@@ -118,14 +124,24 @@ GET /members
 
 #### Http 状态码
 
+<<<<<<< Updated upstream
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
 | 200              | OK                   |
+=======
+| HTTP Status Code | 描述               |
+| ---------------- | ------------------ |
+| 200         | OK                 |
+>>>>>>> Stashed changes
 | 422              | Unprocessable Entity |
 
-## 创建用户 Token 已完成
+## 创建成员 Token 已完成
 
+<<<<<<< Updated upstream
 接受维修人员 ID 及密码两个参数，若密码正确，则返回对应的维修人员信息以及令牌，若缺少参数，参数类型错误，密码错误或用户不存在则返回相应的错误信息。
+=======
+接受维修人员ID及密码两个参数，若密码正确，则返回对应的维修人员信息以及令牌，若缺少参数，参数类型错误，密码错误或成员不存在则返回相应的错误信息。
+>>>>>>> Stashed changes
 
 ```
 POST /members/{member_id}/token
@@ -175,10 +191,10 @@ POST /members/2333333333
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
 | 200              | OK                   |
-| 404              | Resource not found   |
 | 422              | Unprocessable Entity |
 
-## 获取认证用户信息 已完成
+## 获取认证成员信息 已完成
+通过请求 Header 中 Authorization 字段获取成员信息，返回相应的成员详细信息，若认证失败或认证身份不为member，则返回相应的错误信息。
 
 ```
 GET /member
@@ -221,12 +237,12 @@ GET /member
 
 | HTTP Status Code | 描述               |
 | ---------------- | ------------------ |
-| **200**          | OK                 |
-| 404              | Resource not found |
+| 200         | OK                 |
+| 422              | Unprocessable Entity |
 
-## 用户激活 未完成
+## 成员激活 未完成
 
-- 用户在初次设定密码后激活
+- 成员在初次设定密码后激活
 - member_inactive=>member
 - admin_inactive=>admin
 
@@ -281,8 +297,15 @@ PUT /member
 }
 ```
 
+<<<<<<< Updated upstream
 ## 用户更新信息 未完成
+=======
 
+
+## 成员更新信息
+>>>>>>> Stashed changes
+
+通过请求 Header 中 Authorization 字段获取成员信息，根据请求body内字段更新成员信息，若认证失败或认证身份不为member，则返回相应的错误信息。
 ```
 PUT /member
 ```
@@ -335,8 +358,14 @@ PUT /member
   "gmt_modified": "2022-04-30 17:29:46"
 }
 ```
+#### Http 状态码
 
-## 用户修改头像 未完成
+| HTTP Status Code | 描述               |
+| ---------------- | ------------------ |
+| 200         | OK                 |
+| 422              | Unprocessable Entity |
+
+## 成员修改头像 未完成
 
 ```
 PUT /member/avater
@@ -344,8 +373,7 @@ PUT /member/avater
 
 ## 创建成员 已完成
 
-- 需要身份为管理员
-- member_id（学号）需为唯一
+需要身份为管理员,member_id（学号）需为唯一，若已存在，则返回错误信息。
 
 ```
 POST /members/{member_id}
@@ -407,10 +435,9 @@ POST /members/3000000000
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
 | 200              | OK                   |
-| 404              | Resource not found   |
-| 422              | Unprocessable Entity |
+| 422              | Unprocessable Entity   |
 
-## 创建多个用户 未完成
+## 创建多个成员 未完成
 
 ```
 POST /members
@@ -418,7 +445,7 @@ POST /members
 
 // TODO
 
-## 修改用户基本信息 已完成
+## 修改成员基本信息 已完成
 
 ```
 PUT /members/{member_id}
@@ -472,5 +499,5 @@ PATCH /members/2333333333
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
 | 200              | OK                   |
-| 404              | Resource not found   |
+| 422              | Unprocessable Entity   |
 | 422              | Unprocessable Entity |

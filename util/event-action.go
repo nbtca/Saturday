@@ -27,9 +27,9 @@ const (
 	Update      Action = "update"
 )
 
-type CustomLogFunc func(*EventActionHandler) model.EventLog
+type customLogFunc func(*eventActionHandler) model.EventLog
 
-type EventActionHandler struct {
+type eventActionHandler struct {
 	event       *model.Event
 	actor       model.Identity
 	action      Action
@@ -37,23 +37,23 @@ type EventActionHandler struct {
 	prevStatus  string
 	nextStatus  string
 	Description string
-	customLog   CustomLogFunc
+	customLog   customLogFunc
 }
 
-var idLog CustomLogFunc = func(eh *EventActionHandler) model.EventLog {
+var idLog customLogFunc = func(eh *eventActionHandler) model.EventLog {
 	return eh.createEventLog(createEventLogArgs{
 		Id: eh.actor.Id,
 	})
 }
 
-var idAndDescriptionLog CustomLogFunc = func(eh *EventActionHandler) model.EventLog {
+var idAndDescriptionLog customLogFunc = func(eh *eventActionHandler) model.EventLog {
 	return eh.createEventLog(createEventLogArgs{
 		Id:          eh.actor.Id,
 		Description: eh.Description,
 	})
 }
 
-var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler{
+var eventActionMap map[Action]eventActionHandler = map[Action]eventActionHandler{
 	Create: {
 		action:     Create,
 		role:       []string{"client"},
@@ -65,7 +65,7 @@ var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler
 		role:       []string{"member"},
 		prevStatus: Open,
 		nextStatus: Accepted,
-		customLog: func(eh *EventActionHandler) model.EventLog {
+		customLog: func(eh *eventActionHandler) model.EventLog {
 			eh.event.MemberId = eh.actor.Id
 			return eh.createEventLog(createEventLogArgs{
 				Id: eh.actor.Id,
@@ -83,7 +83,7 @@ var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler
 		role:       []string{"member_current"},
 		prevStatus: Accepted,
 		nextStatus: Open,
-		customLog: func(eh *EventActionHandler) model.EventLog {
+		customLog: func(eh *eventActionHandler) model.EventLog {
 			eh.event.MemberId = ""
 			return eh.createEventLog(createEventLogArgs{
 				Id: eh.actor.Id,
@@ -116,7 +116,7 @@ var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler
 		role:       []string{"admin"},
 		prevStatus: Committed,
 		nextStatus: Closed,
-		customLog: func(eh *EventActionHandler) model.EventLog {
+		customLog: func(eh *eventActionHandler) model.EventLog {
 			eh.event.ClosedBy = eh.actor.Id
 			return eh.createEventLog(createEventLogArgs{
 				Id: eh.actor.Id,
@@ -130,32 +130,21 @@ var EventActionMap map[Action]EventActionHandler = map[Action]EventActionHandler
 	},
 }
 
-func MakeEventActionHandler(action Action, event *model.Event, identity model.Identity) *EventActionHandler {
-	ans := &EventActionHandler{
-		action:     EventActionMap[action].action,
-		role:       EventActionMap[action].role,
-		prevStatus: EventActionMap[action].prevStatus,
-		nextStatus: EventActionMap[action].nextStatus,
-		customLog:  EventActionMap[action].customLog,
+func MakeEventActionHandler(action Action, event *model.Event, identity model.Identity) *eventActionHandler {
+	ans := &eventActionHandler{
+		action:     eventActionMap[action].action,
+		role:       eventActionMap[action].role,
+		prevStatus: eventActionMap[action].prevStatus,
+		nextStatus: eventActionMap[action].nextStatus,
+		customLog:  eventActionMap[action].customLog,
 		event:      event,
 		actor:      identity,
 	}
 	return ans
 }
 
-// inject the event and actor to the handler
-// func (eh *EventActionHandler) Init(action Action, event *model.Event, identity model.Identity) {
-// 	eh.action = EventActionMap[action].action
-// 	eh.role = EventActionMap[action].role
-// 	eh.prevStatus = EventActionMap[action].prevStatus
-// 	eh.nextStatus = EventActionMap[action].nextStatus
-// 	eh.customLog = EventActionMap[action].customLog
-// 	eh.event = event
-// 	eh.actor = identity
-// }
-
 // check if the action is valid
-func (eh *EventActionHandler) ValidateAction() error {
+func (eh *eventActionHandler) ValidateAction() error {
 	if len(eh.role) != 0 {
 		exist := false
 		for _, role := range eh.role {
@@ -181,7 +170,7 @@ type createEventLogArgs struct {
 	Description string
 }
 
-func (eh *EventActionHandler) createEventLog(args createEventLogArgs) model.EventLog {
+func (eh *eventActionHandler) createEventLog(args createEventLogArgs) model.EventLog {
 	return model.EventLog{
 		EventId:     eh.event.EventId,
 		Action:      string(eh.action),
@@ -191,7 +180,7 @@ func (eh *EventActionHandler) createEventLog(args createEventLogArgs) model.Even
 	}
 }
 
-func (eh *EventActionHandler) Handle() model.EventLog {
+func (eh *eventActionHandler) Handle() model.EventLog {
 	// set the next status
 	eh.event.Status = eh.nextStatus
 	var eventLog model.EventLog
@@ -203,30 +192,3 @@ func (eh *EventActionHandler) Handle() model.EventLog {
 	}
 	return eventLog
 }
-
-// func (eh *EventActionHandler) Handle() error {
-// 	// set the next status
-// 	log := eh.operate()
-// 	// persist event
-// 	err := repo.UpdateEvent(eh.event, &log)
-// 	// append log
-// 	eh.event.Logs = append(eh.event.Logs, log)
-// 	return err
-// }
-
-/*
- this function validates the action and then perform action to the event.
- it also persists the event and event log.
-*/
-// func PerformEventAction(event *model.Event, identity model.Identity, action Action, description ...string) error {
-// 	handler := EventActionMap[action]
-// 	log.Println(action)
-// 	handler.Init(event, identity)
-// 	for _, d := range description {
-// 		handler.description = fmt.Sprint(handler.description, d)
-// 	}
-// 	if err := handler.validateAction(); err != nil {
-// 		return err
-// 	}
-// 	return handler.Handle()
-// }

@@ -12,10 +12,15 @@ import (
 	"github.com/ory/dockertest/v3"
 )
 
-var pool *dockertest.Pool
-var resource *dockertest.Resource
+type MockDB struct {
+	pool     *dockertest.Pool
+	resource *dockertest.Resource
+	db       *sqlx.DB
+	path     string
+	schema   string
+}
 
-func isImageExist(name string) (bool, error) {
+func (m MockDB) isImageExist(name string) (bool, error) {
 	out, err := exec.Command("docker", "image", "ls").Output()
 	if err != nil {
 		return false, err
@@ -25,49 +30,56 @@ func isImageExist(name string) (bool, error) {
 	return searched, nil
 }
 
-func GetDB() (*sqlx.DB, error) {
+func (m *MockDB) Start() (*sqlx.DB, error) {
 	var db *sqlx.DB
 	var err error
-	pool, err = dockertest.NewPool("")
-	pool.MaxWait = time.Minute * 2
+	m.pool, err = dockertest.NewPool("")
+	m.pool.MaxWait = time.Minute * 2
 	if err != nil {
-		log.Fatalf("Could not connect to docker: %s", err)
+		return nil, fmt.Errorf("could not connect to docker: %s", err)
 	}
-	imageExists, _ := isImageExist("test_db")
+	imageExists, _ := m.isImageExist("test_db")
 	if imageExists {
-		resource, err = pool.Run("test_db", "latest", []string{})
+		m.resource, err = m.pool.Run("test_db", "latest", []string{})
 	} else {
-		resource, err = pool.BuildAndRun("test_db", "../../assets/dockerfile", []string{})
+		//TODO should just use mysql image since the schema is reset before each test
+		m.resource, err = m.pool.BuildAndRun("test_db", m.path+"dockerfile", []string{})
 	}
 	if err != nil {
-		log.Fatalf("Could not start resource: %s", err)
+		return nil, fmt.Errorf("could not start resource %s", err)
 	}
-
-	if err = pool.Retry(func() error {
-		log.Println(resource.GetPort("3306/tcp"))
-		db, err = sqlx.Connect("mysql", fmt.Sprintf("root:password@(localhost:%s)/saturday_test?multiStatements=true", resource.GetPort("3306/tcp")))
+	if err = m.pool.Retry(func() error {
+		db, err = sqlx.Connect("mysql", fmt.Sprintf("root:password@(localhost:%s)/saturday_test?multiStatements=true", m.resource.GetPort("3306/tcp")))
 		if err != nil {
 			return err
 		}
 		return db.Ping()
 	}); err != nil {
-		log.Fatalf("Could not connect to docker: %s", err)
+		return nil, fmt.Errorf("could not connect to docker %s", err)
 	}
+	m.db = db
 	return db, nil
 }
+func (m *MockDB) SetSchema(db *sqlx.DB) error {
+	if m.schema == "" {
+		b, err := ioutil.ReadFile(m.path + "saturday.sql")
+		if err != nil {
+			return err
+		}
+		m.schema = string(b)
+	}
+	db.MustExec(m.schema)
+	return nil
+}
 
-func CloseResource() {
-	if err := pool.Purge(resource); err != nil {
+func (m *MockDB) Close() {
+	m.db.Close()
+	if err := m.pool.Purge(m.resource); err != nil {
 		log.Fatalf("Could not purge resource: %s", err)
 	}
 }
-
-func SetSchema(db *sqlx.DB) error {
-	b, err := ioutil.ReadFile("../../assets/saturday.sql")
-	if err != nil {
-		return err
+func MakeMockDB(assetsPath string) *MockDB {
+	return &MockDB{
+		path: assetsPath,
 	}
-	schema := string(b)
-	db.MustExec(schema)
-	return nil
 }

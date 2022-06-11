@@ -12,15 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// type H map[string]interface{}
-
 type APITestCase struct {
-	Name string
-	// Method       string
-	// Url          string
-	// RequestBody  H
-	// Code         int
-	// ResponseBody H
+	Name     string
 	Request  Request
 	Response Response
 }
@@ -51,7 +44,6 @@ func (t APITestCase) compare(got gin.H) error {
 	}
 	for key := range t.Response.Body {
 		v := got[key]
-
 		if v == nil {
 			return fmt.Errorf("missing field in response body:%v", key)
 		}
@@ -70,7 +62,7 @@ func (t APITestCase) compare(got gin.H) error {
 }
 
 func (tc APITestCase) Test() error {
-	if err := util.SetSchema(db); err != nil {
+	if err := mockDB.SetSchema(db); err != nil {
 		return err
 	}
 	w := httptest.NewRecorder()
@@ -113,35 +105,35 @@ func (tc APITestCase) Test() error {
 // 	errors  []DetailError
 // }
 
-func DataHandler(tc APITestCase) error {
-	if err := util.SetSchema(db); err != nil {
-		return err
-	}
-	w := httptest.NewRecorder()
-	var reader *bytes.Reader
-	body := tc.Request.Body
-	var req *http.Request
-	if body != nil {
-		bodyData, _ := json.Marshal(body)
-		reader = bytes.NewReader(bodyData)
-		req, _ = http.NewRequest(tc.Request.Method, tc.Request.Url, reader)
-	} else {
-		req, _ = http.NewRequest(tc.Request.Method, tc.Request.Url, nil)
-	}
-	if tc.Request.Role != "" {
-		token, _ := util.CreateToken(util.Payload{Who: "2333333333", Role: tc.Request.Role})
-		req.Header.Add("Authorization", token)
-	}
-	r.ServeHTTP(w, req)
-	if tc.Response.Code != w.Code {
-		log.Println(body)
-		return fmt.Errorf("inconsistent code\n expected:%v\n got:%v", tc.Response.Code, w.Code)
-	}
-	var got gin.H
-	err := json.Unmarshal(w.Body.Bytes(), &got)
-	if err != nil {
-		log.Println("json Unmarshal err")
-		return err
-	}
-	return tc.compare(got)
-}
+// func DataHandler(data APITestCase) error {
+// 	if err := mockDB.SetSchema(db); err != nil {
+// 		return err
+// 	}
+// 	w := httptest.NewRecorder()
+// 	var reader *bytes.Reader
+// 	body := tc.Request.Body
+// 	var req *http.Request
+// 	if body != nil {
+// 		bodyData, _ := json.Marshal(body)
+// 		reader = bytes.NewReader(bodyData)
+// 		req, _ = http.NewRequest(tc.Request.Method, tc.Request.Url, reader)
+// 	} else {
+// 		req, _ = http.NewRequest(tc.Request.Method, tc.Request.Url, nil)
+// 	}
+// 	if tc.Request.Role != "" {
+// 		token, _ := util.CreateToken(util.Payload{Who: "2333333333", Role: tc.Request.Role})
+// 		req.Header.Add("Authorization", token)
+// 	}
+// 	r.ServeHTTP(w, req)
+// 	if tc.Response.Code != w.Code {
+// 		log.Println(body)
+// 		return fmt.Errorf("inconsistent code\n expected:%v\n got:%v", tc.Response.Code, w.Code)
+// 	}
+// 	var got gin.H
+// 	err := json.Unmarshal(w.Body.Bytes(), &got)
+// 	if err != nil {
+// 		log.Println("json Unmarshal err")
+// 		return err
+// 	}
+// 	return tc.compare(got)
+// }
