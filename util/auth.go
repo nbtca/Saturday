@@ -41,3 +41,21 @@ func ParseToken(tokenString string) (*jwt.Token, *Claims, error) {
 	})
 	return token, Claims, err
 }
+
+/*
+	this is used for testing
+	"INVALID" to gen invalid token
+	"EXPIRED" to gen expired token
+	"NONE" return empty token
+*/
+func GenToken(auth string, id ...string) string {
+	if auth == "INVALID" {
+		return "Invalid"
+	} else if auth == "EXPIRED" {
+		return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTM0NDMxNjIsImRhdGEiOnsidWlkIjoiNmYxZjk3MDItNjZkNi00NDdiLThlNTUtNWYwYzY0N2M4ZDNhIiwicm9sZSI6InVzZXIifSwiaWF0IjoxNjUzMzU2NzYyfQ.ocAxJGhw6Xt2vt7bwGcMeRPLOQOmaspznyu9aI7G670"
+	} else if auth == "NONE" {
+		return ""
+	}
+	token, _ := CreateToken(Payload{Who: id[0], Role: auth})
+	return token
+}

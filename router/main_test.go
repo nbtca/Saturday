@@ -50,18 +50,6 @@ type Response struct {
 	Body gin.H
 }
 
-func GenToken(auth string, id ...string) string {
-	if auth == "INVALID" {
-		return "Invalid"
-	} else if auth == "EXPIRED" {
-		return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTM0NDMxNjIsImRhdGEiOnsidWlkIjoiNmYxZjk3MDItNjZkNi00NDdiLThlNTUtNWYwYzY0N2M4ZDNhIiwicm9sZSI6InVzZXIifSwiaWF0IjoxNjUzMzU2NzYyfQ.ocAxJGhw6Xt2vt7bwGcMeRPLOQOmaspznyu9aI7G670"
-	} else if auth == "NONE" {
-		return ""
-	}
-	token, _ := util.CreateToken(util.Payload{Who: id[0], Role: auth})
-	return token
-}
-
 func (t APITestCase) compare(got gin.H) error {
 	if t.Response.Body == nil {
 		return nil

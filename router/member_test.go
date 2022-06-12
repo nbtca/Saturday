@@ -67,7 +67,7 @@ func TestGetMemberById(t *testing.T) {
 				Request{
 					"GET",
 					"/member",
-					GenToken(auth, "2333333333"),
+					util.GenToken(auth, "2333333333"),
 					gin.H{},
 				},
 				Response{
@@ -115,7 +115,7 @@ func TestUpdateMember(t *testing.T) {
 				Request{
 					"PUT",
 					"/member",
-					GenToken(auth, "2333333333"),
+					util.GenToken(auth, "2333333333"),
 					gin.H{},
 				},
 				Response{
@@ -163,7 +163,7 @@ func TestCreateMember(t *testing.T) {
 				Request{
 					"POST",
 					"/members/" + rawCase["member_id"],
-					GenToken(auth, "0000000000"),
+					util.GenToken(auth, "0000000000"),
 					gin.H{},
 				},
 				Response{

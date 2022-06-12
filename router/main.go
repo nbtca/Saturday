@@ -43,7 +43,7 @@ func SetupRouter() *gin.Engine {
 
 		MemberGroup.GET("member/events/", EventRouterApp.GetEventByPage)
 
-		MemberGroup.Use(middleware.EventActionPerProcess)
+		MemberGroup.Use(middleware.EventActionPreProcess)
 		MemberGroup.GET("member/events/:EventId", EventRouterApp.GetEventById)
 		MemberGroup.POST("member/events/:EventId/accept", EventRouterApp.Accept)
 		MemberGroup.DELETE("member/events/:EventId/accept", EventRouterApp.Drop)
