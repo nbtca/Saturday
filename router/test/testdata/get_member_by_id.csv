@@ -1,6 +1,6 @@
-CaseId,Authorization,code,success,Token_Invalid
-1.3.1,member,200,TRUE,
-1.3.2,INVALID,422,,TRUE
-1.3.3,EXPIRED,422,,TRUE
-1.3.4,client,422,,TRUE
-1.3.5,NONE,422,,TRUE
+CaseId,Authorization,code,success,error_message,cover
+1.3.1,member,200,TRUE,,1
+1.3.2,INVALID,422,,Token_Invalid,2
+1.3.3,EXPIRED,422,,Token_Invalid,3
+1.3.4,client,422,,Token_Invalid,4
+1.3.5,NONE,422,,Token_Invalid,5

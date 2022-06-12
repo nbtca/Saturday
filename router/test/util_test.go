@@ -67,7 +67,7 @@ func (t APITestCase) compare(got gin.H) error {
 			continue
 		}
 		if v != t.Response.Body[key] {
-			return fmt.Errorf("inconsistent response body\n expected:%v \n got:%v", t.Response.Body[key], v)
+			return fmt.Errorf("inconsistent response body\n key:%v\n expected:%v \n got:%v", key, t.Response.Body[key], v)
 		}
 	}
 	return nil
