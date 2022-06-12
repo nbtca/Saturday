@@ -1,0 +1,9 @@
+﻿CaseId,覆盖判断,authorization,valid,role,error,success
+1,"T1,T2,T3",T,T,T,,T
+2,"T1,T2,F3",T,T,F,T,
+3,"T1,F2,T3",T,F,T,T,
+4,"T1,F2,F3",T,F,F,T,
+5,"F1,T2,T3",F,T,T,T,
+6,"F1,T2,F3",F,T,F,T,
+7,"F1,F2,T3",F,F,T,T,
+8,"F1,F2,F3",F,F,F,T,

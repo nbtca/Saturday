@@ -95,7 +95,7 @@ func TestCreateEvent(t *testing.T) {
 				Request{
 					"POST",
 					"/client/events",
-					GenToken(auth, "1"),
+					util.GenToken(auth, "1"),
 					gin.H{
 						"model":              rawCase["model"],
 						"phone":              rawCase["phone"],

@@ -13,7 +13,7 @@ import (
  if event's member field equals to id. You are supposed
  to call this before any route that performs event action.
 */
-func EventActionPerProcess(c *gin.Context) {
+func EventActionPreProcess(c *gin.Context) {
 	rawEventId := c.Param("EventId")
 	eventId, err := strconv.ParseInt(rawEventId, 10, 64)
 	if err != nil {
