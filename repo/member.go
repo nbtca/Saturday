@@ -57,10 +57,14 @@ func CreateMember(member *model.Member) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err != nil {
+			conn.Rollback()
+		}
+	}()
 	conn.Exec(sqlMember, argsMember...)
 	SetMemberRole(member.MemberId, member.Role, conn)
 	if err = conn.Commit(); err != nil {
-		conn.Rollback()
 		return err
 	}
 	return nil
@@ -80,7 +84,6 @@ func UpdateMember(member model.Member) error {
 	defer func() {
 		if err != nil {
 			conn.Rollback()
-			db.Close()
 		}
 	}()
 	if err != nil {

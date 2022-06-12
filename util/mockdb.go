@@ -58,10 +58,14 @@ func (m *MockDB) Start() (*sqlx.DB, error) {
 	}); err != nil {
 		return nil, fmt.Errorf("could not connect to docker %s", err)
 	}
+	db.SetMaxOpenConns(1000) // The default is 0 (unlimited)
+	db.SetMaxIdleConns(10)   // defaultMaxIdleConns = 2
+	db.SetConnMaxLifetime(0) // 0, connections are reused forever.
 	m.db = db
 	return db, nil
 }
-func (m *MockDB) SetSchema(db *sqlx.DB) error {
+
+func (m *MockDB) SetSchema() error {
 	if m.schema == "" {
 		b, err := ioutil.ReadFile(path.Join(m.path, "saturday.sql"))
 		if err != nil {

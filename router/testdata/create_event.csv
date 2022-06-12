@@ -1,6 +1,6 @@
 CaseId,Authorization,phone,qq,contact_preference,problem,model,code,success,error_message
 5.2.1,client,13586481447,12345,qq,大新闻,a1,200,TRUE,
-5.2.2,client,13586481447,12345,qq,大新闻,a2,200,TRUE,
+5.2.2,client,13586481447,12345,wechat,大新闻,a2,200,TRUE,
 5.2.3,client,13586481447,12345,phone,大新闻,a3,200,TRUE,
 5.2.4,INVALID,13586481447,12345,phone,大新闻,a4,422,,Token_Invalid
 5.2.5,EXPIRED,13586481447,12345,phone,大新闻,a5,422,,Token_Invalid
