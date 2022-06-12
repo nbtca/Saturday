@@ -7,16 +7,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// func ValidationHandler(structToValidate interface{}) validator.ValidationErrors {
-// 	validate := validator.New()
-// 	var ve validator.ValidationErrors
-// 	err := validate.Struct(structToValidate)
-// 	if errors.As(err, &ve) {
-// 		return ve
-// 	}
-// 	return nil
-// }
-
 func GetErrorMessage(err validator.FieldError) string {
 	switch err.Tag() {
 	case "required":
