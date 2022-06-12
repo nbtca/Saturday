@@ -13,17 +13,15 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
 )
 
 var r *gin.Engine
-var db *sqlx.DB
 var mockDB *util.MockDB
 
 func TestMain(m *testing.M) {
 	util.InitValidator()
 
-	mockDB = util.MakeMockDB("../../assets")
+	mockDB = util.MakeMockDB("../assets")
 	db, err := mockDB.Start()
 	if err != nil {
 		log.Fatal(err)
@@ -97,7 +95,7 @@ func (t APITestCase) compare(got gin.H) error {
 }
 
 func (tc APITestCase) Test() error {
-	if err := mockDB.SetSchema(db); err != nil {
+	if err := mockDB.SetSchema(); err != nil {
 		return err
 	}
 	w := httptest.NewRecorder()
@@ -112,18 +110,15 @@ func (tc APITestCase) Test() error {
 		req, _ = http.NewRequest(tc.Request.Method, tc.Request.Url, nil)
 	}
 	if tc.Request.Auth != "" {
-		// token, _ := util.CreateToken(util.Payload{Who: "2333333333", Role: tc.Request.Role})
 		req.Header.Add("Authorization", tc.Request.Auth)
 	}
 	r.ServeHTTP(w, req)
 	if tc.Response.Code != w.Code {
-		log.Println(body)
 		return fmt.Errorf("inconsistent code\n expected:%v\n got:%v", tc.Response.Code, w.Code)
 	}
 	var got gin.H
 	err := json.Unmarshal(w.Body.Bytes(), &got)
 	if err != nil {
-		log.Println("json Unmarshal err")
 		return err
 	}
 	return tc.compare(got)

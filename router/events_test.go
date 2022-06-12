@@ -1,7 +1,6 @@
 package router_test
 
 import (
-	"log"
 	"saturday/util"
 	"strconv"
 	"testing"
@@ -59,13 +58,13 @@ func TestGetEventById(t *testing.T) {
 							"qq":           "",
 							"avatar":       "",
 							"created_by":   "",
-							"gmt_create":   "2022-04-30 17:28:42",
-							"gmt_modified": "2022-04-30 17:28:44",
+							"gmt_create":   "IGNORE",
+							"gmt_modified": "IGNORE",
 						},
 						"status":       "accepted",
 						"logs":         "IGNORE",
-						"gmt_create":   "2022-05-10 10:23:54",
-						"gmt_modified": "2022-06-02 16:18:52",
+						"gmt_create":   "IGNORE",
+						"gmt_modified": "IGNORE",
 					},
 				},
 			}
@@ -88,8 +87,6 @@ func TestCreateEvent(t *testing.T) {
 		t.Error(err)
 	}
 	for _, rawCase := range rawAPITestCase {
-		log.Println(rawCase["CaseId"])
-		log.Println(rawCase["code"])
 		t.Run(rawCase["CaseId"], func(t *testing.T) {
 			code, _ := strconv.Atoi(rawCase["code"])
 			auth := rawCase["Authorization"]
@@ -121,8 +118,8 @@ func TestCreateEvent(t *testing.T) {
 						"closed_by":          "",
 						"status":             "open",
 						"logs":               "IGNORE",
-						"gmt_create":         "2022-05-10 10:23:54",
-						"gmt_modified":       "2022-05-12 23:22:44",
+						"gmt_create":         "IGNORE",
+						"gmt_modified":       "IGNORE",
 					},
 				},
 			}

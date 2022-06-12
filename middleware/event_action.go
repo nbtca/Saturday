@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"saturday/service"
 	"saturday/util"
 	"strconv"
@@ -24,7 +23,6 @@ func EventActionPerProcess(c *gin.Context) {
 	}
 	role := c.GetString("role")
 	id := c.GetString("id")
-	log.Println(role)
 	event, err := service.EventServiceApp.GetEventById(eventId)
 	if util.CheckError(c, err) {
 		return
