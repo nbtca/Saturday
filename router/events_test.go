@@ -80,6 +80,24 @@ func TestGetEventById(t *testing.T) {
 		})
 	}
 }
+func BenchmarkGetEventById(b *testing.B) {
+	testCase := APITestCase{
+		"success",
+		Request{
+			"GET",
+			"/events/1",
+			"",
+			gin.H{},
+		},
+		Response{},
+	}
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			testCase.Run()
+		}
+	})
+}
 
 func TestCreateEvent(t *testing.T) {
 	rawAPITestCase, err := util.GetCsvMap("testdata/create_event.csv")
