@@ -29,11 +29,7 @@ GET /members/{member_id}
 ```
 
 #### 参数
-<<<<<<< Updated upstream
 
-{: .no_toc}
-=======
->>>>>>> Stashed changes
 
 | 名称      | 类型    | in   | 描述 |
 | --------- | ------- | ---- | ---- |
@@ -42,12 +38,6 @@ GET /members/{member_id}
 #### 示例
 
 ##### 请求
-<<<<<<< Updated upstream
-
-{: .no_toc}
-=======
->>>>>>> Stashed changes
-
 ```
 GET /members/2333333333
 ```
@@ -124,24 +114,15 @@ GET /members
 
 #### Http 状态码
 
-<<<<<<< Updated upstream
-| HTTP Status Code | 描述                 |
-| ---------------- | -------------------- |
-| 200              | OK                   |
-=======
+
 | HTTP Status Code | 描述               |
 | ---------------- | ------------------ |
 | 200         | OK                 |
->>>>>>> Stashed changes
 | 422              | Unprocessable Entity |
 
 ## 创建成员 Token 已完成
 
-<<<<<<< Updated upstream
 接受维修人员 ID 及密码两个参数，若密码正确，则返回对应的维修人员信息以及令牌，若缺少参数，参数类型错误，密码错误或用户不存在则返回相应的错误信息。
-=======
-接受维修人员ID及密码两个参数，若密码正确，则返回对应的维修人员信息以及令牌，若缺少参数，参数类型错误，密码错误或成员不存在则返回相应的错误信息。
->>>>>>> Stashed changes
 
 ```
 POST /members/{member_id}/token
@@ -204,7 +185,7 @@ GET /member
 
 | 名称           | 类型   | in     | 描述 |
 | -------------- | ------ | ------ | ---- |
-| Authorizeation | string | header |      |
+| Authorization | string | header |      |
 
 #### 示例
 
@@ -254,7 +235,7 @@ PUT /member/active
 
 | 名称           | 类型    | in     | 描述 |
 | -------------- | ------- | ------ | ---- |
-| Authorizeation | string  | header |      |
+| Authorization | string  | header |      |
 | member_id      | integer | path   | 学号 |
 | password       | string  | body   | 密码 |
 | alias `可选`   | string  | body   | 昵称 |
@@ -297,13 +278,9 @@ PUT /member
 }
 ```
 
-<<<<<<< Updated upstream
-## 用户更新信息 未完成
-=======
 
 
 ## 成员更新信息
->>>>>>> Stashed changes
 
 通过请求 Header 中 Authorization 字段获取成员信息，根据请求body内字段更新成员信息，若认证失败或认证身份不为member，则返回相应的错误信息。
 ```
@@ -314,7 +291,7 @@ PUT /member
 
 | 名称            | 类型    | in     | 描述 |
 | --------------- | ------- | ------ | ---- |
-| Authorizeation  | string  | header |      |
+| Authorization  | string  | header |      |
 | alias `可选`    | string  | body   | 昵称 |
 | member_id       | integer | path   | 学号 |
 | phone `可选`    | string  | body   |      |
@@ -368,7 +345,7 @@ PUT /member
 ## 成员修改头像 未完成
 
 ```
-PUT /member/avater
+PUT /member/avatar
 ```
 
 ## 创建成员 已完成
@@ -383,7 +360,7 @@ POST /members/{member_id}
 
 | 名称           | 类型    | in     | 描述 |
 | -------------- | ------- | ------ | ---- |
-| Authorizeation | string  | header |      |
+| Authorization | string  | header |      |
 | member_id      | integer | path   | 学号 |
 | name           | string  | body   | 姓名 |
 | section        | string  | body   | 班级 |
@@ -455,7 +432,7 @@ PUT /members/{member_id}
 
 | 名称           | 类型    | in     | 描述 |
 | -------------- | ------- | ------ | ---- |
-| Authorizeation | string  | header |      |
+| Authorization | string  | header |      |
 | member_id      | integer | path   | 学号 |
 | name           | string  | body   | 姓名 |
 | section        | string  | body   | 班级 |
