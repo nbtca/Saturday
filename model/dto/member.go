@@ -8,10 +8,11 @@ type MemberId struct {
 
 type CreateMemberReq struct {
 	MemberId string `uri:"MemberId" json:"member_id" binding:"required,len=10,numeric"`
-	Alias    string `json:"alias"`
 	Name     string `json:"name" binding:"required,min=2,max=4"`
 	Section  string `json:"section" binding:"required,section"`
-	Profile  string `json:"profile"`
+	Alias    string `json:"alias" binding:"omitempty,max=20"`
+	Avatar   string `json:"avatar" binding:"omitempty,url"`
+	Profile  string `json:"profile" binding:"omitempty,max=1000"`
 	Phone    string `json:"phone" binding:"omitempty,len=11,numeric"`
 	QQ       string `json:"qq" binding:"omitempty,min=5,max=12,numeric"`
 	Role     string `json:"role" binding:"required"`
@@ -35,11 +36,11 @@ type UpdateMemberBasicReq struct {
 }
 
 type UpdateMember struct {
-	MemberId string `uri:"MemberId" json:"member_id" binding:"required,len=10,numeric"`
-	Alias    string `json:"alias" binding:"omitempty"`
-	Phone    string `json:"phone" binding:"omitempty,len=11"`
-	QQ       string `json:"qq" binding:"omitempty,min=5,max=9"`
-	Avatar   string `json:"avatar" binding:"omitempty"`
-	Profile  string `json:"profile" binding:"omitempty"`
+	MemberId string
+	Alias    string `json:"alias" binding:"omitempty,max=20"`
+	Avatar   string `json:"avatar" binding:"omitempty,url"`
+	Profile  string `json:"profile" binding:"omitempty,max=1000"`
+	Phone    string `json:"phone" binding:"omitempty,len=11,numeric"`
+	QQ       string `json:"qq" binding:"omitempty,min=5,max=12,numeric"`
 	Password string `json:"password" binding:"omitempty"`
 }

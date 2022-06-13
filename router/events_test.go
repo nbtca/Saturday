@@ -142,8 +142,15 @@ func TestCreateEvent(t *testing.T) {
 				},
 			}
 			if rawCase["success"] != "TRUE" {
+				message := ""
+				if rawCase["error_message"] == "Token_Invalid" {
+					message = "Token Invalid"
+				}
+				if rawCase["error_message"] == "Validation_Failed" {
+					message = "Validation Failed"
+				}
 				testCase.Response.Body = gin.H{
-					"message": "Validation Failed",
+					"message": message,
 				}
 			}
 			err := testCase.Test()

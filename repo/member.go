@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"database/sql"
 	"saturday/model"
 	"saturday/util"
 
@@ -28,13 +29,17 @@ func ExistMember(id string) (bool, error) {
 }
 
 func GetMemberById(id string) (model.Member, error) {
-	sql, args, _ := getMemberStatement().Where(squirrel.Eq{"member_id": id}).ToSql()
+	statement, args, _ := getMemberStatement().Where(squirrel.Eq{"member_id": id}).ToSql()
 	member := model.Member{}
-	if err := db.Get(&member, sql, args...); err != nil {
+	if err := db.Get(&member, statement, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return model.Member{}, nil
+		}
 		return model.Member{}, err
 	}
 	return member, nil
 }
+
 func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
 	sql, args, _ := getMemberStatement().Offset(offset).Limit(limit).ToSql()
 	members := []model.Member{}
@@ -48,10 +53,10 @@ func CreateMember(member *model.Member) error {
 	member.GmtCreate = util.GetDate()
 	member.GmtCreate = util.GetDate()
 	sqlMember, argsMember, _ := squirrel.Insert("member").Columns(
-		"member_id", "alias", "name", "section", "profile",
+		"member_id", "alias", "name", "section", "profile", "avatar",
 		"phone", "qq", "created_by", "gmt_create", "gmt_modified").Values(
 		member.MemberId, member.Alias, member.Name, member.Section,
-		member.Profile, member.Phone, member.QQ, member.CreatedBy,
+		member.Profile, member.Avatar, member.Phone, member.QQ, member.CreatedBy,
 		member.GmtCreate, member.GmtModified).ToSql()
 	conn, err := db.Begin()
 	if err != nil {

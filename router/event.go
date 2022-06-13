@@ -5,6 +5,7 @@ import (
 	"saturday/model/dto"
 	"saturday/service"
 	"saturday/util"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -127,6 +128,8 @@ func (EventRouter) GetClientEventByPage(c *gin.Context) {
 
 func (EventRouter) Create(c *gin.Context) {
 	req := &dto.CreateEventReq{}
+	id, _ := strconv.Atoi(util.GetIdentity(c).Id)
+	req.ClientId = int64(id)
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}

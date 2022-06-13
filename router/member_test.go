@@ -170,7 +170,16 @@ func TestCreateMember(t *testing.T) {
 					"POST",
 					"/members/" + rawCase["member_id"],
 					util.GenToken(auth, "0000000000"),
-					gin.H{},
+					gin.H{
+						"alias":   rawCase["alias"],
+						"name":    rawCase["name"],
+						"section": rawCase["section"],
+						"role":    rawCase["role"],
+						"profile": rawCase["profile"],
+						"phone":   rawCase["phone"],
+						"qq":      rawCase["qq"],
+						"avatar":  rawCase["avatar"],
+					},
 				},
 				Response{
 					code,
