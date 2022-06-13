@@ -2,6 +2,7 @@ package util_test
 
 import (
 	"fmt"
+	"log"
 	"saturday/model"
 	"saturday/util"
 	"testing"
@@ -54,6 +55,10 @@ func TestEventAction(t *testing.T) {
 					t.Errorf("%s: %s", v["CaseId"], se.Body.Message)
 				}
 			} else {
+				if v["error"] == "X" {
+					log.Println(event, actor,v["action"])
+					t.Errorf("error expected")
+				}
 				log := handler.Handle()
 				statusExpected := v["out_event.status"]
 				if event.Status != statusExpected {
