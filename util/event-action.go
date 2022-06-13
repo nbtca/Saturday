@@ -107,8 +107,8 @@ var eventActionMap map[Action]eventActionHandler = map[Action]eventActionHandler
 	Reject: {
 		action:     Reject,
 		role:       []string{"admin"},
-		prevStatus: Accepted,
-		nextStatus: Cancelled,
+		prevStatus: Committed,
+		nextStatus: Accepted,
 		customLog:  idLog,
 	},
 	Close: {
@@ -158,7 +158,7 @@ func (eh *eventActionHandler) ValidateAction() error {
 				SetMessage("invalid role")
 		}
 	}
-	if eh.prevStatus != "" && eh.prevStatus != eh.event.Status {
+	if eh.prevStatus != eh.event.Status {
 		return MakeServiceError(http.StatusUnprocessableEntity).
 			SetMessage("action not allowed")
 	}
