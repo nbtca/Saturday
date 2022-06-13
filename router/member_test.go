@@ -116,7 +116,13 @@ func TestUpdateMember(t *testing.T) {
 					"PUT",
 					"/member",
 					util.GenToken(auth, "2333333333"),
-					gin.H{},
+					gin.H{
+						"alias":   rawCase["alias"],
+						"profile": rawCase["profile"],
+						"phone":   rawCase["phone"],
+						"qq":      rawCase["qq"],
+						"avatar":  rawCase["avatar"],
+					},
 				},
 				Response{
 					code,
