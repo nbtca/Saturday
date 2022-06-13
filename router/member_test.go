@@ -117,11 +117,12 @@ func TestUpdateMember(t *testing.T) {
 					"/member",
 					util.GenToken(auth, "2333333333"),
 					gin.H{
-						"alias":   rawCase["alias"],
-						"profile": rawCase["profile"],
-						"phone":   rawCase["phone"],
-						"qq":      rawCase["qq"],
-						"avatar":  rawCase["avatar"],
+						"alias":    rawCase["alias"],
+						"profile":  rawCase["profile"],
+						"phone":    rawCase["phone"],
+						"qq":       rawCase["qq"],
+						"avatar":   rawCase["avatar"],
+						"password": rawCase["password"],
 					},
 				},
 				Response{
