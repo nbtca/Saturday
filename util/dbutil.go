@@ -34,6 +34,10 @@ func GetDate() string {
 	return time.Now().Format("2006-01-02 15:04:11")
 }
 
+func FormatDate(date time.Time) string {
+	return date.Format("2006-01-02 15:04:11")
+}
+
 func SetColumnPrefix(prefix string, column string) string {
 	return fmt.Sprint(prefix, ".", strings.ToLower(column))
 }

@@ -40,11 +40,21 @@ func (m *MockDB) Start() (*sqlx.DB, error) {
 		return nil, fmt.Errorf("could not connect to docker: %s", err)
 	}
 	imageExists, _ := m.isImageExist("test_db")
+	option := &dockertest.RunOptions{
+		Name:       "test_db",
+		Repository: "test_db",
+		Tag:        "latest",
+	}
 	if imageExists {
-		m.resource, err = m.pool.Run("test_db", "latest", []string{})
+		res, ok := m.pool.ContainerByName("test_db")
+		if ok {
+			m.resource = res
+		} else {
+			m.resource, err = m.pool.RunWithOptions(option)
+		}
 	} else {
 		//TODO should just use mysql image since the schema is reset before each test
-		m.resource, err = m.pool.BuildAndRun("test_db", path.Join(m.path, "dockerfile"), []string{})
+		m.resource, err = m.pool.BuildAndRunWithOptions(path.Join(m.path, "dockerfile"), option)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("could not start resource %s", err)
@@ -75,6 +85,10 @@ func (m *MockDB) SetSchema() error {
 	}
 	m.db.MustExec(m.schema)
 	return nil
+}
+
+func (m *MockDB) CloseDb() {
+	m.db.Close()
 }
 
 func (m *MockDB) Close() {
