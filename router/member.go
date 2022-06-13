@@ -85,8 +85,10 @@ func (MemberRouter) Create(c *gin.Context) {
 		Alias:     req.Alias,
 		Name:      req.Name,
 		Section:   req.Section,
+		Avatar:    req.Avatar,
 		Profile:   req.Profile,
 		QQ:        req.QQ,
+		Phone:     req.Phone,
 		Role:      req.Role,
 		CreatedBy: c.GetString("id"),
 	}
@@ -110,6 +112,7 @@ func (MemberRouter) Update(c *gin.Context) {
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
+	req.MemberId = c.GetString("id")
 	member, err := service.MemberServiceApp.GetMemberById(req.MemberId)
 	if util.CheckError(c, err) {
 		return
