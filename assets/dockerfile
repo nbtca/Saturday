@@ -3,6 +3,8 @@ FROM mysql:8.0
 ENV MYSQL_DATABASE=saturday_test \
     MYSQL_ROOT_PASSWORD=password
 
+ENV TZ=Asia/Shanghai
+
 ADD saturday.sql /docker-entrypoint-initdb.d
 
 EXPOSE 3306

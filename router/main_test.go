@@ -82,6 +82,28 @@ func (t APITestCase) compare(got gin.H) error {
 	return nil
 }
 
+func (tc APITestCase) Run() error {
+	w := httptest.NewRecorder()
+	var reader *bytes.Reader
+	body := tc.Request.Body
+	var req *http.Request
+	if body != nil {
+		bodyData, _ := json.Marshal(body)
+		reader = bytes.NewReader(bodyData)
+		req, _ = http.NewRequest(tc.Request.Method, tc.Request.Url, reader)
+	} else {
+		req, _ = http.NewRequest(tc.Request.Method, tc.Request.Url, nil)
+	}
+	if tc.Request.Auth != "" {
+		req.Header.Add("Authorization", tc.Request.Auth)
+	}
+	r.ServeHTTP(w, req)
+	if tc.Response.Code != w.Code {
+		return fmt.Errorf("inconsistent code\n expected:%v\n got:%v", tc.Response.Code, w.Code)
+	}
+	return nil
+}
+
 func (tc APITestCase) Test() error {
 	if err := mockDB.SetSchema(); err != nil {
 		return err

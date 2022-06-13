@@ -43,6 +43,13 @@ func (service *MemberService) GetPublicMembers(offset uint64, limit uint64) ([]m
 }
 
 func (service *MemberService) CreateMember(member *model.Member) error {
+	if member.Role != "admin" && member.Role != "member" {
+		// TODO member_inactive
+		return util.
+			MakeServiceError(http.StatusUnprocessableEntity).
+			SetMessage("Validation Failed").
+			AddDetailError("member", "role", "invalid role")
+	}
 	exist, err := repo.ExistMember(member.MemberId)
 	if err != nil {
 		return err
