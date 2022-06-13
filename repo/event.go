@@ -127,24 +127,34 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 }
 
 func CreateEvent(event *model.Event) error {
-	event.GmtCreate = util.GetDate()
-	event.GmtModified = util.GetDate()
+	date := util.GetDate()
+	event.GmtCreate = date
+	event.GmtModified = date
 	createEventSql, args, _ := squirrel.Insert("event").Columns(
 		"event_id", "client_id", "model", "phone", "qq",
 		"contact_preference", "problem", "member_id", "closed_by",
 		"gmt_create", "gmt_modified").Values(
 		event.EventId, event.ClientId, event.Model, event.Phone, event.QQ,
 		event.ContactPreference, event.Problem, event.MemberId, event.ClosedBy,
-		event.GmtCreate, event.GmtModified).ToSql()
-	conn, err := db.Begin()
+		date, date).ToSql()
+	conn, err := db.Beginx()
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err != nil {
+			conn.Rollback()
+		}
+	}()
 	res, err := conn.Exec(createEventSql, args...)
 	if err != nil {
 		return err
 	}
 	event.EventId, _ = res.LastInsertId()
+	if err = conn.Commit(); err != nil {
+		return err
+
+	}
 	return nil
 }
 
@@ -159,7 +169,6 @@ func CreateEventLog(eventLog *model.EventLog, conn *sqlx.Tx) error {
 	eventLog.EventLogId = int64(eventLogId)
 	err = SetEventAction(eventLogId, eventLog.Action, conn)
 	if err != nil {
-		conn.Rollback()
 		return err
 	}
 	return nil

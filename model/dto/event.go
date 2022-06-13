@@ -13,15 +13,15 @@ type AlterCommitReq struct {
 }
 
 type UpdateReq struct {
-	Phone   string `json:"phone" binding:"omitempty,len=11"`
-	QQ      string `json:"qq" binding:"omitempty,min=5,max=9"`
-	Problem string `json:"problem" db:"problem"`
+	Phone   string `json:"phone" binding:"omitempty,len=11,numeric"`
+	QQ      string `json:"qq" binding:"omitempty,min=5,max=20,numeric"`
+	Problem string `json:"problem" db:"problem" binding:"omitempty,max=1000"`
 }
 type CreateEventReq struct {
 	ClientId          int64  `json:"client_id" db:"client_id"`
-	Model             string `json:"model"`
-	Phone             string `json:"phone"`
-	QQ                string `json:"qq"`
+	Model             string `json:"model" binding:"omitempty,max=40"`
+	Phone             string `json:"phone" binding:"omitempty,len=11,numeric"`
+	QQ                string `json:"qq" binding:"omitempty,min=5,max=20,numeric"`
 	ContactPreference string `json:"contact_preference" db:"contact_preference" `
-	Problem           string `json:"problem" db:"problem"`
+	Problem           string `json:"problem" db:"problem" binding:"omitempty,max=1000"`
 }

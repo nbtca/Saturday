@@ -27,7 +27,8 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	repo.SetDB(db)
-	defer mockDB.Close()
+	// defer mockDB.Close()
+	defer mockDB.CloseDb()
 
 	r = router.SetupRouter()
 	m.Run()
