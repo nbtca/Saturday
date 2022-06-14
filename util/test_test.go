@@ -1,36 +1,34 @@
 package util_test
 
 import (
-	"fmt"
-	"log"
 	"saturday/model"
 	"saturday/util"
 	"testing"
 )
 
-func TestCreateToken(t *testing.T) {
-	j, _ := util.CreateToken(util.Payload{Who: "123", Role: "member"})
-	_, claims, _ := util.ParseToken(j)
-	if claims.Who != "123" || claims.Role != "member" {
-		t.Error("测试失败")
-	}
-}
+// func TestCreateToken(t *testing.T) {
+// 	j, _ := util.CreateToken(util.Payload{Who: "123", Role: "member"})
+// 	_, claims, _ := util.ParseToken(j)
+// 	if claims.Who != "123" || claims.Role != "member" {
+// 		t.Error("测试失败")
+// 	}
+// }
 
-func TestReadCsvFile(t *testing.T) {
-	records := util.ReadCsvFile("testdata/event-action.csv")
-	for _, v := range records {
-		fmt.Println(v)
-	}
-}
-func TestGetCsvMap(t *testing.T) {
-	records, err := util.GetCsvMap("testdata/event-action.csv")
-	if err != nil {
-		fmt.Println(err)
-	}
-	for _, v := range records {
-		fmt.Println(v)
-	}
-}
+// func TestReadCsvFile(t *testing.T) {
+// 	records := util.ReadCsvFile("testdata/event-action.csv")
+// 	for _, v := range records {
+// 		fmt.Println(v)
+// 	}
+// }
+// func TestGetCsvMap(t *testing.T) {
+// 	records, err := util.GetCsvMap("testdata/event-action.csv")
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	for _, v := range records {
+// 		fmt.Println(v)
+// 	}
+// }
 
 func TestEventAction(t *testing.T) {
 	rawAPITestCase, err := util.GetCsvMap("testdata/event-action.csv")
@@ -56,7 +54,6 @@ func TestEventAction(t *testing.T) {
 				}
 			} else {
 				if v["error"] == "X" {
-					log.Println(event, actor,v["action"])
 					t.Errorf("error expected")
 				}
 				log := handler.Handle()

@@ -17,9 +17,7 @@ func TestAuth(t *testing.T) {
 	}
 	for _, rc := range rawCase {
 		t.Run(rc["CaseId"], func(t *testing.T) {
-
 			gin.SetMode(gin.TestMode)
-
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 
