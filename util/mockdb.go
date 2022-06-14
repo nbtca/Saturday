@@ -13,6 +13,13 @@ import (
 	"github.com/ory/dockertest/v3"
 )
 
+/*
+MockDB is a mock database for testing.
+Use MakeMockDB to create a MockDB, and call MockDB.Start() to init resource.
+Under the hood, it use a docker container that runs mysql as data source.
+So you need to keep docker running for the test to work.
+You should call SetSchema() before each test to reset database schema.
+*/
 type MockDB struct {
 	pool     *dockertest.Pool
 	resource *dockertest.Resource
@@ -21,13 +28,17 @@ type MockDB struct {
 	schema   string
 }
 
+const SQL_FILE string = "saturday.sql"
+const IMAGE_NAME string = "test_db"
+const RESOURCE_NAME string = "test_db"
+
 func (m MockDB) isImageExist(name string) (bool, error) {
 	out, err := exec.Command("docker", "image", "ls").Output()
 	if err != nil {
 		return false, err
 	}
 	outStr := string(out)
-	searched := strings.Contains(outStr, "test_db")
+	searched := strings.Contains(outStr, name)
 	return searched, nil
 }
 
@@ -39,14 +50,14 @@ func (m *MockDB) Start() (*sqlx.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to docker: %s", err)
 	}
-	imageExists, _ := m.isImageExist("test_db")
+	imageExists, _ := m.isImageExist(IMAGE_NAME)
 	option := &dockertest.RunOptions{
-		Name:       "test_db",
-		Repository: "test_db",
+		Name:       RESOURCE_NAME,
+		Repository: IMAGE_NAME,
 		Tag:        "latest",
 	}
 	if imageExists {
-		res, ok := m.pool.ContainerByName("test_db")
+		res, ok := m.pool.ContainerByName(RESOURCE_NAME)
 		if ok {
 			m.resource = res
 		} else {
@@ -59,6 +70,7 @@ func (m *MockDB) Start() (*sqlx.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not start resource %s", err)
 	}
+	log.Printf("A docker container is created for database testing. For the convince running latter tests, it will not be stopped after the test, please close it manually.")
 	if err = m.pool.Retry(func() error {
 		db, err = sqlx.Connect("mysql", fmt.Sprintf("root:password@(localhost:%s)/saturday_test?multiStatements=true", m.resource.GetPort("3306/tcp")))
 		if err != nil {
@@ -77,7 +89,7 @@ func (m *MockDB) Start() (*sqlx.DB, error) {
 
 func (m *MockDB) SetSchema() error {
 	if m.schema == "" {
-		b, err := ioutil.ReadFile(path.Join(m.path, "saturday.sql"))
+		b, err := ioutil.ReadFile(path.Join(m.path, SQL_FILE))
 		if err != nil {
 			return err
 		}
@@ -97,6 +109,11 @@ func (m *MockDB) Close() {
 		log.Fatalf("Could not purge resource: %s", err)
 	}
 }
+
+/*
+	assetsPath should be the relative path to the assets folder,
+	MockDB needs to read the dockerfile located in the assets folder.
+*/
 func MakeMockDB(assetsPath string) *MockDB {
 	return &MockDB{
 		path: assetsPath,

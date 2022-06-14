@@ -21,7 +21,6 @@ func SetupRouter() *gin.Engine {
 		PublicGroup.GET("members/", MemberRouterApp.GetPublicMemberByPage)
 		PublicGroup.POST("members/:MemberId/token", MemberRouterApp.CreateToken)
 
-		// TODO Restful
 		PublicGroup.POST("clients/token/wechat", ClientRouterApp.CreateTokenViaWeChat)
 
 		PublicGroup.GET("events/:EventId", EventRouterApp.GetPublicEventById)

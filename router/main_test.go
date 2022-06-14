@@ -83,6 +83,7 @@ func (t APITestCase) compare(got gin.H) error {
 	return nil
 }
 
+// Run() perform the request without comparing the response
 func (tc APITestCase) Run() error {
 	w := httptest.NewRecorder()
 	var reader *bytes.Reader
@@ -105,6 +106,7 @@ func (tc APITestCase) Run() error {
 	return nil
 }
 
+// Test() perform the request and compare the response
 func (tc APITestCase) Test() error {
 	if err := mockDB.SetSchema(); err != nil {
 		return err
