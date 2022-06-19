@@ -32,6 +32,7 @@ func GetMemberById(id string) (model.Member, error) {
 	statement, args, _ := getMemberStatement().Where(squirrel.Eq{"member_id": id}).ToSql()
 	member := model.Member{}
 	if err := db.Get(&member, statement, args...); err != nil {
+		// empty selection is allowed
 		if err == sql.ErrNoRows {
 			return model.Member{}, nil
 		}

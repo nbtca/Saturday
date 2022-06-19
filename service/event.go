@@ -24,7 +24,6 @@ func MakeEventService(id int64) (*EventService, error) {
 func (service EventService) GetEventById(id int64) (model.Event, error) {
 	event, err := repo.GetEventById(id)
 	if err != nil {
-		util.Logger.Error(err)
 		return model.Event{}, util.MakeInternalServerError()
 	}
 	if event.EventId == 0 {

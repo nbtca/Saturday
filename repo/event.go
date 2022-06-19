@@ -39,15 +39,16 @@ func getLogStatement() squirrel.SelectBuilder {
  therefore the JoinEvent.Event.EventId has db tag of event.event_id.
 */
 type JoinEvent struct {
-	Event  model.Event  `db:"event"`
-	Member model.Member `db:"member"`
-	Admin  model.Member `db:"admin"`
+	Event  model.Event      `db:"event"`
+	Member model.NullMember `db:"member"`
+	Admin  model.NullMember `db:"admin"`
 }
 
+// TODO this need to be refactored...
 func (je JoinEvent) ToEvent() model.Event {
 	event := je.Event
-	event.Member = je.Member
-	event.ClosedByMember = je.Admin
+	event.Member = je.Member.PublicMember()
+	event.ClosedByMember = je.Admin.PublicMember()
 	return event
 }
 
@@ -65,6 +66,9 @@ func GetEventById(id int64) (model.Event, error) {
 	}()
 	joinEvent := JoinEvent{}
 	if err := conn.Get(&joinEvent, getEventSql, getEventArgs...); err != nil {
+		if err == sql.ErrNoRows {
+			return model.Event{}, nil
+		}
 		return model.Event{}, err
 	}
 	event := joinEvent.ToEvent()
