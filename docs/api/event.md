@@ -284,7 +284,18 @@ GET /member/events/1
 ```
 GET /member/events
 ```
+### 参数
 
+| 名称          | 类型   | in     | 描述 |
+| ------------- | ------ | ------ | ---- |
+| Authorization | string | header |      |
+
+### 示例
+
+#### 请求
+```
+GET /member/events
+```
 
 #### 响应
 

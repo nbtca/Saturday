@@ -40,7 +40,7 @@ func SetupRouter() *gin.Engine {
 		MemberGroup.PUT("/member", MemberRouterApp.Update)
 		MemberGroup.PUT("/member/avatar", MemberRouterApp.UpdateAvatar)
 
-		MemberGroup.GET("member/events/", EventRouterApp.GetEventByPage)
+		MemberGroup.GET("member/events/", EventRouterApp.GetMemberEventByPage)
 
 		MemberGroup.Use(middleware.EventActionPreProcess)
 		MemberGroup.GET("member/events/:EventId", EventRouterApp.GetEventById)

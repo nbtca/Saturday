@@ -87,14 +87,14 @@ func UpdateMember(member model.Member) error {
 		Set("gmt_modified", util.GetDate()).
 		Where(squirrel.Eq{"member_id": member.MemberId}).ToSql()
 	conn, err := db.Begin()
+	if err != nil {
+		return err
+	}
 	defer func() {
 		if err != nil {
 			conn.Rollback()
 		}
 	}()
-	if err != nil {
-		return err
-	}
 	conn.Exec(sql, args...)
 	err = SetMemberRole(member.MemberId, member.Role, conn)
 	if err != nil {

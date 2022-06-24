@@ -33,6 +33,13 @@ func (service EventService) GetEventById(id int64) (model.Event, error) {
 	}
 	return event, nil
 }
+func (service EventService) GetMemberEvents(offset uint64, limit uint64, memberId string) ([]model.Event, error) {
+	return repo.GetMemberEvents(offset, limit, memberId)
+}
+
+func (service EventService) GetClientEvents(offset uint64, limit uint64, clientId string) ([]model.Event, error) {
+	return repo.GetClientEvents(offset, limit, clientId)
+}
 
 func (service EventService) GetPublicEventById(id int64) (model.PublicEvent, error) {
 	event, err := service.GetEventById(id)

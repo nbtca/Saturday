@@ -18,6 +18,8 @@ import (
 var r *gin.Engine
 var mockDB *util.MockDB
 
+const IGNORE = "IGNORE"
+
 func TestMain(m *testing.M) {
 	util.InitValidator()
 

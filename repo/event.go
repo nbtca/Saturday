@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database/sql"
+	"log"
 	"saturday/model"
 	"saturday/util"
 
@@ -81,8 +82,13 @@ func GetEventById(id int64) (model.Event, error) {
 	return event, nil
 }
 
-func GetEvents(offset uint64, limit uint64) ([]model.Event, error) {
-	getEventSql, getEventArgs, _ := getEventStatement().Offset(offset).Limit(limit).ToSql()
+// type SelectInjector func(squirrel.SelectBuilder) squirrel.SelectBuilder
+
+func getEvents(offset uint64, limit uint64, condition squirrel.Eq) ([]model.Event, error) {
+	getEventSql, getEventArgs, _ := getEventStatement().Where(condition).Offset(offset).Limit(limit).ToSql()
+	// break chain
+	// getEventSql, getEventArgs, _ := condition(getEventStatement()).Offset(offset).Limit(limit).ToSql()
+	log.Println(getEventSql)
 	joinEvent := []JoinEvent{}
 	err := db.Select(&joinEvent, getEventSql, getEventArgs...)
 	if err != nil {
@@ -93,6 +99,18 @@ func GetEvents(offset uint64, limit uint64) ([]model.Event, error) {
 		events[i] = v.ToEvent()
 	}
 	return events, nil
+}
+
+func GetEvents(offset uint64, limit uint64) ([]model.Event, error) {
+	return getEvents(offset, limit, squirrel.Eq{})
+}
+
+func GetMemberEvents(offset uint64, limit uint64, memberId string) ([]model.Event, error) {
+	return getEvents(offset, limit, squirrel.Eq{"e.member_id": memberId})
+}
+
+func GetClientEvents(offset uint64, limit uint64, clientId string) ([]model.Event, error) {
+	return getEvents(offset, limit, squirrel.Eq{"e.client_id": clientId})
 }
 
 func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
