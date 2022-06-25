@@ -29,7 +29,7 @@ func SetupRouter() *gin.Engine {
 		PublicGroup.GET("setting", SettingRouterApp.GetMiniAppSetting)
 	}
 
-	Router.PUT("member/activate",
+	Router.PATCH("member/activate",
 		middleware.Auth("member_inactive,admin_inactive"),
 		MemberRouterApp.Activate)
 
@@ -38,7 +38,7 @@ func SetupRouter() *gin.Engine {
 	{
 		MemberGroup.GET("/member", MemberRouterApp.GetMemberById)
 		MemberGroup.PUT("/member", MemberRouterApp.Update)
-		MemberGroup.PUT("/member/avatar", MemberRouterApp.UpdateAvatar)
+		MemberGroup.PATCH("/member/avatar", MemberRouterApp.UpdateAvatar)
 
 		MemberGroup.GET("member/events/", EventRouterApp.GetMemberEventByPage)
 

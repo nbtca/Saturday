@@ -103,4 +103,17 @@ func (service *MemberService) UpdateMember(member model.Member) error {
 	return nil
 }
 
+func (service *MemberService) ActivateMember(member model.Member) error {
+	if member.Role == "member_inactive" {
+		member.Role = "member"
+	}
+	if member.Role == "admin_inactive" {
+		member.Role = "admin"
+	}
+	if err := repo.UpdateMember(member); err != nil {
+		return err
+	}
+	return nil
+}
+
 var MemberServiceApp = new(MemberService)

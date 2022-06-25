@@ -2,7 +2,6 @@ package repo
 
 import (
 	"database/sql"
-	"log"
 	"saturday/model"
 	"saturday/util"
 
@@ -60,18 +59,15 @@ func GetEventById(id int64) (model.Event, error) {
 	if err != nil {
 		return model.Event{}, err
 	}
-	defer func() {
-		if err != nil {
-			conn.Rollback()
-		}
-	}()
 	joinEvent := JoinEvent{}
 	if err := conn.Get(&joinEvent, getEventSql, getEventArgs...); err != nil {
 		if err == sql.ErrNoRows {
 			return model.Event{}, nil
 		}
+		conn.Rollback()
 		return model.Event{}, err
 	}
+	defer util.RollbackOnErr(err, conn)
 	event := joinEvent.ToEvent()
 	if err = conn.Select(&event.Logs, getLogSql, getLogArgs...); err != nil {
 		return model.Event{}, err
@@ -82,13 +78,8 @@ func GetEventById(id int64) (model.Event, error) {
 	return event, nil
 }
 
-// type SelectInjector func(squirrel.SelectBuilder) squirrel.SelectBuilder
-
 func getEvents(offset uint64, limit uint64, condition squirrel.Eq) ([]model.Event, error) {
 	getEventSql, getEventArgs, _ := getEventStatement().Where(condition).Offset(offset).Limit(limit).ToSql()
-	// break chain
-	// getEventSql, getEventArgs, _ := condition(getEventStatement()).Offset(offset).Limit(limit).ToSql()
-	log.Println(getEventSql)
 	joinEvent := []JoinEvent{}
 	err := db.Select(&joinEvent, getEventSql, getEventArgs...)
 	if err != nil {
@@ -128,11 +119,7 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err != nil {
-			conn.Rollback()
-		}
-	}()
+	defer util.RollbackOnErr(err, conn)
 	if _, err = conn.Exec(sql, args...); err != nil {
 		return err
 	}
@@ -163,11 +150,7 @@ func CreateEvent(event *model.Event) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err != nil {
-			conn.Rollback()
-		}
-	}()
+	defer util.RollbackOnErr(err, conn)
 	res, err := conn.Exec(createEventSql, args...)
 	if err != nil {
 		return err
@@ -233,8 +216,7 @@ func SetEventStatus(eventId int64, status string, conn *sqlx.Tx) (sql.Result, er
 	sql := `INSERT INTO event_event_status_relation (event_id, event_status_id)
 	VALUES (?, (Select event_status_id from event_status where status = ?))
 	ON DUPLICATE KEY UPDATE event_status_id=(SELECT event_status_id FROM event_status WHERE status=?)`
-	res, err := conn.Exec(sql, eventId, status, status)
-	return res, err
+	return conn.Exec(sql, eventId, status, status)
 }
 
 func GetEventClientId(eventId int64) (int64, error) {

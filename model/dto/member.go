@@ -35,7 +35,7 @@ type UpdateMemberBasicReq struct {
 	Role     string `json:"role" binding:"omitempty"`
 }
 
-type UpdateMember struct {
+type UpdateMemberReq struct {
 	MemberId string
 	Alias    string `json:"alias" binding:"omitempty,max=20"`
 	Avatar   string `json:"avatar" binding:"omitempty,max=255"`
@@ -43,4 +43,13 @@ type UpdateMember struct {
 	Phone    string `json:"phone" binding:"omitempty,len=11,numeric"`
 	QQ       string `json:"qq" binding:"omitempty,min=5,max=20,numeric"`
 	Password string `json:"password" binding:"omitempty,max=20"`
+}
+
+type ActivateMemberReq struct {
+	MemberId string
+	Password string `json:"password" binding:"required,max=20"`
+	Alias    string `json:"alias" binding:"omitempty,max=20"`
+	Profile  string `json:"profile" binding:"omitempty,max=1000"`
+	Phone    string `json:"phone" binding:"omitempty,len=11,numeric"`
+	QQ       string `json:"qq" binding:"omitempty,min=5,max=20,numeric"`
 }

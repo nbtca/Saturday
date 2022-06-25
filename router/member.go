@@ -104,11 +104,37 @@ func (MemberRouter) CreateMany(c *gin.Context) {
 }
 
 func (MemberRouter) Activate(c *gin.Context) {
-	//TODO not implemented
+	req := &dto.ActivateMemberReq{}
+	if err := util.BindAll(c, req); util.CheckError(c, err) {
+		return
+	}
+	req.MemberId = c.GetString("id")
+	member, err := service.MemberServiceApp.GetMemberById(req.MemberId)
+	if util.CheckError(c, err) {
+		return
+	}
+	member.Password = req.Password
+	if req.Alias != "" {
+		member.Alias = req.Alias
+	}
+	if req.Phone != "" {
+		member.Phone = req.Phone
+	}
+	if req.QQ != "" {
+		member.QQ = req.QQ
+	}
+	if req.Profile != "" {
+		member.Profile = req.Profile
+	}
+	err = service.MemberServiceApp.ActivateMember(member)
+	if util.CheckError(c, err) {
+		return
+	}
+	c.JSON(200, member)
 }
 
 func (MemberRouter) Update(c *gin.Context) {
-	req := &dto.UpdateMember{}
+	req := &dto.UpdateMemberReq{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
@@ -170,6 +196,7 @@ func (MemberRouter) UpdateBasic(c *gin.Context) {
 
 func (MemberRouter) UpdateAvatar(c *gin.Context) {
 	//TODO not implemented
+
 }
 
 var MemberRouterApp = new(MemberRouter)
