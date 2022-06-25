@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 )
 
 func ExistRole(role string) (bool, error) {
@@ -27,7 +28,7 @@ func GetRoleId(role string) (sql.NullInt64, error) {
 	return id, nil
 }
 
-func SetMemberRole(memberId string, role string, conn *sql.Tx) error {
+func SetMemberRole(memberId string, role string, conn *sqlx.Tx) error {
 	sql := `INSERT INTO member_role_relation (member_id, role_id)
 	 		VALUES (?, (Select role_id from role where role = ?))
 			 ON DUPLICATE KEY UPDATE role_id=(Select role_id from role where role = ?)`

@@ -24,7 +24,6 @@ func MakeEventService(id int64) (*EventService, error) {
 func (service EventService) GetEventById(id int64) (model.Event, error) {
 	event, err := repo.GetEventById(id)
 	if err != nil {
-		util.Logger.Error(err)
 		return model.Event{}, util.MakeInternalServerError()
 	}
 	if event.EventId == 0 {
@@ -33,6 +32,13 @@ func (service EventService) GetEventById(id int64) (model.Event, error) {
 			SetMessage("Validation Failed")
 	}
 	return event, nil
+}
+func (service EventService) GetMemberEvents(offset uint64, limit uint64, memberId string) ([]model.Event, error) {
+	return repo.GetMemberEvents(offset, limit, memberId)
+}
+
+func (service EventService) GetClientEvents(offset uint64, limit uint64, clientId string) ([]model.Event, error) {
+	return repo.GetClientEvents(offset, limit, clientId)
 }
 
 func (service EventService) GetPublicEventById(id int64) (model.PublicEvent, error) {

@@ -115,9 +115,9 @@ GET /members
 #### Http 状态码
 
 
-| HTTP Status Code | 描述               |
-| ---------------- | ------------------ |
-| 200         | OK                 |
+| HTTP Status Code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | OK                   |
 | 422              | Unprocessable Entity |
 
 ## 创建成员 Token 已完成
@@ -183,8 +183,8 @@ GET /member
 
 #### 参数
 
-| 名称           | 类型   | in     | 描述 |
-| -------------- | ------ | ------ | ---- |
+| 名称          | 类型   | in     | 描述 |
+| ------------- | ------ | ------ | ---- |
 | Authorization | string | header |      |
 
 #### 示例
@@ -216,40 +216,38 @@ GET /member
 
 #### Http 状态码
 
-| HTTP Status Code | 描述               |
-| ---------------- | ------------------ |
-| 200         | OK                 |
+| HTTP Status Code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | OK                   |
 | 422              | Unprocessable Entity |
 
-## 成员激活 未完成
+## 成员激活 
 
 - 成员在初次设定密码后激活
 - member_inactive=>member
 - admin_inactive=>admin
 
 ```
-PUT /member/active
+PATCH /member/active
 ```
 
 #### 参数
 
-| 名称           | 类型    | in     | 描述 |
-| -------------- | ------- | ------ | ---- |
-| Authorization | string  | header |      |
-| member_id      | integer | path   | 学号 |
-| password       | string  | body   | 密码 |
-| alias `可选`   | string  | body   | 昵称 |
-| phone `可选`   | string  | body   |      |
-| qq `可选`      | string  | body   |      |
-| avatar `可选`  | string  | body   | 头像 |
-| profile `可选` | string  | body   | 简介 |
+| 名称           | 类型   | in     | 描述 |
+| -------------- | ------ | ------ | ---- |
+| Authorization  | string | header |      |
+| password       | string | body   | 密码 |
+| alias `可选`   | string | body   | 昵称 |
+| phone `可选`   | string | body   |      |
+| qq `可选`      | string | body   |      |
+| profile `可选` | string | body   | 简介 |
 
 #### 示例
 
 ##### 请求
 
 ```
-PUT /member
+PATCH /member/active
 
 {
   "alias": "滑稽",
@@ -278,7 +276,12 @@ PUT /member
 }
 ```
 
+#### http 状态码
 
+| http status code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | ok                   |
+| 422              | unprocessable entity |
 
 ## 成员更新信息
 
@@ -291,7 +294,7 @@ PUT /member
 
 | 名称            | 类型    | in     | 描述 |
 | --------------- | ------- | ------ | ---- |
-| Authorization  | string  | header |      |
+| Authorization   | string  | header |      |
 | alias `可选`    | string  | body   | 昵称 |
 | member_id       | integer | path   | 学号 |
 | phone `可选`    | string  | body   |      |
@@ -317,6 +320,8 @@ PUT /member
 }
 ```
 
+
+
 ##### 响应
 
 ```
@@ -335,17 +340,17 @@ PUT /member
   "gmt_modified": "2022-04-30 17:29:46"
 }
 ```
-#### Http 状态码
+#### http 状态码
 
-| HTTP Status Code | 描述               |
-| ---------------- | ------------------ |
-| 200         | OK                 |
-| 422              | Unprocessable Entity |
+| http status code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | ok                   |
+| 422              | unprocessable entity |
 
 ## 成员修改头像 未完成
 
 ```
-PUT /member/avatar
+PATCH /member/avatar
 ```
 
 ## 创建成员 已完成
@@ -358,17 +363,17 @@ POST /members/{member_id}
 
 #### 参数
 
-| 名称           | 类型    | in     | 描述 |
-| -------------- | ------- | ------ | ---- |
+| 名称          | 类型    | in     | 描述 |
+| ------------- | ------- | ------ | ---- |
 | Authorization | string  | header |      |
-| member_id      | integer | path   | 学号 |
-| name           | string  | body   | 姓名 |
-| section        | string  | body   | 班级 |
-| role           | string  | body   | 权限 |
-| alias `可选`   | string  | body   | 昵称 |
-| phone `可选`   | string  | body   |
-| qq `可选`      | string  | body   |
-| avatar `可选`  | string  | body   | 头像 |
+| member_id     | integer | path   | 学号 |
+| name          | string  | body   | 姓名 |
+| section       | string  | body   | 班级 |
+| role          | string  | body   | 权限 |
+| alias `可选`  | string  | body   | 昵称 |
+| phone `可选`  | string  | body   |
+| qq `可选`     | string  | body   |
+| avatar `可选` | string  | body   | 头像 |
 
 #### 示例
 
@@ -412,7 +417,7 @@ POST /members/3000000000
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
 | 200              | OK                   |
-| 422              | Unprocessable Entity   |
+| 422              | Unprocessable Entity |
 
 ## 创建多个成员 未完成
 
@@ -430,13 +435,13 @@ PUT /members/{member_id}
 
 #### 参数
 
-| 名称           | 类型    | in     | 描述 |
-| -------------- | ------- | ------ | ---- |
+| 名称          | 类型    | in     | 描述 |
+| ------------- | ------- | ------ | ---- |
 | Authorization | string  | header |      |
-| member_id      | integer | path   | 学号 |
-| name           | string  | body   | 姓名 |
-| section        | string  | body   | 班级 |
-| role           | string  | body   | 权限 |
+| member_id     | integer | path   | 学号 |
+| name          | string  | body   | 姓名 |
+| section       | string  | body   | 班级 |
+| role          | string  | body   | 权限 |
 
 #### 示例
 
@@ -476,5 +481,5 @@ PATCH /members/2333333333
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
 | 200              | OK                   |
-| 422              | Unprocessable Entity   |
+| 422              | Unprocessable Entity |
 | 422              | Unprocessable Entity |

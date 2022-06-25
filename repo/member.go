@@ -32,6 +32,7 @@ func GetMemberById(id string) (model.Member, error) {
 	statement, args, _ := getMemberStatement().Where(squirrel.Eq{"member_id": id}).ToSql()
 	member := model.Member{}
 	if err := db.Get(&member, statement, args...); err != nil {
+		// empty selection is allowed
 		if err == sql.ErrNoRows {
 			return model.Member{}, nil
 		}
@@ -58,15 +59,11 @@ func CreateMember(member *model.Member) error {
 		member.MemberId, member.Alias, member.Name, member.Section,
 		member.Profile, member.Avatar, member.Phone, member.QQ, member.CreatedBy,
 		member.GmtCreate, member.GmtModified).ToSql()
-	conn, err := db.Begin()
+	conn, err := db.Beginx()
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err != nil {
-			conn.Rollback()
-		}
-	}()
+	defer util.RollbackOnErr(err, conn)
 	conn.Exec(sqlMember, argsMember...)
 	SetMemberRole(member.MemberId, member.Role, conn)
 	if err = conn.Commit(); err != nil {
@@ -85,15 +82,11 @@ func UpdateMember(member model.Member) error {
 		Set("qq", member.QQ).
 		Set("gmt_modified", util.GetDate()).
 		Where(squirrel.Eq{"member_id": member.MemberId}).ToSql()
-	conn, err := db.Begin()
-	defer func() {
-		if err != nil {
-			conn.Rollback()
-		}
-	}()
+	conn, err := db.Beginx()
 	if err != nil {
 		return err
 	}
+	defer util.RollbackOnErr(err, conn)
 	conn.Exec(sql, args...)
 	err = SetMemberRole(member.MemberId, member.Role, conn)
 	if err != nil {

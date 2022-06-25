@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"database/sql"
 	"saturday/model"
 	"saturday/util"
 	"time"
@@ -9,9 +10,12 @@ import (
 )
 
 func GetClientByOpenId(openId string) (model.Client, error) {
-	sql, args, _ := squirrel.Select("*").From("client").Where(squirrel.Eq{"openid": openId}).ToSql()
+	statement, args, _ := squirrel.Select("*").From("client").Where(squirrel.Eq{"openid": openId}).ToSql()
 	client := model.Client{}
-	if err := db.Get(&client, sql, args...); err != nil {
+	if err := db.Get(&client, statement, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return model.Client{}, nil
+		}
 		return model.Client{}, nil
 	}
 	return client, nil

@@ -9,9 +9,9 @@ type Event struct {
 	ContactPreference string     `json:"contact_preference" db:"contact_preference" `
 	Problem           string     `json:"problem" db:"problem"`
 	MemberId          string     `json:"member_id" db:"member_id"`
-	Member            Member     `json:"member" db:"-"`
+	Member            *PublicMember    `json:"member" db:"-"`
 	ClosedBy          string     `json:"closed_by_id" db:"closed_by"`
-	ClosedByMember    Member     `json:"closed_by" db:"-"`
+	ClosedByMember    *PublicMember    `json:"closed_by" db:"-"`
 	Status            string     `json:"status"`
 	Logs              []EventLog `json:"logs"`
 	GmtCreate         string     `json:"gmt_create" db:"gmt_create"`
@@ -52,9 +52,9 @@ type PublicEvent struct {
 	Model          string     `json:"model"`
 	Problem        string     `json:"problem" db:"event_description"`
 	MemberId       string     `json:"-" db:"member_id"`
-	Member         Member     `json:"member"`
+	Member         *PublicMember    `json:"member"`
 	ClosedBy       string     `json:"-" db:"closed_by"`
-	ClosedByMember Member     `json:"closed_by"`
+	ClosedByMember *PublicMember    `json:"closed_by"`
 	Status         string     `json:"status"`
 	Logs           []EventLog `json:"logs"`
 	GmtCreate      string     `json:"gmt_create" db:"gmt_create"`

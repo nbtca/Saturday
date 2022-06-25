@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // func FieldsConstructor(q interface{}) []string {
@@ -49,6 +51,12 @@ func Prefixer(prefix string, columns []string) []string {
 		ans[i] = fmt.Sprint(string(prefix[0]), ".", v, " as '", SetColumnPrefix(prefix, v), "'")
 	}
 	return ans
+}
+
+func RollbackOnErr(err error, conn *sqlx.Tx) {
+	if err != nil {
+		conn.Rollback()
+	}
 }
 
 // func Deprefix(prefix string) *reflectx.Mapper {

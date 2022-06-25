@@ -39,15 +39,16 @@ func getLogStatement() squirrel.SelectBuilder {
  therefore the JoinEvent.Event.EventId has db tag of event.event_id.
 */
 type JoinEvent struct {
-	Event  model.Event  `db:"event"`
-	Member model.Member `db:"member"`
-	Admin  model.Member `db:"admin"`
+	Event  model.Event      `db:"event"`
+	Member model.NullMember `db:"member"`
+	Admin  model.NullMember `db:"admin"`
 }
 
+// TODO this need to be refactored...
 func (je JoinEvent) ToEvent() model.Event {
 	event := je.Event
-	event.Member = je.Member
-	event.ClosedByMember = je.Admin
+	event.Member = je.Member.PublicMember()
+	event.ClosedByMember = je.Admin.PublicMember()
 	return event
 }
 
@@ -58,15 +59,15 @@ func GetEventById(id int64) (model.Event, error) {
 	if err != nil {
 		return model.Event{}, err
 	}
-	defer func() {
-		if err != nil {
-			conn.Rollback()
-		}
-	}()
 	joinEvent := JoinEvent{}
 	if err := conn.Get(&joinEvent, getEventSql, getEventArgs...); err != nil {
+		if err == sql.ErrNoRows {
+			return model.Event{}, nil
+		}
+		conn.Rollback()
 		return model.Event{}, err
 	}
+	defer util.RollbackOnErr(err, conn)
 	event := joinEvent.ToEvent()
 	if err = conn.Select(&event.Logs, getLogSql, getLogArgs...); err != nil {
 		return model.Event{}, err
@@ -77,8 +78,8 @@ func GetEventById(id int64) (model.Event, error) {
 	return event, nil
 }
 
-func GetEvents(offset uint64, limit uint64) ([]model.Event, error) {
-	getEventSql, getEventArgs, _ := getEventStatement().Offset(offset).Limit(limit).ToSql()
+func getEvents(offset uint64, limit uint64, condition squirrel.Eq) ([]model.Event, error) {
+	getEventSql, getEventArgs, _ := getEventStatement().Where(condition).Offset(offset).Limit(limit).ToSql()
 	joinEvent := []JoinEvent{}
 	err := db.Select(&joinEvent, getEventSql, getEventArgs...)
 	if err != nil {
@@ -89,6 +90,18 @@ func GetEvents(offset uint64, limit uint64) ([]model.Event, error) {
 		events[i] = v.ToEvent()
 	}
 	return events, nil
+}
+
+func GetEvents(offset uint64, limit uint64) ([]model.Event, error) {
+	return getEvents(offset, limit, squirrel.Eq{})
+}
+
+func GetMemberEvents(offset uint64, limit uint64, memberId string) ([]model.Event, error) {
+	return getEvents(offset, limit, squirrel.Eq{"e.member_id": memberId})
+}
+
+func GetClientEvents(offset uint64, limit uint64, clientId string) ([]model.Event, error) {
+	return getEvents(offset, limit, squirrel.Eq{"e.client_id": clientId})
 }
 
 func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
@@ -106,11 +119,7 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err != nil {
-			conn.Rollback()
-		}
-	}()
+	defer util.RollbackOnErr(err, conn)
 	if _, err = conn.Exec(sql, args...); err != nil {
 		return err
 	}
@@ -141,11 +150,7 @@ func CreateEvent(event *model.Event) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err != nil {
-			conn.Rollback()
-		}
-	}()
+	defer util.RollbackOnErr(err, conn)
 	res, err := conn.Exec(createEventSql, args...)
 	if err != nil {
 		return err
@@ -211,8 +216,7 @@ func SetEventStatus(eventId int64, status string, conn *sqlx.Tx) (sql.Result, er
 	sql := `INSERT INTO event_event_status_relation (event_id, event_status_id)
 	VALUES (?, (Select event_status_id from event_status where status = ?))
 	ON DUPLICATE KEY UPDATE event_status_id=(SELECT event_status_id FROM event_status WHERE status=?)`
-	res, err := conn.Exec(sql, eventId, status, status)
-	return res, err
+	return conn.Exec(sql, eventId, status, status)
 }
 
 func GetEventClientId(eventId int64) (int64, error) {

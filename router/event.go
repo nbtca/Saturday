@@ -50,8 +50,20 @@ func (EventRouter) GetEventById(c *gin.Context) {
 	c.JSON(200, event)
 }
 
-func (EventRouter) GetEventByPage(c *gin.Context) {
-	//TODO not implemented
+// return events that is accepted by current member
+func (EventRouter) GetMemberEventByPage(c *gin.Context) {
+	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	identity := util.GetIdentity(c)
+	events, err := service.EventServiceApp.GetMemberEvents(offset, limit, identity.Id)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, events)
 }
 
 func (EventRouter) Accept(c *gin.Context) {
@@ -123,7 +135,18 @@ func (EventRouter) Close(c *gin.Context) {
 }
 
 func (EventRouter) GetClientEventByPage(c *gin.Context) {
-	// TODO not implemented
+	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	identity := util.GetIdentity(c)
+	events, err := service.EventServiceApp.GetClientEvents(offset, limit, identity.Id)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, events)
 }
 
 func (EventRouter) Create(c *gin.Context) {
