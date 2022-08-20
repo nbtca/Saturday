@@ -53,26 +53,26 @@ PUT /members/{member_id} // update member info  // role admin
 
 // ---Event(事件)---
 GET /events // get all events' public info
-GET /events/{event_id} // get an event's public info
+GET /events/{eventId} // get an event's public info
 // delete 
 // following requires Authorization in header
-PUT /events/{event_id}/accept // accept event
+PUT /events/{eventId}/accept // accept event
     // 要求事件状态为未接受
   // following requires to be current member (memberId==event.memberId)
 GET /member/evnets // get the private info of all events that is accepted by member
 GET /member/evnets/{member_id} // get the private info of the event
 POST /member/events/{evemt_id}/commit // commit event for admin approval (event status: accepted=>committed)
 PUT /member/events/{member_id}/commit // alter commit (event status: committed)
-DELETE /member/events/{event_id}/accept // drop event (event status: accepted,committed)
+DELETE /member/events/{eventId}/accept // drop event (event status: accepted,committed)
 
 	// following requires role to be admin
-DELETE /events/{event_id}/commit // reject commit (event status: committed=>accepted)
-PUT /events/{event_id}/close // close event (event status: accepted=>closed)
-PUT /events/{event_id}/{member_id} // assign event to member (event status: created => accepted(by assigned member))
+DELETE /events/{eventId}/commit // reject commit (event status: committed=>accepted)
+PUT /events/{eventId}/close // close event (event status: accepted=>closed)
+PUT /events/{eventId}/{member_id} // assign event to member (event status: created => accepted(by assigned member))
 
 //---client(报修人员)---
 GET /clinets
-GET /clients/{client_id}
+GET /clients/{clientId}
 POST /client
 POST /client/token
 ```

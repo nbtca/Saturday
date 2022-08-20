@@ -65,12 +65,12 @@ func TestEventAction(t *testing.T) {
 				if action != "" && log.Action != action {
 					t.Errorf("invalid event.action: expected:%v, got:%v", action, log.Action)
 				}
-				logMemberId := v["out_event.member_id"]
+				logMemberId := v["out_event.memberId"]
 				if logMemberId == "actor.id" {
 					logMemberId = actor.Id
 				}
 				if logMemberId != "" && log.MemberId != logMemberId {
-					t.Errorf("invalid event.member_id: expected:%v, got:%v", logMemberId, log.MemberId)
+					t.Errorf("invalid event.memberId: expected:%v, got:%v", logMemberId, log.MemberId)
 				}
 				memberId := v["out_event.memberId"]
 				if memberId == "actor.id" {
@@ -79,12 +79,12 @@ func TestEventAction(t *testing.T) {
 				if memberId != "" && event.MemberId != memberId {
 					t.Errorf("invalid event.memberId: expected:%v, got:%v", memberId, event.MemberId)
 				}
-				closedBy := v["out_event.closed_by"]
+				closedBy := v["out_event.closedBy"]
 				if closedBy == "actor.id" {
 					closedBy = actor.Id
 				}
 				if closedBy != "" && event.ClosedBy != closedBy {
-					t.Errorf("invalid event.closed_by: expected:%v, got:%v", closedBy, event.ClosedBy)
+					t.Errorf("invalid event.closedBy: expected:%v, got:%v", closedBy, event.ClosedBy)
 				}
 			}
 		})

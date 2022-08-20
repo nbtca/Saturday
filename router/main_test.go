@@ -72,7 +72,7 @@ func (t APITestCase) compare(got gin.H) error {
 			return fmt.Errorf("missing field in response body:%v", key)
 		}
 		// ignore fields
-		if key == "gmt_create" || key == "gmt_modified" {
+		if key == "gmtCreate" || key == "gmtModified" {
 			continue
 		}
 		if t.Response.Body[key] == "IGNORE" {

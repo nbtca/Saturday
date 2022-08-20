@@ -25,7 +25,7 @@ nav_order: 1
 ## 获取指定成员 已完成
 通过URI中指定的成员ID获取成员公开信息
 ```
-GET /members/{member_id}
+GET /members/{memberId}
 ```
 
 #### 参数
@@ -33,7 +33,7 @@ GET /members/{member_id}
 
 | 名称      | 类型    | in   | 描述 |
 | --------- | ------- | ---- | ---- |
-| member_id | integer | path |      |
+| memberId | integer | path |      |
 
 #### 示例
 
@@ -46,14 +46,14 @@ GET /members/2333333333
 
 ```
 {
-  "member_id": "2333333333",
+  "memberId": "2333333333",
   "alias": "滑稽",
   "role": "member",
   "profile": "relaxing",
   "avatar": "",
-  "created_by": "0000000000",
-  "gmt_create": "2022-04-23 15:49:59",
-  "gmt_modified": "2022-04-30 17:29:46"
+  "createdBy": "0000000000",
+  "gmtCreate": "2022-04-23 15:49:59",
+  "gmtModified": "2022-04-30 17:29:46"
 }
 ```
 
@@ -90,24 +90,24 @@ GET /members
 ```
 [
   {
-    "member_id": "0000000000",
+    "memberId": "0000000000",
     "alias": "管理",
     "role": "admin",
     "profile": "",
     "avatar": "",
-    "created_by": "",
-    "gmt_create": "2022-04-30 17:28:42",
-    "gmt_modified": "2022-04-30 17:28:44"
+    "createdBy": "",
+    "gmtCreate": "2022-04-30 17:28:42",
+    "gmtModified": "2022-04-30 17:28:44"
   },
   {
-    "member_id": "2333333333",
+    "memberId": "2333333333",
     "alias": "滑稽",
     "role": "member",
     "profile": "relaxing",
     "avatar": "",
-    "created_by": "0000000000",
-    "gmt_create": "2022-04-23 15:49:59",
-    "gmt_modified": "2022-04-30 17:29:46"
+    "createdBy": "0000000000",
+    "gmtCreate": "2022-04-23 15:49:59",
+    "gmtModified": "2022-04-30 17:29:46"
   }
 ]
 ```
@@ -125,14 +125,14 @@ GET /members
 接受维修人员 ID 及密码两个参数，若密码正确，则返回对应的维修人员信息以及令牌，若缺少参数，参数类型错误，密码错误或用户不存在则返回相应的错误信息。
 
 ```
-POST /members/{member_id}/token
+POST /members/{memberId}/token
 ```
 
 #### 参数
 
 | 名称      | 类型   | in   | 描述 |
 | --------- | ------ | ---- | ---- |
-| member_id | string | path | 学号 |
+| memberId | string | path | 学号 |
 | password  | string | body | 密码 |
 
 #### 示例
@@ -151,7 +151,7 @@ POST /members/2333333333
 
 ```
 {
-  "member_id": "2333333333",
+  "memberId": "2333333333",
   "alias": "滑稽",
   "name": "滑稽",
   "section": "计算机233",
@@ -160,9 +160,9 @@ POST /members/2333333333
   "phone": "12356839487",
   "qq": "123456",
   "avatar": "",
-  "created_by": "0000000000",
-  "gmt_create": "2022-04-23 15:49:59",
-  "gmt_modified": "2022-04-30 17:29:46",
+  "createdBy": "0000000000",
+  "gmtCreate": "2022-04-23 15:49:59",
+  "gmtModified": "2022-04-30 17:29:46",
   "token": "not implemented"
 }
 ```
@@ -199,7 +199,7 @@ GET /member
 
 ```
 {
-  "member_id": "2333333333",
+  "memberId": "2333333333",
   "alias": "滑稽",
   "name": "滑稽",
   "section": "计算机233",
@@ -208,9 +208,9 @@ GET /member
   "phone": "12356839487",
   "qq": "123456",
   "avatar": "",
-  "created_by": "0000000000",
-  "gmt_create": "2022-04-23 15:49:59",
-  "gmt_modified": "2022-04-30 17:29:46"
+  "createdBy": "0000000000",
+  "gmtCreate": "2022-04-23 15:49:59",
+  "gmtModified": "2022-04-30 17:29:46"
 }
 ```
 
@@ -261,7 +261,7 @@ PATCH /member/active
 
 ```
 {
-  "member_id": "2333333333",
+  "memberId": "2333333333",
   "alias": "滑da稽",
   "name": "滑稽",
   "section": "计算机233",
@@ -270,9 +270,9 @@ PATCH /member/active
   "phone": "12356839487",
   "qq": "123456",
   "avatar": "",
-  "created_by": "0000000000",
-  "gmt_create": "2022-04-23 15:49:59",
-  "gmt_modified": "2022-04-30 17:29:46"
+  "createdBy": "0000000000",
+  "gmtCreate": "2022-04-23 15:49:59",
+  "gmtModified": "2022-04-30 17:29:46"
 }
 ```
 
@@ -296,7 +296,7 @@ PUT /member
 | --------------- | ------- | ------ | ---- |
 | Authorization   | string  | header |      |
 | alias `可选`    | string  | body   | 昵称 |
-| member_id       | integer | path   | 学号 |
+| memberId       | integer | path   | 学号 |
 | phone `可选`    | string  | body   |      |
 | qq `可选`       | string  | body   |      |
 | avatar `可选`   | string  | body   | 头像 |
@@ -311,7 +311,7 @@ PUT /member
 PUT /member
 
 {
-  "member_id": "2333333333",
+  "memberId": "2333333333",
   "alias": "滑da稽",
   "name": "滑稽",
   "profile": "want to relax",
@@ -326,7 +326,7 @@ PUT /member
 
 ```
 {
-  "member_id": "2333333333",
+  "memberId": "2333333333",
   "alias": "滑da稽",
   "name": "滑稽",
   "section": "计算机233",
@@ -335,9 +335,9 @@ PUT /member
   "phone": "12356839487",
   "qq": "123456",
   "avatar": "",
-  "created_by": "0000000000",
-  "gmt_create": "2022-04-23 15:49:59",
-  "gmt_modified": "2022-04-30 17:29:46"
+  "createdBy": "0000000000",
+  "gmtCreate": "2022-04-23 15:49:59",
+  "gmtModified": "2022-04-30 17:29:46"
 }
 ```
 #### http 状态码
@@ -355,10 +355,10 @@ PATCH /member/avatar
 
 ## 创建成员 已完成
 
-需要身份为管理员,member_id（学号）需为唯一，若已存在，则返回错误信息。
+需要身份为管理员,memberId（学号）需为唯一，若已存在，则返回错误信息。
 
 ```
-POST /members/{member_id}
+POST /members/{memberId}
 ```
 
 #### 参数
@@ -366,7 +366,7 @@ POST /members/{member_id}
 | 名称          | 类型    | in     | 描述 |
 | ------------- | ------- | ------ | ---- |
 | Authorization | string  | header |      |
-| member_id     | integer | path   | 学号 |
+| memberId     | integer | path   | 学号 |
 | name          | string  | body   | 姓名 |
 | section       | string  | body   | 班级 |
 | role          | string  | body   | 权限 |
@@ -397,7 +397,7 @@ POST /members/3000000000
 
 ```
 {
-  "member_id": "3000000000",
+  "memberId": "3000000000",
   "alias": "小稽",
   "name": "滑小稽",
   "section": "计算机233",
@@ -406,9 +406,9 @@ POST /members/3000000000
   "phone": "",
   "qq": "123456",
   "avatar": "",
-  "created_by": "2333333333",
-  "gmt_create": "2022-04-30 23:06:44",
-  "gmt_modified": "2022-04-30 23:06:44"
+  "createdBy": "2333333333",
+  "gmtCreate": "2022-04-30 23:06:44",
+  "gmtModified": "2022-04-30 23:06:44"
 }
 ```
 
@@ -430,7 +430,7 @@ POST /members
 ## 修改成员基本信息 已完成
 
 ```
-PUT /members/{member_id}
+PUT /members/{memberId}
 ```
 
 #### 参数
@@ -438,7 +438,7 @@ PUT /members/{member_id}
 | 名称          | 类型    | in     | 描述 |
 | ------------- | ------- | ------ | ---- |
 | Authorization | string  | header |      |
-| member_id     | integer | path   | 学号 |
+| memberId     | integer | path   | 学号 |
 | name          | string  | body   | 姓名 |
 | section       | string  | body   | 班级 |
 | role          | string  | body   | 权限 |
@@ -461,7 +461,7 @@ PATCH /members/2333333333
 
 ```
 {
-  "member_id": "2333333333",
+  "memberId": "2333333333",
   "alias": "滑稽",
   "name": "滑稽",
   "section": "计算机322",
@@ -469,9 +469,9 @@ PATCH /members/2333333333
   "phone": "12356839487",
   "qq": "123456",
   "avatar": "",
-  "created_by": "",
-  "gmt_create": "2022-04-17T19:35:55.000Z",
-  "gmt_modified": "2022-04-17T19:35:55.000Z",
+  "createdBy": "",
+  "gmtCreate": "2022-04-17T19:35:55.000Z",
+  "gmtModified": "2022-04-17T19:35:55.000Z",
   "role": "admin"
 }
 ```

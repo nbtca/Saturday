@@ -12,15 +12,6 @@ type EventService struct {
 	model.Event
 }
 
-// not used
-// func MakeEventService(id int64) (*EventService, error) {
-// 	event, err := EventServiceApp.GetEventById(id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &EventService{event}, nil
-// }
-
 func (service EventService) GetEventById(id int64) (model.Event, error) {
 	event, err := repo.GetEventById(id)
 	if err != nil {

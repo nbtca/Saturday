@@ -1,4 +1,4 @@
-CaseId,Authorization,member_id,name,section,role,alias,phone,qq,avatar,profile,code,success,error_message,cover
+CaseId,Authorization,memberId,name,section,role,alias,phone,qq,avatar,profile,code,success,error_message,cover
 1.5.1,admin,2233333331,江小明,电机196,member,厂长,12356839487,123456,http://www.baidu.com,搞个大新闻,200,TRUE,,"1,6,11,14,17,20,22,26,29,31"
 1.5.2,admin,2233333332,江小明,电机197,admin,厂长,12356839487,123456,http://www.baidu.com,搞个大新闻,200,TRUE,,"1,6,11,14,18,20,22,26,29,31"
 1.5.3,INVALID,2233333333,江小明,电机198,member,厂长,12356839487,123456,http://www.baidu.com,搞个大新闻,422,,Token_Invalid,2

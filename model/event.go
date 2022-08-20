@@ -1,21 +1,21 @@
 package model
 
 type Event struct {
-	EventId           int64      `json:"event_id" db:"event_id"`
-	ClientId          int64      `json:"client_id" db:"client_id"`
-	Model             string     `json:"model"`
-	Phone             string     `json:"phone"`
-	QQ                string     `json:"qq"`
-	ContactPreference string     `json:"contact_preference" db:"contact_preference" `
-	Problem           string     `json:"problem" db:"problem"`
-	MemberId          string     `json:"member_id" db:"member_id"`
-	Member            *PublicMember    `json:"member" db:"-"`
-	ClosedBy          string     `json:"closed_by_id" db:"closed_by"`
-	ClosedByMember    *PublicMember    `json:"closed_by" db:"-"`
-	Status            string     `json:"status"`
-	Logs              []EventLog `json:"logs"`
-	GmtCreate         string     `json:"gmt_create" db:"gmt_create"`
-	GmtModified       string     `json:"gmt_modified" db:"gmt_modified"`
+	EventId           int64         `json:"eventId" db:"event_id"`
+	ClientId          int64         `json:"clientId" db:"client_id"`
+	Model             string        `json:"model"`
+	Phone             string        `json:"phone"`
+	QQ                string        `json:"qq"`
+	ContactPreference string        `json:"contactPreference" db:"contact_preference" `
+	Problem           string        `json:"problem" db:"problem"`
+	MemberId          string        `json:"memberId" db:"member_id"`
+	Member            *PublicMember `json:"member" db:"-"`
+	ClosedBy          string        `json:"closedById" db:"closed_by"`
+	ClosedByMember    *PublicMember `json:"closedBy" db:"-"`
+	Status            string        `json:"status"`
+	Logs              []EventLog    `json:"logs"`
+	GmtCreate         string        `json:"gmtCreate" db:"gmt_create"`
+	GmtModified       string        `json:"gmtModified" db:"gmt_modified"`
 }
 
 type Status struct {
@@ -24,16 +24,16 @@ type Status struct {
 }
 type EventEventStatusRelation struct {
 	EventStatusId int64 `json:"event_status_id"`
-	EventId       int64 `json:"event_id"`
+	EventId       int64 `json:"eventId"`
 }
 
 type EventLog struct {
-	EventLogId  int64  `json:"log_id" db:"event_log_id"`
+	EventLogId  int64  `json:"logId" db:"event_log_id"`
 	EventId     int64  `json:"-" db:"-"`
 	Description string `json:"description"`
-	MemberId    string `json:"member_id" db:"member_id"`
+	MemberId    string `json:"memberId" db:"member_id"`
 	Action      string `json:"action"`
-	GmtCreate   string `json:"gmt_create" db:"gmt_create"`
+	GmtCreate   string `json:"gmtCreate" db:"gmt_create"`
 }
 
 type EventActionRelation struct {
@@ -47,18 +47,18 @@ type EventAction struct {
 }
 
 type PublicEvent struct {
-	EventId        int64      `json:"event_id" db:"event_id"`
-	ClientId       int64      `json:"client_id" db:"client_id"`
-	Model          string     `json:"model"`
-	Problem        string     `json:"problem" db:"event_description"`
-	MemberId       string     `json:"-" db:"member_id"`
-	Member         *PublicMember    `json:"member"`
-	ClosedBy       string     `json:"-" db:"closed_by"`
-	ClosedByMember *PublicMember    `json:"closed_by"`
-	Status         string     `json:"status"`
-	Logs           []EventLog `json:"logs"`
-	GmtCreate      string     `json:"gmt_create" db:"gmt_create"`
-	GmtModified    string     `json:"gmt_modified" db:"gmt_modified"`
+	EventId        int64         `json:"eventId" db:"event_id"`
+	ClientId       int64         `json:"clientId" db:"client_id"`
+	Model          string        `json:"model"`
+	Problem        string        `json:"problem" db:"event_description"`
+	MemberId       string        `json:"-" db:"member_id"`
+	Member         *PublicMember `json:"member"`
+	ClosedBy       string        `json:"-" db:"closed_by"`
+	ClosedByMember *PublicMember `json:"closedBy"`
+	Status         string        `json:"status"`
+	Logs           []EventLog    `json:"logs"`
+	GmtCreate      string        `json:"gmtCreate" db:"gmt_create"`
+	GmtModified    string        `json:"gmtModified" db:"gmt_modified"`
 }
 
 func CreatePublicEvent(e Event) PublicEvent {

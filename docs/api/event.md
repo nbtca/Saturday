@@ -57,61 +57,61 @@ nav_order: 2
 ## 获取指定事件
 
 ```
-GET /events/{event_id}
+GET /events/{eventId}
 ```
 
 ### 参数
 
 | 名称     | 类型   | in   | 描述   |
 | -------- | ------ | ---- | ------ |
-| event_id | string | path | 事件ID |
+| eventId | string | path | 事件ID |
 
 ### 示例
 
 #### 请求
 
 ```
-GET /members/event_id
+GET /members/eventId
 ```
 
 #### 响应
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "problem": "hackintosh",
   "member": {
-    "member_id": "2333333333",
+    "memberId": "2333333333",
     "alias": "滑稽",
     "role": "member",
     "profile": "relaxing",
     "avatar": "",
-    "created_by": "0000000000",
-    "gmt_create": "2022-04-23 15:49:59",
-    "gmt_modified": "2022-04-30 17:29:46"
+    "createdBy": "0000000000",
+    "gmtCreate": "2022-04-23 15:49:59",
+    "gmtModified": "2022-04-30 17:29:46"
   },
-  "closed_by": {},
+  "closedBy": {},
   "status": "accepted",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "accept",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -149,60 +149,60 @@ GET /events
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "problem": "hackintosh",
   "member": {
-    "member_id": "2333333333",
+    "memberId": "2333333333",
     "alias": "滑稽",
     "role": "member",
     "profile": "relaxing",
     "avatar": "",
-    "created_by": "0000000000",
-    "gmt_create": "2022-04-23 15:49:59",
-    "gmt_modified": "2022-04-30 17:29:46"
+    "createdBy": "0000000000",
+    "gmtCreate": "2022-04-23 15:49:59",
+    "gmtModified": "2022-04-30 17:29:46"
   },
-  "closed_by": {},
+  "closedBy": {},
   "status": "accepted",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "accept",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 },
 {
-  "event_id": 2,
-  "client_id": 2,
+  "eventId": 2,
+  "clientId": 2,
   "model": "",
   "problem": "下电影",
   "member": {},
-  "closed_by": {},
+  "closedBy": {},
   "status": "open",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -219,7 +219,7 @@ GET /events
 可以获取到事件中 client 的联系方式
 
 ```
-GET /member/events/{event_id}
+GET /member/events/{eventId}
 ```
 
 ### 参数
@@ -239,43 +239,43 @@ GET /member/events/1
 #### 响应
 ``` 
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone":"13333333333",
   "qq":"123456789",
   "contact_perference":"qq",
   "problem": "hackintosh",
   "member": {
-    "member_id": "2333333333",
+    "memberId": "2333333333",
     "alias": "滑稽",
     "role": "member",
     "profile": "relaxing",
     "avatar": "",
-    "created_by": "0000000000",
-    "gmt_create": "2022-04-23 15:49:59",
-    "gmt_modified": "2022-04-30 17:29:46"
+    "createdBy": "0000000000",
+    "gmtCreate": "2022-04-23 15:49:59",
+    "gmtModified": "2022-04-30 17:29:46"
   },
-  "closed_by": {},
+  "closedBy": {},
   "status": "accepted",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "accept",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -301,66 +301,66 @@ GET /member/events
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone":"13333333333",
   "qq":"123456789",
   "contact_perference":"qq",
   "problem": "hackintosh",
   "member": {
-    "member_id": "2333333333",
+    "memberId": "2333333333",
     "alias": "滑稽",
     "role": "member",
     "profile": "relaxing",
     "avatar": "",
-    "created_by": "0000000000",
-    "gmt_create": "2022-04-23 15:49:59",
-    "gmt_modified": "2022-04-30 17:29:46"
+    "createdBy": "0000000000",
+    "gmtCreate": "2022-04-23 15:49:59",
+    "gmtModified": "2022-04-30 17:29:46"
   },
-  "closed_by": {},
+  "closedBy": {},
   "status": "accepted",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "accept",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 },
 {
-  "event_id": 2,
-  "client_id": 2,
+  "eventId": 2,
+  "clientId": 2,
   "model": "",
   "phone":"13333333333",
   "qq":"123456789",
     "contact_perference":"qq",
   "problem": "下电影",
   "member": {},
-  "closed_by": {},
+  "closedBy": {},
   "status": "open",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -376,10 +376,10 @@ GET /member/events
 ## 认证成员接受事件
 
 + 事件状态变更为`accepted`
-+ 事件member_id变为成员id
++ 事件memberId变为成员id
 
 ```
-POST /member/events/{event_id}/accept
+POST /member/events/{eventId}/accept
 ```
 
 ### 参数
@@ -387,7 +387,7 @@ POST /member/events/{event_id}/accept
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| event_id       | string | path   | 事件ID |
+| eventId       | string | path   | 事件ID |
 
 ### 示例
 
@@ -401,43 +401,43 @@ POST /member/events/1/accept
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone":"13333333333",
   "qq":"123456789",
   "contact_perference":"qq",
   "problem": "hackintosh",
   "member": {
-    "member_id": "2333333333",
+    "memberId": "2333333333",
     "alias": "滑稽",
     "role": "member",
     "profile": "relaxing",
     "avatar": "",
-    "created_by": "0000000000",
-    "gmt_create": "2022-04-23 15:49:59",
-    "gmt_modified": "2022-04-30 17:29:46"
+    "createdBy": "0000000000",
+    "gmtCreate": "2022-04-23 15:49:59",
+    "gmtModified": "2022-04-30 17:29:46"
   },
-  "closed_by": {},
+  "closedBy": {},
   "status": "accepted",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "accept",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -456,7 +456,7 @@ POST /member/events/1/accept
 + 提醒管理员审核
 
 ```
-POST /member/events/{event_id}/commit
+POST /member/events/{eventId}/commit
 ```
 
 ### 参数
@@ -464,7 +464,7 @@ POST /member/events/{event_id}/commit
 | 名称           | 类型   | in     | 描述     |
 | -------------- | ------ | ------ | -------- |
 | Authorizeation | string | header |          |
-| event_id       | string | path   | 事件ID   |
+| eventId       | string | path   | 事件ID   |
 | content        | string | body   | 维修描述 |
 
 ### 示例
@@ -483,41 +483,41 @@ POST /member/events/1/commit
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone":"13333333333",
   "qq":"123456789",
   "contact_perference":"qq",
   "problem": "hackintosh",
-  "member_id": "2333333333",
-  "closed_by": "",
+  "memberId": "2333333333",
+  "closedBy": "",
   "status": "committed",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "accept",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     },
     {
-      "log_id": 3,
+      "logId": 3,
       "description": "重装系统",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "commit",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     },
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -533,7 +533,7 @@ POST /member/events/1/commit
 ## 认证成员修改事件提交
 
 ```
-PATCH /member/events/{event_id}/commit
+PATCH /member/events/{eventId}/commit
 ```
 
 ### 参数
@@ -541,7 +541,7 @@ PATCH /member/events/{event_id}/commit
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| event_id       | string | path   | 事件ID |
+| eventId       | string | path   | 事件ID |
 
 ### 示例
 
@@ -559,48 +559,48 @@ PATCH /member/events/1/commit
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone":"13333333333",
   "qq":"123456789",
   "contact_perference":"qq",
   "problem": "hackintosh",
-  "member_id": "2333333333",
-  "closed_by": "",
+  "memberId": "2333333333",
+  "closedBy": "",
   "status": "committed",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "accept",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     },
     {
-      "log_id": 3,
+      "logId": 3,
       "description": "重装系统",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "commit",
-      "gmt_create": "2022-05-10 11:05:18"
+      "gmtCreate": "2022-05-10 11:05:18"
     },
        {
-      "log_id": 4,
+      "logId": 4,
       "description": "重装系统(ghost)",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "alterCommit",
-      "gmt_create": "2022-05-10 12:03:18"
+      "gmtCreate": "2022-05-10 12:03:18"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -616,10 +616,10 @@ PATCH /member/events/1/commit
 ## 认证成员放弃事件
 
 + 事件状态变更为`open`
-+ 清空事件member_id字段
++ 清空事件memberId字段
 
 ```
-DELETE /member/events/{event_id}/accept
+DELETE /member/events/{eventId}/accept
 ```
 
 ### 参数
@@ -627,7 +627,7 @@ DELETE /member/events/{event_id}/accept
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| event_id       | string | path   | 事件ID |
+| eventId       | string | path   | 事件ID |
 
 ### 示例
 
@@ -641,41 +641,41 @@ DELETE /member/events/1/accept
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone":"13333333333",
   "qq":"123456789",
   "contact_perference":"qq",
   "problem": "hackintosh",
-  "member_id": "",
-  "closed_by": "",
+  "memberId": "",
+  "closedBy": "",
   "status": "open",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "accept",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     },
     {
-      "log_id": 3,
+      "logId": 3,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "drop",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     },
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -693,7 +693,7 @@ DELETE /member/events/1/accept
 + 事件状态变更为`accepted`
 
 ```
-DELETE /events/{event_id}/commit
+DELETE /events/{eventId}/commit
 ```
 
 ### 参数
@@ -701,7 +701,7 @@ DELETE /events/{event_id}/commit
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| event_id       | string | path   | 事件ID |
+| eventId       | string | path   | 事件ID |
 
 ### 示例
 
@@ -715,48 +715,48 @@ DELETE /events/events/1/commit
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone":"13333333333",
   "qq":"123456789",
   "contact_perference":"qq",
   "problem": "hackintosh",
-  "member_id": "2333333333",
-  "closed_by": "",
+  "memberId": "2333333333",
+  "closedBy": "",
   "status": "accepted",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "accept",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     },
     {
-      "log_id": 3,
+      "logId": 3,
       "description": "重装系统",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "commit",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     },
     {
-      "log_id": 4,
+      "logId": 4,
       "description": "",
-      "member_id": "0000000000",
+      "memberId": "0000000000",
       "action": "reject",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -772,10 +772,10 @@ DELETE /events/events/1/commit
 ## 管理员关闭事件
 
 + 事件状态变更为`closed`
-+ 事件closed_by字段变更为管理员id
++ 事件closedBy字段变更为管理员id
 
 ```
-POST /events/{event_id}/close
+POST /events/{eventId}/close
 ```
 
 ### 参数
@@ -783,7 +783,7 @@ POST /events/{event_id}/close
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| event_id       | string | path   | 事件ID |
+| eventId       | string | path   | 事件ID |
 
 ### 示例
 
@@ -797,66 +797,66 @@ POST /events/events/1/close
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone":"13333333333",
   "qq":"123456789",
   "contact_perference":"qq",
   "problem": "hackintosh",
-  "member_id": {
-    "member_id": "2333333333",
+  "memberId": {
+    "memberId": "2333333333",
     "alias": "滑稽",
     "role": "member",
     "profile": "relaxing",
     "avatar": "",
-    "created_by": "0000000000",
-    "gmt_create": "2022-04-23 15:49:59",
-    "gmt_modified": "2022-04-30 17:29:46"
+    "createdBy": "0000000000",
+    "gmtCreate": "2022-04-23 15:49:59",
+    "gmtModified": "2022-04-30 17:29:46"
   },
-  "closed_by": {
-    "member_id": "0000000000",
+  "closedBy": {
+    "memberId": "0000000000",
     "alias": "管理",
     "role": "admin",
     "profile": "",
     "avatar": "",
-    "created_by": "",
-    "gmt_create": "2022-04-30 17:28:42",
-    "gmt_modified": "2022-04-30 17:28:44"
+    "createdBy": "",
+    "gmtCreate": "2022-04-30 17:28:42",
+    "gmtModified": "2022-04-30 17:28:44"
   },
   "status": "closed",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "accept",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     },
     {
-      "log_id": 3,
+      "logId": 3,
       "description": "重装系统",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "commit",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     },
     {
-      "log_id": 4,
+      "logId": 4,
       "description": "",
-      "member_id": "0000000000",
+      "memberId": "0000000000",
       "action": "close",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -903,27 +903,27 @@ POST /client/event
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone": "13333333333",
   "qq": "123456789",
   "contact_perference":"qq",
   "problem": "装轮子",
-  "member_id": "",
-  "closed_by": "",
+  "memberId": "",
+  "closedBy": "",
   "status": "open",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -938,14 +938,14 @@ POST /client/event
 ## 报修人员更改事件
 
 ```
-PATCH /client/events/{event_id}
+PATCH /client/events/{eventId}
 ```
 ### 参数
 
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| event_id       | string | path   | 事件ID |
+| eventId       | string | path   | 事件ID |
 | phone          | number | body   |        |
 | qq             | number | body   |        |
 | problem        | string | body   |        |
@@ -968,34 +968,34 @@ POST /client/events/1/
 
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone": "13333333333",
   "qq": "123456789",
   "contact_perference":"qq",
   "problem": "装轮子",
-  "member_id": "",
-  "closed_by": "",
+  "memberId": "",
+  "closedBy": "",
   "status": "open",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "2333333333",
+      "memberId": "2333333333",
       "action": "update",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -1013,7 +1013,7 @@ POST /client/events/1/
 ## 报修人员取消事件
 
 ```
-DELETE /client/events/{event_id}
+DELETE /client/events/{eventId}
 ```
 
 
@@ -1028,34 +1028,34 @@ DELETE /client/events/1
 #### 响应
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone": "13333333333",
   "qq": "123456789",
   "contact_perference":"qq",
   "problem": "装轮子",
-  "member_id": "",
-  "closed_by": "",
+  "memberId": "",
+  "closedBy": "",
   "status": "canceled",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     },
     {
-      "log_id": 2,
+      "logId": 2,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "cancel",
-      "gmt_create": "2022-05-10 11:03:18"
+      "gmtCreate": "2022-05-10 11:03:18"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -1072,7 +1072,7 @@ DELETE /client/events/1
 ## 报修人员获取指定事件
 
 ```
-GET /client/events/{event_id}
+GET /client/events/{eventId}
 ```
 
 | 名称           | 类型   | in     | 描述 |
@@ -1091,27 +1091,27 @@ GET /client/events/1
 #### 响应
 ```
 {
-  "event_id": 1,
-  "client_id": 1,
+  "eventId": 1,
+  "clientId": 1,
   "model": "7590",
   "phone": "13333333333",
   "qq": "123456789",
   "contact_perference":"qq",
   "problem": "装轮子",
-  "member_id": "",
-  "closed_by": "",
+  "memberId": "",
+  "closedBy": "",
   "status": "open",
   "logs": [
     {
-      "log_id": 1,
+      "logId": 1,
       "description": "",
-      "member_id": "",
+      "memberId": "",
       "action": "create",
-      "gmt_create": "2022-05-10 11:00:26"
+      "gmtCreate": "2022-05-10 11:00:26"
     }
   ],
-  "gmt_create": "2022-05-10 10:23:54",
-  "gmt_modified": "2022-05-12 23:22:44"
+  "gmtCreate": "2022-05-10 10:23:54",
+  "gmtModified": "2022-05-12 23:22:44"
 }
 ```
 
@@ -1151,27 +1151,27 @@ GET /client/events
 ```
 [
   {
-    "event_id": 1,
-    "client_id": 1,
+    "eventId": 1,
+    "clientId": 1,
     "model": "7590",
     "phone": "13333333333",
     "qq": "123456789",
     "contact_perference":"qq",
     "problem": "装轮子",
-    "member_id": "",
-    "closed_by": "",
+    "memberId": "",
+    "closedBy": "",
     "status": "open",
     "logs": [
       {
-        "log_id": 1,
+        "logId": 1,
         "description": "",
-        "member_id": "",
+        "memberId": "",
         "action": "create",
-        "gmt_create": "2022-05-10 11:00:26"
+        "gmtCreate": "2022-05-10 11:00:26"
       }
     ],
-    "gmt_create": "2022-05-10 10:23:54",
-    "gmt_modified": "2022-05-12 23:22:44"
+    "gmtCreate": "2022-05-10 10:23:54",
+    "gmtModified": "2022-05-12 23:22:44"
   }
 ]
 ```
@@ -1191,7 +1191,7 @@ GET /client/events
 成员获取到一个用户的全部事件
 
 ```
-GET /clients/{client_id)/events
+GET /clients/{clientId)/events
 ```
 
 ### 参数
@@ -1214,24 +1214,24 @@ GET /clients/1/events
 ```
 [
   {
-    "event_id": 1,
-    "client_id": 1,
+    "eventId": 1,
+    "clientId": 1,
     "model": "7590",
     "problem": "装轮子",
-    "member_id": "",
-    "closed_by": "",
+    "memberId": "",
+    "closedBy": "",
     "status": "open",
     "logs": [
       {
-        "log_id": 1,
+        "logId": 1,
         "description": "",
-        "member_id": "",
+        "memberId": "",
         "action": "create",
-        "gmt_create": "2022-05-10 11:00:26"
+        "gmtCreate": "2022-05-10 11:00:26"
       }
     ],
-    "gmt_create": "2022-05-10 10:23:54",
-    "gmt_modified": "2022-05-12 23:22:44"
+    "gmtCreate": "2022-05-10 10:23:54",
+    "gmtModified": "2022-05-12 23:22:44"
   }
 ]
 ```
