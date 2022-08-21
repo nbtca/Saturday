@@ -83,10 +83,12 @@ BEGIN;
 INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (1, 'create');
 INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (2, 'accept');
 INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (3, 'cancel');
-INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (4, 'submit');
-INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (5, 'drop');
-INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (6, 'close');
-INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (7, 'reject');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (4, 'commit');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (5, 'alterCommit');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (6, 'drop');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (7, 'close');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (8, 'reject');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (8, 'update');
 COMMIT;
 
 -- ----------------------------
