@@ -12,15 +12,6 @@ type EventService struct {
 	model.Event
 }
 
-// not used
-func MakeEventService(id int64) (*EventService, error) {
-	event, err := EventServiceApp.GetEventById(id)
-	if err != nil {
-		return nil, err
-	}
-	return &EventService{event}, nil
-}
-
 func (service EventService) GetEventById(id int64) (model.Event, error) {
 	event, err := repo.GetEventById(id)
 	if err != nil {
@@ -33,6 +24,7 @@ func (service EventService) GetEventById(id int64) (model.Event, error) {
 	}
 	return event, nil
 }
+
 func (service EventService) GetMemberEvents(offset uint64, limit uint64, memberId string) ([]model.Event, error) {
 	return repo.GetMemberEvents(offset, limit, memberId)
 }

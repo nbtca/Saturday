@@ -3,7 +3,7 @@ package model
 import "database/sql"
 
 type Member struct {
-	MemberId    string `json:"member_id" db:"member_id"`
+	MemberId    string `json:"memberId" db:"member_id"`
 	Alias       string `json:"alias"`
 	Password    string `json:"-"`
 	Name        string `json:"name" `
@@ -13,13 +13,13 @@ type Member struct {
 	Phone       string `json:"phone" `
 	QQ          string `json:"qq" `
 	Avatar      string `json:"avatar"`
-	CreatedBy   string `json:"created_by" db:"created_by"`
-	GmtCreate   string `json:"gmt_create" db:"gmt_create"`
-	GmtModified string `json:"gmt_modified" db:"gmt_modified"`
+	CreatedBy   string `json:"createdBy" db:"created_by"`
+	GmtCreate   string `json:"gmtCreate" db:"gmt_create"`
+	GmtModified string `json:"gmtModified" db:"gmt_modified"`
 }
 
 type NullMember struct {
-	MemberId    sql.NullString `json:"member_id" db:"member_id"`
+	MemberId    sql.NullString `json:"memberId" db:"member_id"`
 	Alias       sql.NullString `json:"alias"`
 	Password    sql.NullString `json:"-"`
 	Name        sql.NullString `json:"name" `
@@ -29,9 +29,9 @@ type NullMember struct {
 	Phone       sql.NullString `json:"phone" `
 	QQ          sql.NullString `json:"qq" `
 	Avatar      sql.NullString `json:"avatar"`
-	CreatedBy   sql.NullString `json:"created_by" db:"created_by"`
-	GmtCreate   sql.NullString `json:"gmt_create" db:"gmt_create"`
-	GmtModified sql.NullString `json:"gmt_modified" db:"gmt_modified"`
+	CreatedBy   sql.NullString `json:"createdBy" db:"created_by"`
+	GmtCreate   sql.NullString `json:"gmtCreate" db:"gmt_create"`
+	GmtModified sql.NullString `json:"gmtModified" db:"gmt_modified"`
 }
 
 func (nm NullMember) Member() *Member {
@@ -67,7 +67,7 @@ func (nm NullMember) PublicMember() *PublicMember {
 }
 
 type MemberRoleRelation struct {
-	MemberId string `json:"member_id"`
+	MemberId string `json:"memberId"`
 	RoleId   int64  `json:"role_id"`
 }
 type Role struct {
@@ -76,14 +76,14 @@ type Role struct {
 }
 
 type PublicMember struct {
-	MemberId    string `json:"member_id" db:"member_id"`
+	MemberId    string `json:"memberId" db:"member_id"`
 	Alias       string `json:"alias"`
 	Role        string `json:"role"`
 	Profile     string `json:"profile"`
 	Avatar      string `json:"avatar"`
-	CreatedBy   string `json:"created_by" db:"created_by"`
-	GmtCreate   string `json:"gmt_create" db:"gmt_create"`
-	GmtModified string `json:"gmt_modified" db:"gmt_modified"`
+	CreatedBy   string `json:"createdBy" db:"created_by"`
+	GmtCreate   string `json:"gmtCreate" db:"gmt_create"`
+	GmtModified string `json:"gmtModified" db:"gmt_modified"`
 }
 
 func CreatePublicMember(m Member) PublicMember {

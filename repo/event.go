@@ -113,7 +113,7 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 		Set("problem", event.Problem).
 		Set("member_id", event.MemberId).
 		Set("closed_by", event.ClosedBy).
-		Set("gmt_modified", event.GmtModified).
+		// Set("gmt_modified", event.GmtModified).
 		Where(squirrel.Eq{"event_id": event.EventId}).ToSql()
 	conn, err := db.Beginx()
 	if err != nil {
@@ -136,16 +136,15 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 }
 
 func CreateEvent(event *model.Event) error {
-	date := util.GetDate()
-	event.GmtCreate = date
-	event.GmtModified = date
+	event.GmtCreate = util.GetDate()
+	event.GmtModified = util.GetDate()
 	createEventSql, args, _ := squirrel.Insert("event").Columns(
 		"event_id", "client_id", "model", "phone", "qq",
 		"contact_preference", "problem", "member_id", "closed_by",
 		"gmt_create", "gmt_modified").Values(
 		event.EventId, event.ClientId, event.Model, event.Phone, event.QQ,
 		event.ContactPreference, event.Problem, event.MemberId, event.ClosedBy,
-		date, date).ToSql()
+		event.GmtCreate, event.GmtModified).ToSql()
 	conn, err := db.Beginx()
 	if err != nil {
 		return err

@@ -17,7 +17,7 @@ nav_order: 3
 ## 获取指定报修人员
 
 ```
-GET /clients/{client_id}
+GET /clients/{clientId}
 ```
 
 
@@ -25,7 +25,7 @@ GET /clients/{client_id}
 ## 获取全部报修人员
 
 ```
-GET /clients/{client_id}
+GET /clients/{clientId}
 ```
 
 
@@ -58,7 +58,7 @@ POST /clients/token/wechat
 
 #### 请求
 
-// TODO {client_id} unknown
+// TODO {clientId} unknown
 
 ```
 POST /clients/token/wechat

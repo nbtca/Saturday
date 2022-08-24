@@ -18,13 +18,13 @@ func SetupRouter() *gin.Engine {
 	PublicGroup := Router.Group("/")
 	{
 		PublicGroup.GET("members/:MemberId", MemberRouterApp.GetPublicMemberById)
-		PublicGroup.GET("members/", MemberRouterApp.GetPublicMemberByPage)
+		PublicGroup.GET("members", MemberRouterApp.GetPublicMemberByPage)
 		PublicGroup.POST("members/:MemberId/token", MemberRouterApp.CreateToken)
 
 		PublicGroup.POST("clients/token/wechat", ClientRouterApp.CreateTokenViaWeChat)
 
 		PublicGroup.GET("events/:EventId", EventRouterApp.GetPublicEventById)
-		PublicGroup.GET("events/", EventRouterApp.GetPublicEventByPage)
+		PublicGroup.GET("events", EventRouterApp.GetPublicEventByPage)
 
 		PublicGroup.GET("setting", SettingRouterApp.GetMiniAppSetting)
 	}
@@ -56,7 +56,7 @@ func SetupRouter() *gin.Engine {
 	AdminGroup := Router.Group("/")
 	AdminGroup.Use(middleware.Auth("admin"))
 	{
-		AdminGroup.POST("/members/", MemberRouterApp.CreateMany)
+		AdminGroup.POST("/members", MemberRouterApp.CreateMany)
 		AdminGroup.POST("/members/:MemberId", MemberRouterApp.Create)
 		AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
 

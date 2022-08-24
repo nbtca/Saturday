@@ -4,10 +4,16 @@ import (
 	"saturday/repo"
 	"saturday/router"
 	"saturday/util"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	util.InitEnv()
+
+	if err := godotenv.Load(); err != nil {
+		util.Logger.Fatal("Error loading .env file")
+	}
+
 	util.InitValidator()
 
 	repo.InitDB()
