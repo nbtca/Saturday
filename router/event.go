@@ -108,7 +108,7 @@ func (EventRouter) AlterCommit(c *gin.Context) {
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
-	if err := service.EventServiceApp.Act(&event, identity, util.Commit, req.Content); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, util.AlterCommit, req.Content); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)

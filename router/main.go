@@ -42,6 +42,9 @@ func SetupRouter() *gin.Engine {
 
 		MemberGroup.GET("member/events/", EventRouterApp.GetMemberEventByPage)
 
+		// IMPORTANT !!!
+		// this middleware is REQUIRED before all handlers that uses event action
+		// or there will be panic
 		MemberGroup.Use(middleware.EventActionPreProcess)
 		MemberGroup.GET("member/events/:EventId", EventRouterApp.GetEventById)
 		MemberGroup.POST("member/events/:EventId/accept", EventRouterApp.Accept)
@@ -60,6 +63,7 @@ func SetupRouter() *gin.Engine {
 		AdminGroup.POST("/members/:MemberId", MemberRouterApp.Create)
 		AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
 
+		AdminGroup.Use(middleware.EventActionPreProcess)
 		AdminGroup.DELETE("/events/:EventId/commit", EventRouterApp.RejectCommit)
 		AdminGroup.POST("/events/:EventId/close", EventRouterApp.Close)
 
@@ -70,6 +74,8 @@ func SetupRouter() *gin.Engine {
 	{
 		ClientGroup.GET("/client/events/:EventId", EventRouterApp.GetEventById)
 		ClientGroup.GET("/client/events/", EventRouterApp.GetClientEventByPage)
+
+		ClientGroup.Use(middleware.EventActionPreProcess)
 		ClientGroup.POST("/client/events", EventRouterApp.Create)
 		ClientGroup.PATCH("/client/events/:EventId", EventRouterApp.Update)
 		ClientGroup.DELETE("/client/events/:EventId", EventRouterApp.Cancel)
