@@ -3,9 +3,12 @@ package service
 import (
 	"fmt"
 	"net/http"
+	"net/rpc"
 	"saturday/model"
 	"saturday/repo"
 	"saturday/util"
+
+	"gopkg.in/gomail.v2"
 )
 
 type EventService struct {
@@ -66,12 +69,75 @@ func (service EventService) CreateEvent(event *model.Event) error {
 	if err := service.Act(event, identity, util.Create); err != nil {
 		return err
 	}
+	if err := service.SendActionNotify(event, "新的维修事件"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service EventService) SendActionNotify(event *model.Event, subject string) error {
+	if event == nil {
+		return util.MakeInternalServerError()
+	}
+	if err := service.SendActionNotifyViaRPC(event, subject); err != nil {
+		return service.SendActionNotifyViaMail(event, subject)
+	}
+	return nil
+}
+func (service EventService) SendActionNotifyViaRPC(event *model.Event, subject string) error {
+	conn, err := rpc.DialHTTP("tcp", ":8000")
+	if err != nil {
+		return err
+	}
+	req := model.EventActionNotifyRequest{
+		Subject:   subject,
+		Model:     event.Model,
+		Problem:   event.Problem,
+		Link:      "A Link to Sunday",
+		GmtCreate: event.GmtCreate,
+	}
+	res := model.EventActionNotifyResponse{}
+	if err = conn.Call("Notify.EventCreate", req, &res); err != nil {
+		util.Logger.Error(err)
+		return err
+	}
+	if !res.Success {
+		return fmt.Errorf("failed to send action notify via rpc")
+	}
+	return nil
+}
+
+func (service EventService) SendActionNotifyViaMail(event *model.Event, subject string) error {
+	m := gomail.NewMessage()
+	// TODO
+	m.SetHeader("To", "709196390@qq.com")
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", fmt.Sprintf(
+		`<div>
+		<span style="padding-right:10px;">型号</span>
+		<span>%s</span>
+	</div>
+	<div>
+		<span style="padding-right:10px;">问题描述</span>
+		<span>%s</span>
+	</div>
+	<div>
+		<span style="padding-right:10px;">创建时间</span>
+		<span>%s</span>
+	</div>
+	<div>
+		<a style="padding-right:10px;">在 Sunday 中处理</a>
+	</div>`, event.Model, event.Problem, event.GmtCreate))
+
+	if err := util.SendMail(m); err != nil {
+		return util.MakeInternalServerError().SetMessage("fail on mail")
+	}
 	return nil
 }
 
 /*
- this function validates the action and then perform action to the event.
- it also persists the event and event log.
+this function validates the action and then perform action to the event.
+it also persists the event and event log.
 */
 func (service EventService) Act(event *model.Event, identity model.Identity, action util.Action, description ...string) error {
 	handler := util.MakeEventActionHandler(action, event, identity)

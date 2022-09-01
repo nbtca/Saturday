@@ -22,8 +22,16 @@
 4. 添加配置文件
 
    在项目根目录下新建`.env`文件，添加`DB_URL`
-   ```sh
-   echo DB_URL="<账号>:<密码>@<地址>/<数据库名称>" > .env
+   ```
+   DB_URL=<USER>:<PASSWORD>@/<ADDRESS>
+
+   ACCESS_KEY_ID=<ACCESS_KEY_ID>
+   ACCESS_KEY_SECRET=<ACCESS_KEY_SECRET>
+  
+   MAIL_HOST=<MAIL_HOST>
+   MAIL_PORT=<MAIL_PORT>
+   MAIL_USERNAME=<MAIL_USERNAME>
+   MAIL_PASSWORD=<MAIL_PASSWORD>
    ```
 5. 启动服务
    在项目根目录下运行
