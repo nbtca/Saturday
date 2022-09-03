@@ -62,8 +62,8 @@ GET /events/{eventId}
 
 ### 参数
 
-| 名称     | 类型   | in   | 描述   |
-| -------- | ------ | ---- | ------ |
+| 名称    | 类型   | in   | 描述   |
+| ------- | ------ | ---- | ------ |
 | eventId | string | path | 事件ID |
 
 ### 示例
@@ -387,7 +387,7 @@ POST /member/events/{eventId}/accept
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| eventId       | string | path   | 事件ID |
+| eventId        | string | path   | 事件ID |
 
 ### 示例
 
@@ -464,7 +464,7 @@ POST /member/events/{eventId}/commit
 | 名称           | 类型   | in     | 描述     |
 | -------------- | ------ | ------ | -------- |
 | Authorizeation | string | header |          |
-| eventId       | string | path   | 事件ID   |
+| eventId        | string | path   | 事件ID   |
 | content        | string | body   | 维修描述 |
 
 ### 示例
@@ -541,7 +541,7 @@ PATCH /member/events/{eventId}/commit
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| eventId       | string | path   | 事件ID |
+| eventId        | string | path   | 事件ID |
 
 ### 示例
 
@@ -627,7 +627,7 @@ DELETE /member/events/{eventId}/accept
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| eventId       | string | path   | 事件ID |
+| eventId        | string | path   | 事件ID |
 
 ### 示例
 
@@ -701,7 +701,7 @@ DELETE /events/{eventId}/commit
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| eventId       | string | path   | 事件ID |
+| eventId        | string | path   | 事件ID |
 
 ### 示例
 
@@ -783,7 +783,7 @@ POST /events/{eventId}/close
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| eventId       | string | path   | 事件ID |
+| eventId        | string | path   | 事件ID |
 
 ### 示例
 
@@ -945,7 +945,7 @@ PATCH /client/events/{eventId}
 | 名称           | 类型   | in     | 描述   |
 | -------------- | ------ | ------ | ------ |
 | Authorizeation | string | header |        |
-| eventId       | string | path   | 事件ID |
+| eventId        | string | path   | 事件ID |
 | phone          | number | body   |        |
 | qq             | number | body   |        |
 | problem        | string | body   |        |
