@@ -2,7 +2,7 @@ package util
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 )
@@ -21,7 +21,7 @@ func CodeToSession(code string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return "", err
 	}

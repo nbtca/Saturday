@@ -32,7 +32,6 @@ func GetMemberById(id string) (model.Member, error) {
 	statement, args, _ := getMemberStatement().Where(squirrel.Eq{"member_id": id}).ToSql()
 	member := model.Member{}
 	if err := db.Get(&member, statement, args...); err != nil {
-		// empty selection is allowed
 		if err == sql.ErrNoRows {
 			return model.Member{}, nil
 		}
@@ -52,7 +51,7 @@ func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
 
 func CreateMember(member *model.Member) error {
 	member.GmtCreate = util.GetDate()
-	member.GmtCreate = util.GetDate()
+	member.GmtModified = util.GetDate()
 	sqlMember, argsMember, _ := squirrel.Insert("member").Columns(
 		"member_id", "alias", "name", "section", "profile", "avatar",
 		"phone", "qq", "created_by", "gmt_create", "gmt_modified").Values(
@@ -64,8 +63,12 @@ func CreateMember(member *model.Member) error {
 		return err
 	}
 	defer util.RollbackOnErr(err, conn)
-	conn.Exec(sqlMember, argsMember...)
-	SetMemberRole(member.MemberId, member.Role, conn)
+	if _, err = conn.Exec(sqlMember, argsMember...); err != nil {
+		return err
+	}
+	if err = SetMemberRole(member.MemberId, member.Role, conn); err != nil {
+		return err
+	}
 	if err = conn.Commit(); err != nil {
 		return err
 	}
@@ -77,9 +80,11 @@ func UpdateMember(member model.Member) error {
 		Set("alias", member.Alias).
 		Set("name", member.Name).
 		Set("section", member.Section).
+		Set("password", member.Password).
 		Set("profile", member.Profile).
 		Set("phone", member.Phone).
 		Set("qq", member.QQ).
+		Set("avatar", member.Avatar).
 		Set("gmt_modified", util.GetDate()).
 		Where(squirrel.Eq{"member_id": member.MemberId}).ToSql()
 	conn, err := db.Beginx()
@@ -87,9 +92,10 @@ func UpdateMember(member model.Member) error {
 		return err
 	}
 	defer util.RollbackOnErr(err, conn)
-	conn.Exec(sql, args...)
-	err = SetMemberRole(member.MemberId, member.Role, conn)
-	if err != nil {
+	if _, err = conn.Exec(sql, args...); err != nil {
+		return err
+	}
+	if err = SetMemberRole(member.MemberId, member.Role, conn); err != nil {
 		return err
 	}
 	if err = conn.Commit(); err != nil {

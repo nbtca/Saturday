@@ -15,6 +15,7 @@ func main() {
 	}
 
 	util.InitValidator()
+	util.InitDialer()
 
 	repo.InitDB()
 	defer repo.CloseDB()

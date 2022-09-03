@@ -26,7 +26,7 @@ func (MemberRouter) GetPublicMemberById(c *gin.Context) {
 }
 
 func (MemberRouter) GetPublicMemberByPage(c *gin.Context) {
-	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
+	offset, limit, err := util.GetPaginationQuery(c)
 	if err != nil {
 		c.Error(err)
 		return
@@ -49,7 +49,7 @@ func (MemberRouter) GetMemberById(c *gin.Context) {
 }
 
 func (MemberRouter) CreateToken(c *gin.Context) {
-	req := &dto.CreateMemberTokenReq{}
+	req := &dto.CreateMemberTokenRequest{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
@@ -76,7 +76,7 @@ func (MemberRouter) CreateToken(c *gin.Context) {
 }
 
 func (MemberRouter) Create(c *gin.Context) {
-	req := &dto.CreateMemberReq{}
+	req := &dto.CreateMemberRequest{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
@@ -104,7 +104,7 @@ func (MemberRouter) CreateMany(c *gin.Context) {
 }
 
 func (MemberRouter) Activate(c *gin.Context) {
-	req := &dto.ActivateMemberReq{}
+	req := &dto.ActivateMemberRequest{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
@@ -134,7 +134,7 @@ func (MemberRouter) Activate(c *gin.Context) {
 }
 
 func (MemberRouter) Update(c *gin.Context) {
-	req := &dto.UpdateMemberReq{}
+	req := &dto.UpdateMemberRequest{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
@@ -170,7 +170,7 @@ func (MemberRouter) Update(c *gin.Context) {
 }
 
 func (MemberRouter) UpdateBasic(c *gin.Context) {
-	req := &dto.UpdateMemberBasicReq{}
+	req := &dto.UpdateMemberBasicRequest{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
@@ -187,7 +187,7 @@ func (MemberRouter) UpdateBasic(c *gin.Context) {
 	if req.Role != "" {
 		member.Role = req.Role
 	}
-	err = service.MemberServiceApp.UpdateBasic(member)
+	err = service.MemberServiceApp.UpdateMember(member)
 	if util.CheckError(c, err) {
 		return
 	}
@@ -195,7 +195,21 @@ func (MemberRouter) UpdateBasic(c *gin.Context) {
 }
 
 func (MemberRouter) UpdateAvatar(c *gin.Context) {
-	//TODO not implemented
+	memberId := c.GetString("id")
+	req := &dto.UpdateAvatarRequest{}
+	if err := util.BindAll(c, req); util.CheckError(c, err) {
+		return
+	}
+	member, err := service.MemberServiceApp.GetMemberById(memberId)
+	if util.CheckError(c, err) {
+		return
+	}
+	member.Avatar = req.Url
+	err = service.MemberServiceApp.UpdateMember(member)
+	if util.CheckError(c, err) {
+		return
+	}
+	c.JSON(200, member)
 
 }
 

@@ -30,7 +30,7 @@ func SetupRouter() *gin.Engine {
 	}
 
 	Router.PATCH("member/activate",
-		middleware.Auth("member_inactive,admin_inactive"),
+		middleware.Auth("member_inactive", "admin_inactive"),
 		MemberRouterApp.Activate)
 
 	MemberGroup := Router.Group("/")
@@ -40,7 +40,7 @@ func SetupRouter() *gin.Engine {
 		MemberGroup.PUT("/member", MemberRouterApp.Update)
 		MemberGroup.PATCH("/member/avatar", MemberRouterApp.UpdateAvatar)
 
-		MemberGroup.GET("member/events/", EventRouterApp.GetMemberEventByPage)
+		MemberGroup.GET("member/events", EventRouterApp.GetMemberEventByPage)
 
 		// IMPORTANT !!!
 		// this middleware is REQUIRED before all handlers that uses event action
@@ -52,7 +52,7 @@ func SetupRouter() *gin.Engine {
 		MemberGroup.POST("member/events/:EventId/commit", EventRouterApp.Commit)
 		MemberGroup.PATCH("member/events/:EventId/commit", EventRouterApp.AlterCommit)
 
-		MemberGroup.GET("client/:ClientId/events/", EventRouterApp.GetEventByClientAndPage)
+		MemberGroup.GET("client/:ClientId/events", EventRouterApp.GetEventByClientAndPage)
 
 	}
 
@@ -80,6 +80,8 @@ func SetupRouter() *gin.Engine {
 		ClientGroup.PATCH("/client/events/:EventId", EventRouterApp.Update)
 		ClientGroup.DELETE("/client/events/:EventId", EventRouterApp.Cancel)
 	}
+
+	Router.POST("/upload", middleware.Auth("member", "admin", "client"), CommonRouterApp.Upload)
 
 	return Router
 }

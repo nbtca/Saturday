@@ -93,7 +93,7 @@ func MakeValidationError(resource string, err error) ServiceError {
 		return serviceError
 	}
 	for _, fe := range ve {
-		serviceError.AddDetailError(resource, fe.Field(), GetErrorMessage(fe))
+		serviceError = serviceError.AddDetailError(resource, fe.Field(), GetErrorMessage(fe))
 	}
 	return serviceError
 }
