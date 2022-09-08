@@ -88,7 +88,7 @@ INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (5, 'alterCommit
 INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (6, 'drop');
 INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (7, 'close');
 INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (8, 'reject');
-INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (8, 'update');
+INSERT INTO `event_action` (`event_action_id`, `action`) VALUES (9, 'update');
 COMMIT;
 
 -- ----------------------------
