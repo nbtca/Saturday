@@ -90,7 +90,7 @@ func (EventRouter) Commit(c *gin.Context) {
 	raw_Event, _ := c.Get("event")
 	event := raw_Event.(model.Event)
 	identity := util.GetIdentity(c)
-	req := &dto.CommitReq{}
+	req := &dto.CommitRequest{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
@@ -104,11 +104,11 @@ func (EventRouter) AlterCommit(c *gin.Context) {
 	raw_Event, _ := c.Get("event")
 	event := raw_Event.(model.Event)
 	identity := util.GetIdentity(c)
-	req := &dto.AlterCommitReq{}
+	req := &dto.AlterCommitRequest{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
-	if err := service.EventServiceApp.Act(&event, identity, util.Commit, req.Content); util.CheckError(c, err) {
+	if err := service.EventServiceApp.Act(&event, identity, util.AlterCommit, req.Content); util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
@@ -150,7 +150,7 @@ func (EventRouter) GetClientEventByPage(c *gin.Context) {
 }
 
 func (EventRouter) Create(c *gin.Context) {
-	req := &dto.CreateEventReq{}
+	req := &dto.CreateEventRequest{}
 	id, _ := strconv.Atoi(util.GetIdentity(c).Id)
 	req.ClientId = int64(id)
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
@@ -175,7 +175,7 @@ func (EventRouter) Update(c *gin.Context) {
 	rawEvent, _ := c.Get("event")
 	event := rawEvent.(model.Event)
 	identity := util.GetIdentity(c)
-	req := &dto.UpdateReq{}
+	req := &dto.UpdateRequest{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}

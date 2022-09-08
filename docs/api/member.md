@@ -13,9 +13,9 @@ nav_order: 1
 - [获取全部成员 已完成](#获取全部成员-已完成)
 - [创建成员 Token 已完成](#创建成员-token-已完成)
 - [获取认证成员信息 已完成](#获取认证成员信息-已完成)
-- [成员激活 未完成](#成员激活-未完成)
-- [成员更新信息 未完成](#成员更新信息-未完成)
-- [成员修改头像 未完成](#成员修改头像-未完成)
+- [成员激活](#成员激活)
+- [成员更新信息](#成员更新信息)
+- [成员修改头像 已完成](#成员修改头像-已完成)
 - [创建成员 已完成](#创建成员-已完成)
 - [创建多个成员 未完成](#创建多个成员-未完成)
 - [修改成员基本信息 已完成](#修改成员基本信息-已完成)
@@ -31,8 +31,8 @@ GET /members/{memberId}
 #### 参数
 
 
-| 名称      | 类型    | in   | 描述 |
-| --------- | ------- | ---- | ---- |
+| 名称     | 类型    | in   | 描述 |
+| -------- | ------- | ---- | ---- |
 | memberId | integer | path |      |
 
 #### 示例
@@ -130,10 +130,10 @@ POST /members/{memberId}/token
 
 #### 参数
 
-| 名称      | 类型   | in   | 描述 |
-| --------- | ------ | ---- | ---- |
+| 名称     | 类型   | in   | 描述 |
+| -------- | ------ | ---- | ---- |
 | memberId | string | path | 学号 |
-| password  | string | body | 密码 |
+| password | string | body | 密码 |
 
 #### 示例
 
@@ -296,7 +296,7 @@ PUT /member
 | --------------- | ------- | ------ | ---- |
 | Authorization   | string  | header |      |
 | alias `可选`    | string  | body   | 昵称 |
-| memberId       | integer | path   | 学号 |
+| memberId        | integer | path   | 学号 |
 | phone `可选`    | string  | body   |      |
 | qq `可选`       | string  | body   |      |
 | avatar `可选`   | string  | body   | 头像 |
@@ -347,11 +347,56 @@ PUT /member
 | 200              | ok                   |
 | 422              | unprocessable entity |
 
-## 成员修改头像 未完成
+## 成员修改头像 已完成
 
 ```
 PATCH /member/avatar
 ```
+#### 参数
+
+| 名称          | 类型   | in     | 描述 |
+| ------------- | ------ | ------ | ---- |
+| Authorization | string | header |      |
+| url           | string | body   |      |
+
+#### 示例
+
+##### 请求
+
+```
+PATCH /member/avatar
+
+{
+  url:"https://sunday-res.oss-cn-hangzhou.aliyuncs.com/weekend/1662184635.jpg"
+}
+```
+
+##### 响应
+
+```
+{
+  "memberId": "3000000000",
+  "alias": "小稽",
+  "name": "滑小稽",
+  "section": "计算机233",
+  "role": "member_inactive",
+  "profile": "。。。",
+  "phone": "",
+  "qq": "123456",
+  "avatar": "https://sunday-res.oss-cn-hangzhou.aliyuncs.com/weekend/1662184635.jpg",
+  "createdBy": "2333333333",
+  "gmtCreate": "2022-04-30 23:06:44",
+  "gmtModified": "2022-04-30 23:06:44"
+}
+```
+
+#### Http 状态码
+
+| HTTP Status Code | 描述                 |
+| ---------------- | -------------------- |
+| 200              | OK                   |
+| 422              | Unprocessable Entity |
+
 
 ## 创建成员 已完成
 
@@ -366,7 +411,7 @@ POST /members/{memberId}
 | 名称          | 类型    | in     | 描述 |
 | ------------- | ------- | ------ | ---- |
 | Authorization | string  | header |      |
-| memberId     | integer | path   | 学号 |
+| memberId      | integer | path   | 学号 |
 | name          | string  | body   | 姓名 |
 | section       | string  | body   | 班级 |
 | role          | string  | body   | 权限 |
@@ -438,7 +483,7 @@ PUT /members/{memberId}
 | 名称          | 类型    | in     | 描述 |
 | ------------- | ------- | ------ | ---- |
 | Authorization | string  | header |      |
-| memberId     | integer | path   | 学号 |
+| memberId      | integer | path   | 学号 |
 | name          | string  | body   | 姓名 |
 | section       | string  | body   | 班级 |
 | role          | string  | body   | 权限 |

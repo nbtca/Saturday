@@ -12,11 +12,11 @@ import (
 type ClientRouter struct{}
 
 func (ClientRouter) CreateTokenViaWeChat(c *gin.Context) {
-	wxLoginReq := &dto.WxLoginReq{}
-	if err := util.BindAll(c, wxLoginReq); util.CheckError(c, err) {
+	wxLoginRequest := &dto.WxLoginRequest{}
+	if err := util.BindAll(c, wxLoginRequest); util.CheckError(c, err) {
 		return
 	}
-	openid, err := util.CodeToSession(wxLoginReq.Code)
+	openid, err := util.CodeToSession(wxLoginRequest.Code)
 	if util.CheckError(c, err) {
 		return
 	}

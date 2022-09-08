@@ -2,7 +2,7 @@ package dto
 
 import "saturday/model"
 
-type WxLoginReq struct {
+type WxLoginRequest struct {
 	Code string `json:"code" binding:"required"`
 }
 

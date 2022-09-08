@@ -44,7 +44,6 @@ func (service *MemberService) GetPublicMembers(offset uint64, limit uint64) ([]m
 
 func (service *MemberService) CreateMember(member *model.Member) error {
 	if member.Role != "admin" && member.Role != "member" {
-		// TODO member_inactive
 		return util.
 			MakeServiceError(http.StatusUnprocessableEntity).
 			SetMessage("Validation Failed").
@@ -55,8 +54,13 @@ func (service *MemberService) CreateMember(member *model.Member) error {
 		return err
 	}
 	if exist {
-		error := util.MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
-		return error
+		return util.MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
+	}
+	if member.Role == "member" {
+		member.Role = "member_inactive"
+	}
+	if member.Role == "admin" {
+		member.Role = "admin_inactive"
 	}
 	if err := repo.CreateMember(member); err != nil {
 		return err
@@ -69,22 +73,22 @@ func (service *MemberService) CreateToken(member model.Member) (string, error) {
 	return res, err
 }
 
-func (service *MemberService) UpdateBasic(member model.Member) error {
-	exist, err := repo.ExistRole(member.Role)
-	if err != nil {
-		return err
-	}
-	if !exist {
-		return util.
-			MakeServiceError(http.StatusUnprocessableEntity).
-			SetMessage("Validation Failed").
-			AddDetailError("member", "role", "invalid role")
-	}
-	if err := repo.UpdateMember(member); err != nil {
-		return err
-	}
-	return nil
-}
+// func (service *MemberService) UpdateBasic(member model.Member) error {
+// 	exist, err := repo.ExistRole(member.Role)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if !exist {
+// 		return util.
+// 			MakeServiceError(http.StatusUnprocessableEntity).
+// 			SetMessage("Validation Failed").
+// 			AddDetailError("member", "role", "invalid role")
+// 	}
+// 	if err := repo.UpdateMember(member); err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (service *MemberService) UpdateMember(member model.Member) error {
 	exist, err := repo.ExistRole(member.Role)

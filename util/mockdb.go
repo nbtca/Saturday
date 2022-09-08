@@ -2,8 +2,8 @@ package util
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"path"
 	"strings"
@@ -89,7 +89,7 @@ func (m *MockDB) Start() (*sqlx.DB, error) {
 
 func (m *MockDB) SetSchema() error {
 	if m.schema == "" {
-		b, err := ioutil.ReadFile(path.Join(m.path, SQL_FILE))
+		b, err := os.ReadFile(path.Join(m.path, SQL_FILE))
 		if err != nil {
 			return err
 		}
@@ -111,8 +111,8 @@ func (m *MockDB) Close() {
 }
 
 /*
-	assetsPath should be the relative path to the assets folder,
-	MockDB needs to read the dockerfile located in the assets folder.
+assetsPath should be the relative path to the assets folder,
+MockDB needs to read the dockerfile located in the assets folder.
 */
 func MakeMockDB(assetsPath string) *MockDB {
 	return &MockDB{
