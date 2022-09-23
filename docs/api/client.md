@@ -51,17 +51,18 @@ POST /clients/token/wechat
 
 | 名称 | 类型   | in   | 描述          |
 | ---- | ------ | ---- | ------------- |
-| code | String | path | wx.login.code |
+| code | String | body | wx.login.code |
 
 
 ### 示例
 
 #### 请求
 
-// TODO {clientId} unknown
-
 ```
 POST /clients/token/wechat
+{
+  "code":"234242342342342432"
+}
 ```
 
 #### 响应

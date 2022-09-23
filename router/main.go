@@ -73,10 +73,10 @@ func SetupRouter() *gin.Engine {
 	ClientGroup.Use(middleware.Auth("client"))
 	{
 		ClientGroup.GET("/client/events/:EventId", EventRouterApp.GetEventById)
-		ClientGroup.GET("/client/events/", EventRouterApp.GetClientEventByPage)
+		ClientGroup.GET("/client/events", EventRouterApp.GetClientEventByPage)
+		ClientGroup.POST("/client/event", EventRouterApp.Create)
 
 		ClientGroup.Use(middleware.EventActionPreProcess)
-		ClientGroup.POST("/client/events", EventRouterApp.Create)
 		ClientGroup.PATCH("/client/events/:EventId", EventRouterApp.Update)
 		ClientGroup.DELETE("/client/events/:EventId", EventRouterApp.Cancel)
 	}

@@ -894,7 +894,7 @@ POST /client/event
 {
   "phone": "13333333333",
   "qq": "123456789",
-  “contact_perference": "phone",
+  "contact_perference": "phone",
   "problem": "装轮子"
 }
 ```

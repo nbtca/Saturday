@@ -69,8 +69,9 @@ func (service EventService) CreateEvent(event *model.Event) error {
 	if err := service.Act(event, identity, util.Create); err != nil {
 		return err
 	}
+	
 	if err := service.SendActionNotify(event, "新的维修事件"); err != nil {
-		return err
+		util.Logger.Error(err)
 	}
 	return nil
 }
