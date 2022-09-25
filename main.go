@@ -21,7 +21,7 @@ func main() {
 	defer repo.CloseDB()
 
 	r := router.SetupRouter()
-	r.Run(":8080")
+	r.Run(":4000")
 
 	util.Logger.Info("Starting server...")
 }
