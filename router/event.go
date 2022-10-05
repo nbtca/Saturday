@@ -45,7 +45,9 @@ func (EventRouter) GetEventById(c *gin.Context) {
 		return
 	}
 	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
-	if event.MemberId != util.GetIdentity(c).Id {
+	id := util.GetIdentity(c)
+	ifClientId, _ := strconv.ParseInt(id.Id, 10, 64)
+	if event.MemberId != id.Id && event.ClientId != ifClientId {
 		c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
 			SetMessage("not authorized").
 			Build())
