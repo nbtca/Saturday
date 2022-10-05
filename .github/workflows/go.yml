@@ -40,5 +40,4 @@ jobs:
           connect_timeout: 10s
           script: |
             cd /home/ubuntu/weekend/saturday
-            export GIN_MODE=release
             nohup /home/ubuntu/weekend/saturday/saturday&

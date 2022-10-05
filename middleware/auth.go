@@ -36,8 +36,6 @@ func Auth(role ...Role) func(c *gin.Context) {
 				return
 			}
 		}
-		c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnprocessableEntity).
-			Build())
 		c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
 			SetMessage("not authorized").
 			Build())
