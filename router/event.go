@@ -1,6 +1,7 @@
 package router
 
 import (
+	"net/http"
 	"saturday/model"
 	"saturday/model/dto"
 	"saturday/service"
@@ -44,6 +45,12 @@ func (EventRouter) GetEventById(c *gin.Context) {
 		return
 	}
 	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
+	if event.MemberId != util.GetIdentity(c).Id {
+		c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
+			SetMessage("not authorized").
+			Build())
+		return
+	}
 	if util.CheckError(c, err) {
 		return
 	}

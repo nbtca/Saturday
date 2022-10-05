@@ -15,7 +15,8 @@ func (service *MemberService) GetMemberById(id string) (model.Member, error) {
 		return model.Member{}, err
 	}
 	if member == (model.Member{}) {
-		error := util.MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed")
+		error := util.MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed").
+			AddDetailError("member", "memberId", "invalid memberId")
 		return member, error
 	} else {
 		return member, nil
