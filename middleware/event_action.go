@@ -9,9 +9,9 @@ import (
 )
 
 /*
- Get event and put to context, and set role to member
- if event's member field equals to id. You are supposed
- to call this before any route that performs event action.
+Get event and put to context, and set role to member
+if event's member field equals to id. You are supposed
+to call this before any route that performs event action.
 */
 func EventActionPreProcess(c *gin.Context) {
 	rawEventId := c.Param("EventId")
@@ -30,6 +30,11 @@ func EventActionPreProcess(c *gin.Context) {
 	if role == "member" && event.MemberId == id {
 		// set role to current member
 		c.Set("role", "member_current")
+	}
+	clientId, _ := strconv.ParseInt(id, 10, 64)
+	if role == "client" && event.ClientId == clientId {
+		// set role to current client
+		c.Set("role", "client_current")
 	}
 	c.Set("event", event)
 }
