@@ -41,18 +41,19 @@ func SetupRouter() *gin.Engine {
 		MemberGroup.PATCH("/member/avatar", MemberRouterApp.UpdateAvatar)
 
 		MemberGroup.GET("member/events", EventRouterApp.GetMemberEventByPage)
-
-		// IMPORTANT !!!
-		// this middleware is REQUIRED before all handlers that uses event action
-		// or there will be panic
-		MemberGroup.Use(middleware.EventActionPreProcess)
 		MemberGroup.GET("member/events/:EventId", EventRouterApp.GetEventById)
+		/*
+			!!! IMPORTANT !!!
+			this middleware is REQUIRED before all handlers that uses event action (except create)
+			or there will be panic
+		*/
+		MemberGroup.Use(middleware.EventActionPreProcess)
 		MemberGroup.POST("member/events/:EventId/accept", EventRouterApp.Accept)
 		MemberGroup.DELETE("member/events/:EventId/accept", EventRouterApp.Drop)
 		MemberGroup.POST("member/events/:EventId/commit", EventRouterApp.Commit)
 		MemberGroup.PATCH("member/events/:EventId/commit", EventRouterApp.AlterCommit)
 
-		MemberGroup.GET("client/:ClientId/events", EventRouterApp.GetEventByClientAndPage)
+		// MemberGroup.GET("client/:ClientId/events", EventRouterApp.GetEventByClientAndPage)
 
 	}
 
