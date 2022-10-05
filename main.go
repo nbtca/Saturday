@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+	"os"
 	"saturday/repo"
 	"saturday/router"
 	"saturday/util"
@@ -21,7 +23,12 @@ func main() {
 	defer repo.CloseDB()
 
 	r := router.SetupRouter()
-	r.Run(":4000")
 
-	util.Logger.Info("Starting server...")
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
+	r.Run(":" + port)
+
+	util.Logger.Info("Starting server at %v...", port)
 }
