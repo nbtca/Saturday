@@ -11,9 +11,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-type EventService struct {
-	model.Event
-}
+type EventService struct {}
 
 func (service EventService) GetEventById(id int64) (model.Event, error) {
 	event, err := repo.GetEventById(id)
@@ -69,7 +67,7 @@ func (service EventService) CreateEvent(event *model.Event) error {
 	if err := service.Act(event, identity, util.Create); err != nil {
 		return err
 	}
-	
+
 	if err := service.SendActionNotify(event, "新的维修事件"); err != nil {
 		util.Logger.Error(err)
 	}

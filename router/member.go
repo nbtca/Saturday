@@ -10,8 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type MemberRouter struct {
-}
+type MemberRouter struct{}
 
 func (MemberRouter) GetPublicMemberById(c *gin.Context) {
 	memberId := &dto.MemberId{}
@@ -61,6 +60,7 @@ func (MemberRouter) CreateToken(c *gin.Context) {
 		c.AbortWithStatusJSON(util.
 			MakeServiceError(http.StatusUnprocessableEntity).
 			SetMessage("Validation Failed").
+			AddDetailError("member", "password", "invalid password").
 			Build())
 		return
 	}

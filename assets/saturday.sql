@@ -214,8 +214,8 @@ CREATE TABLE `member` (
 -- Records of member
 -- ----------------------------
 BEGIN;
-INSERT INTO `member` (`member_id`, `alias`, `password`, `name`, `section`, `profile`, `phone`, `qq`, `avatar`, `created_by`, `gmt_create`, `gmt_modified`) VALUES ('0000000000', '管理', '000000', '管理', '计算机000', '', '', '', '', '', '2022-04-30 17:28:42', '2022-04-30 17:28:44');
-INSERT INTO `member` (`member_id`, `alias`, `password`, `name`, `section`, `profile`, `phone`, `qq`, `avatar`, `created_by`, `gmt_create`, `gmt_modified`) VALUES ('2333333333', '滑稽', '123456', '滑稽', '计算机233', 'relaxing', '12356839487', '123456', '', '0000000000', '2022-04-23 15:49:59', '2022-04-30 17:29:46');
+INSERT INTO `member` (`member_id`, `alias`, `password`, `name`, `section`, `profile`, `phone`, `qq`, `avatar`, `created_by`, `gmt_create`, `gmt_modified`) VALUES ('0000000000', '管理', 'e10adc3949ba59abbe56e057f20f883e', '管理', '计算机000', '', '', '', '', '', '2022-04-30 17:28:42', '2022-04-30 17:28:44');
+INSERT INTO `member` (`member_id`, `alias`, `password`, `name`, `section`, `profile`, `phone`, `qq`, `avatar`, `created_by`, `gmt_create`, `gmt_modified`) VALUES ('2333333333', '滑稽', 'e10adc3949ba59abbe56e057f20f883e', '滑稽', '计算机233', 'relaxing', '12356839487', '123456', '', '0000000000', '2022-04-23 15:49:59', '2022-04-30 17:29:46');
 COMMIT;
 
 -- ----------------------------
