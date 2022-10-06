@@ -25,7 +25,7 @@ jobs:
           ARGS: "-avz --delete --exclude='.env'"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: "/home/ubuntu/weekend/saturday"
+          TARGET: "/home/ubuntu/weekend/saturday-production"
 
       - name: ssh pipelines
         uses: cross-the-world/ssh-pipeline@master
@@ -37,6 +37,6 @@ jobs:
           key: ${{ secrets.ACCESS_TOKEN }}
           connect_timeout: 10s
           script: |
-            cd /home/ubuntu/weekend/saturday
+            cd /home/ubuntu/weekend/saturday-production
             export GIN_MODE=release
-            nohup /home/ubuntu/weekend/saturday/saturday&
+            nohup /home/ubuntu/weekend/saturday-production/saturday&
