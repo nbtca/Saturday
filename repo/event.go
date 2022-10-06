@@ -34,9 +34,9 @@ func getLogStatement() squirrel.SelectBuilder {
 }
 
 /*
- when a struct contains sub struct, the struct's field has the db tag of "struct'dbTag.subStruct.dbTag"
- for example: the db tag here for event is event, the db tag for mode.Event has field "EventId" with db tag "event_id"
- therefore the JoinEvent.Event.EventId has db tag of event.event_id.
+when a struct contains sub struct, the struct's field has the db tag of "struct'dbTag.subStruct.dbTag"
+for example: the db tag here for event is event, the db tag for mode.Event has field "EventId" with db tag "event_id"
+therefore the JoinEvent.Event.EventId has db tag of event.event_id.
 */
 type JoinEvent struct {
 	Event  model.Event      `db:"event"`

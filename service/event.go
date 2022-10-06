@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/rpc"
+	"os"
 	"saturday/model"
 	"saturday/repo"
 	"saturday/util"
@@ -80,7 +81,11 @@ func (service EventService) SendActionNotify(event *model.Event, subject string)
 	return nil
 }
 func (service EventService) SendActionNotifyViaRPC(event *model.Event, subject string) error {
-	conn, err := rpc.DialHTTP("tcp", ":8000")
+	address := os.Getenv("RPC_ADDRESS")
+	if address == "" {
+		return fmt.Errorf("RPC_ADDRESS is not set")
+	}
+	conn, err := rpc.DialHTTP("tcp", ":"+address)
 	if err != nil {
 		return err
 	}
