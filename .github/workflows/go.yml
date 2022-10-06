@@ -3,8 +3,6 @@ name: Go
 on:
   push:
     branches: ["v2"]
-  pull_request:
-    branches: ["v2"]
 
 jobs:
   build:
@@ -27,7 +25,7 @@ jobs:
           ARGS: "-avz --delete --exclude='.env'"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: "/home/ubuntu/weekend/saturday-production"
+          TARGET: "/home/ubuntu/weekend/saturday"
 
       - name: ssh pipelines
         uses: cross-the-world/ssh-pipeline@master
@@ -39,6 +37,6 @@ jobs:
           key: ${{ secrets.ACCESS_TOKEN }}
           connect_timeout: 10s
           script: |
-            cd /home/ubuntu/weekend/saturday-production 
+            cd /home/ubuntu/weekend/saturday
             export GIN_MODE=release
-            nohup /home/ubuntu/weekend/saturday-production/saturday&
+            nohup /home/ubuntu/weekend/saturday/saturday&

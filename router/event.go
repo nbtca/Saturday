@@ -45,7 +45,9 @@ func (EventRouter) GetEventById(c *gin.Context) {
 		return
 	}
 	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
-	if event.MemberId != util.GetIdentity(c).Id {
+	id := util.GetIdentity(c)
+	ifClientId, _ := strconv.ParseInt(id.Id, 10, 64)
+	if event.MemberId != id.Id && event.ClientId != ifClientId {
 		c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
 			SetMessage("not authorized").
 			Build())
@@ -158,8 +160,7 @@ func (EventRouter) GetClientEventByPage(c *gin.Context) {
 
 func (EventRouter) Create(c *gin.Context) {
 	req := &dto.CreateEventRequest{}
-	id, _ := strconv.Atoi(util.GetIdentity(c).Id)
-	req.ClientId = int64(id)
+	req.ClientId, _ = strconv.ParseInt(util.GetIdentity(c).Id, 10, 64)
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
@@ -175,6 +176,11 @@ func (EventRouter) Create(c *gin.Context) {
 	if util.CheckError(c, err) {
 		return
 	}
+	go func() {
+		if err := service.EventServiceApp.SendActionNotify(event, "新的维修事件"); err != nil {
+			util.Logger.Error(err)
+		}
+	}()
 	c.JSON(200, event)
 }
 
@@ -198,6 +204,7 @@ func (EventRouter) Update(c *gin.Context) {
 	if err := service.EventServiceApp.Act(&event, identity, util.Update); util.CheckError(c, err) {
 		return
 	}
+
 	c.JSON(200, event)
 }
 

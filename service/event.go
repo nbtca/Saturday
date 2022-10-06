@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/rpc"
+	"os"
 	"saturday/model"
 	"saturday/repo"
 	"saturday/util"
@@ -11,7 +12,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-type EventService struct {}
+type EventService struct{}
 
 func (service EventService) GetEventById(id int64) (model.Event, error) {
 	event, err := repo.GetEventById(id)
@@ -67,10 +68,6 @@ func (service EventService) CreateEvent(event *model.Event) error {
 	if err := service.Act(event, identity, util.Create); err != nil {
 		return err
 	}
-
-	if err := service.SendActionNotify(event, "新的维修事件"); err != nil {
-		util.Logger.Error(err)
-	}
 	return nil
 }
 
@@ -84,7 +81,11 @@ func (service EventService) SendActionNotify(event *model.Event, subject string)
 	return nil
 }
 func (service EventService) SendActionNotifyViaRPC(event *model.Event, subject string) error {
-	conn, err := rpc.DialHTTP("tcp", ":8000")
+	address := os.Getenv("RPC_ADDRESS")
+	if address == "" {
+		return fmt.Errorf("RPC_ADDRESS is not set")
+	}
+	conn, err := rpc.DialHTTP("tcp", ":"+address)
 	if err != nil {
 		return err
 	}
