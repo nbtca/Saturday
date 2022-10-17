@@ -30,7 +30,7 @@ func GetPaginationQuery(c *gin.Context) (offset uint64, limit uint64, err error)
 	if err != nil {
 		return
 	}
-	limit, err = strconv.ParseUint(c.DefaultQuery("limit", "30"), 10, 64)
+	limit, err = strconv.ParseUint(c.DefaultQuery("limit", "50"), 10, 64)
 	if err != nil {
 		return
 	}

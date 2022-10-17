@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"saturday/model"
 	"saturday/model/dto"
+	"saturday/repo"
 	"saturday/service"
 	"saturday/util"
 	"strconv"
@@ -31,7 +32,14 @@ func (EventRouter) GetPublicEventByPage(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	events, err := service.EventServiceApp.GetPublicEvents(offset, limit)
+	status := c.DefaultQuery("status", "")
+	order := c.DefaultQuery("order", "ASC")
+	events, err := service.EventServiceApp.GetPublicEvents(repo.EventFilter{
+		Offset: offset,
+		Limit:  limit,
+		Status: status,
+		Order:  order,
+	})
 	if err != nil {
 		c.Error(err)
 		return
@@ -67,7 +75,14 @@ func (EventRouter) GetMemberEventByPage(c *gin.Context) {
 		return
 	}
 	identity := util.GetIdentity(c)
-	events, err := service.EventServiceApp.GetMemberEvents(offset, limit, identity.Id)
+	status := c.DefaultQuery("status", "")
+	order := c.DefaultQuery("order", "ASC")
+	events, err := service.EventServiceApp.GetMemberEvents(repo.EventFilter{
+		Offset: offset,
+		Limit:  limit,
+		Status: status,
+		Order:  order,
+	}, identity.Id)
 	if err != nil {
 		c.Error(err)
 		return
@@ -150,7 +165,14 @@ func (EventRouter) GetClientEventByPage(c *gin.Context) {
 		return
 	}
 	identity := util.GetIdentity(c)
-	events, err := service.EventServiceApp.GetClientEvents(offset, limit, identity.Id)
+	status := c.DefaultQuery("status", "")
+	order := c.DefaultQuery("order", "ASC")
+	events, err := service.EventServiceApp.GetClientEvents(repo.EventFilter{
+		Offset: offset,
+		Limit:  limit,
+		Status: status,
+		Order:  order,
+	}, identity.Id)
 	if err != nil {
 		c.Error(err)
 		return
