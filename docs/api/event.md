@@ -132,10 +132,12 @@ GET /events
 
 ### 参数
 
-| 名称   | 类型    | in    | 描述      |
-| ------ | ------- | ----- | --------- |
-| offset | integer | query |           |
-| limit  | integer | query | 默认为 30 |
+| 名称   | 类型           | in    | 描述             |
+| ------ | -------------- | ----- | ---------------- |
+| offset | integer        | query |                  |
+| limit  | integer        | query | 默认为 50        |
+| status | string         | query | 查询指定状态事件 |
+| order  | "DESC" / "ASC" | query | 默认为升序       |
 
 ### 示例
 
@@ -286,9 +288,13 @@ GET /member/events
 ```
 ### 参数
 
-| 名称          | 类型   | in     | 描述 |
-| ------------- | ------ | ------ | ---- |
-| Authorization | string | header |      |
+| 名称          | 类型           | in     | 描述             |
+| ------------- | -------------- | ------ | ---------------- |
+| Authorization | string         | header |                  |
+| offset        | integer        | query  |                  |
+| limit         | integer        | query  | 默认为 50        |
+| status        | string         | query  | 查询指定状态事件 |
+| order         | "DESC" / "ASC" | query  | 默认为升序       |
 
 ### 示例
 
@@ -1133,11 +1139,13 @@ GET /client/events
 
 ### 参数
 
-| 名称           | 类型    | in     | 描述      |
-| -------------- | ------- | ------ | --------- |
-| Authorizeation | string  | header |           |
-| offset         | integer | query  |           |
-| limit          | integer | query  | 默认为 30 |
+| 名称           | 类型           | in     | 描述             |
+| -------------- | -------------- | ------ | ---------------- |
+| Authorizeation | string         | header |                  |
+| offset         | integer        | query  |                  |
+| limit          | integer        | query  | 默认为 50        |
+| status         | string         | query  | 查询指定状态事件 |
+| order          | "DESC" / "ASC" | query  | 默认为升序       |
 
 ### 示例
 
