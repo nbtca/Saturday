@@ -55,5 +55,7 @@ jobs:
 #          connect_timeout: 10s
 #          script: |
 #            cd /home/nbtca/
+#            sudo docker kill
+#            sudo docker rmi scilifen/saturday_dev:latest
 #            docker pull nbtca/saturday_dev:latest
 #            docker
