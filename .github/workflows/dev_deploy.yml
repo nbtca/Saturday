@@ -37,9 +37,9 @@ jobs:
             context: .
             file: ./Dockerfile
             push: true
+            platforms: linux/amd64
             tags: |
-              saturday_dev:${{ steps.date.outputs.today }}
-              saturday_dev:latest
+              nbtca/saturday_dev:latest
 
 #      - name: ssh pipelines
 #        uses: cross-the-world/ssh-pipeline@master
