@@ -38,8 +38,8 @@ jobs:
             file: ./Dockerfile
             push: true
             tags: |
-              scilifen/saturday_dev:${{ steps.date.outputs.today }}
-              scilifen/saturday_dev:latest
+              ${{github.actor}}/saturday_dev:${{ steps.date.outputs.today }}
+              ${{github.actor}}/saturday_dev:latest
 
 #      - name: ssh pipelines
 #        uses: cross-the-world/ssh-pipeline@master
