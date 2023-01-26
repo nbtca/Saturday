@@ -38,8 +38,8 @@ jobs:
             file: ./Dockerfile
             push: true
             tags: |
-              nbtca/saturday_dev:${{ steps.date.outputs.today }}
-              nbtca/saturday_dev:latest
+              scilifen/saturday_dev:${{ steps.date.outputs.today }}
+              scilifen/saturday_dev:latest
 
 #      - name: ssh pipelines
 #        uses: cross-the-world/ssh-pipeline@master
