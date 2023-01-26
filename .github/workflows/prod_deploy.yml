@@ -1,0 +1,4 @@
+name: Deploy Production
+on:
+  push:
+    branches: ["v2"]
