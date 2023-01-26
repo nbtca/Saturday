@@ -43,8 +43,8 @@ jobs:
             push: true
             platforms: linux/amd64
             tags: |
-              nbtca/saturday_dev:latest
-              nbtca/saturday_dev:${{ steps.date.outputs.today }}
+              scilifen/saturday_dev:latest
+              scilifen/saturday_dev:${{ steps.date.outputs.today }}
 
 #      - name: ssh pipelines
 #        uses: cross-the-world/ssh-pipeline@master
