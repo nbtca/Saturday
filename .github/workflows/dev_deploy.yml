@@ -39,7 +39,7 @@ jobs:
             push: true
             platforms: linux/amd64
             tags: |
-              nbtca/saturday_dev:latest
+              scilifen/nbtca/saturday_dev:latest
 
 #      - name: ssh pipelines
 #        uses: cross-the-world/ssh-pipeline@master
