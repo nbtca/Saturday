@@ -62,6 +62,6 @@ jobs:
             sudo docker rmi scilifen/saturday:latest
             sudo docker pull scilifen/saturday:latest
             sudo docker run -d \
-              && -p 4001:80 \
-              && --name sat_v2 \
-              && scilifen/saturday
+              -p 4001:80 \
+              --name sat_v2 \
+              scilifen/saturday
