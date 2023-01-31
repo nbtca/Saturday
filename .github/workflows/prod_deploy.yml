@@ -56,12 +56,7 @@ jobs:
           key: ${{ secrets.ACCESS_TOKEN }}
           connect_timeout: 10s
           script: |
-            cd /home/nbtca/
-            sudo docker stop sat_v2
-            sudo docker rm sat_v2
+            cd /home/nbtca/weekend/saturday_prod
+            sudo docker-compose stop && docker-compose rm -f
             sudo docker rmi scilifen/saturday:latest
-            sudo docker pull scilifen/saturday:latest
-            sudo docker run -d \
-              -p 4001:80 \
-              --name sat_v2 \
-              scilifen/saturday
+            sudo docker-compose up -d
