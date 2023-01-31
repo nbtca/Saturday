@@ -27,12 +27,12 @@ func (service EventService) GetEventById(id int64) (model.Event, error) {
 	return event, nil
 }
 
-func (service EventService) GetMemberEvents(offset uint64, limit uint64, memberId string) ([]model.Event, error) {
-	return repo.GetMemberEvents(offset, limit, memberId)
+func (service EventService) GetMemberEvents(f repo.EventFilter, memberId string) ([]model.Event, error) {
+	return repo.GetMemberEvents(f, memberId)
 }
 
-func (service EventService) GetClientEvents(offset uint64, limit uint64, clientId string) ([]model.Event, error) {
-	return repo.GetClientEvents(offset, limit, clientId)
+func (service EventService) GetClientEvents(f repo.EventFilter, clientId string) ([]model.Event, error) {
+	return repo.GetClientEvents(f, clientId)
 }
 
 func (service EventService) GetPublicEventById(id int64) (model.PublicEvent, error) {
@@ -43,8 +43,8 @@ func (service EventService) GetPublicEventById(id int64) (model.PublicEvent, err
 	return model.CreatePublicEvent(event), nil
 }
 
-func (service EventService) GetPublicEvents(offset uint64, limit uint64) ([]model.PublicEvent, error) {
-	events, err := repo.GetEvents(offset, limit)
+func (service EventService) GetPublicEvents(f repo.EventFilter) ([]model.PublicEvent, error) {
+	events, err := repo.GetEvents(f)
 	if err != nil {
 		return nil, err
 	}

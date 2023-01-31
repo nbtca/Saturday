@@ -1,0 +1,62 @@
+name: Deploy for dev
+
+on:
+  push:
+    branches: ["dev_go"]
+  workflow_dispatch:
+    branches: ["dev_go"]
+
+jobs:
+  dev_Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "today=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v3
+        with:
+          ref: "dev_go"
+
+      - name: Setup Go env
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Build
+        run: |
+          go env -w CGO_ENABLED=0
+          go build -v .
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push to DockerHub
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            scilifen/saturday_dev:latest
+            scilifen/saturday_dev:${{ steps.date.outputs.today }}
+
+      - name: ssh pipelines
+        uses: cross-the-world/ssh-pipeline@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          user: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.ACCESS_TOKEN }}
+          connect_timeout: 10s
+          script: |
+            cd /home/nbtca/weekend/saturday_dev
+            sudo docker-compose stop && docker-compose rm -f
+            sudo docker rmi scilifen/saturday_dev:latest
+            sudo docker-compose up -d
