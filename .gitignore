@@ -1,4 +1,5 @@
 logs/
+.act/
 .env
 config.js
 saturday
