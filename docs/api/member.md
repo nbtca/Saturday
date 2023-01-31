@@ -75,7 +75,7 @@ GET /members
 | 名称   | 类型    | in    | 描述      |
 | ------ | ------- | ----- | --------- |
 | offset | integer | query |           |
-| limit  | integer | query | 默认为 30 |
+| limit  | integer | query | 默认为 50 |
 
 #### 示例
 
@@ -526,5 +526,4 @@ PATCH /members/2333333333
 | HTTP Status Code | 描述                 |
 | ---------------- | -------------------- |
 | 200              | OK                   |
-| 422              | Unprocessable Entity |
 | 422              | Unprocessable Entity |
