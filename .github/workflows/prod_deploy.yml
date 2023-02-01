@@ -57,6 +57,6 @@ jobs:
           connect_timeout: 10s
           script: |
             cd /home/nbtca/weekend/saturday_prod
-            sudo docker-compose stop && docker-compose rm -f
-            sudo docker rmi scilifen/saturday:latest
-            sudo docker-compose up -d
+            docker-compose stop && docker-compose rm -f
+            docker rmi scilifen/saturday:latest
+            docker-compose up -d
