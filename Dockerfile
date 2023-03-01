@@ -1,11 +1,11 @@
 FROM alpine:latest
 
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Shanghai
+
 RUN mkdir /app
 WORKDIR /app/
-#ARG APP_PORT=${PORT}
 
 COPY ./saturday .
 
 ENV GIN_MODE=release
-#ENTRYPOINT ["./saturday"]
-#EXPOSE ${APP_PORT}
