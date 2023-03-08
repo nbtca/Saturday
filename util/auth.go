@@ -1,13 +1,14 @@
 package util
 
 import (
+	"math/rand"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 )
 
 // TODO gen key
-var key = []byte("qwejlkqwjelkqwlkqwejlqjelk")
+var key = []byte(genKey())
 
 type Payload struct {
 	Who  string
@@ -43,10 +44,10 @@ func ParseToken(tokenString string) (*jwt.Token, *Claims, error) {
 }
 
 /*
-	this is used for testing
-	"INVALID" to gen invalid token
-	"EXPIRED" to gen expired token
-	"NONE" return empty token
+this is used for testing
+"INVALID" to gen invalid token
+"EXPIRED" to gen expired token
+"NONE" return empty token
 */
 func GenToken(auth string, id ...string) string {
 	if auth == "INVALID" {
@@ -58,4 +59,14 @@ func GenToken(auth string, id ...string) string {
 	}
 	token, _ := CreateToken(Payload{Who: id[0], Role: auth})
 	return token
+}
+
+func genKey() string {
+	var bytes []byte = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890")
+	rand.Seed(time.Now().UnixNano())
+	result := make([]byte, 24)
+	for i := 0; i < 24; i++ {
+		result[i] = bytes[rand.Int31()%62]
+	}
+	return string(result)
 }
