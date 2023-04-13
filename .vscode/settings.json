@@ -16,6 +16,7 @@
     "jscode",
     "logrus",
     "Prefixer",
+    "pushkey",
     "Queryx",
     "reflectx",
     "Rowx",
