@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/rpc"
+	"net/url"
 	"os"
 	"saturday/model"
 	"saturday/repo"
@@ -75,11 +76,25 @@ func (service EventService) SendActionNotify(event *model.Event, subject string)
 	if event == nil {
 		return util.MakeInternalServerError()
 	}
+	service.SendActionNotifyViaPushDeer(event, subject)
 	if err := service.SendActionNotifyViaRPC(event, subject); err != nil {
 		return service.SendActionNotifyViaMail(event, subject)
 	}
 	return nil
 }
+
+// A temporary function to send action notify via PushDeer
+func (service EventService) SendActionNotifyViaPushDeer(event *model.Event, subject string) error {
+	pushKey := "PDU6809T95RlAWSw5pMFI2qy5EIFGjiVEapfV6Qs"
+	pushAPI, _ := url.Parse("https://api2.pushdeer.com/message/push")
+	params := url.Values{}
+	params.Add("pushkey", pushKey)
+	params.Add("text", fmt.Sprintf("型号：%s，问题描述：%s，创建时间：%s", event.Model, event.Problem, event.GmtCreate))
+	pushAPI.RawQuery = params.Encode()
+	_, err := http.Get(pushAPI.String())
+	return err
+}
+
 func (service EventService) SendActionNotifyViaRPC(event *model.Event, subject string) error {
 	address := os.Getenv("RPC_ADDRESS")
 	if address == "" {
