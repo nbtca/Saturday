@@ -2,8 +2,9 @@ package repo
 
 import (
 	"database/sql"
-	"saturday/model"
-	"saturday/util"
+
+	"github.com/nbtca/saturday/model"
+	"github.com/nbtca/saturday/util"
 
 	"github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"

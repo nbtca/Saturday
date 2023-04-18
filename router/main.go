@@ -1,7 +1,7 @@
 package router
 
 import (
-	"saturday/middleware"
+	"github.com/nbtca/saturday/middleware"
 
 	"github.com/gin-gonic/gin"
 )

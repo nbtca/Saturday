@@ -6,9 +6,10 @@ import (
 	"net/rpc"
 	"net/url"
 	"os"
-	"saturday/model"
-	"saturday/repo"
-	"saturday/util"
+
+	"github.com/nbtca/saturday/model"
+	"github.com/nbtca/saturday/repo"
+	"github.com/nbtca/saturday/util"
 
 	"gopkg.in/gomail.v2"
 )

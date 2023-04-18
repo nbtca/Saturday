@@ -2,7 +2,8 @@ package util
 
 import (
 	"net/http"
-	"saturday/model"
+
+	"github.com/nbtca/saturday/model"
 )
 
 const (

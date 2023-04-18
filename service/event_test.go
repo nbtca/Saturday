@@ -2,9 +2,10 @@ package service_test
 
 import (
 	"log"
-	"saturday/model"
-	"saturday/service"
 	"testing"
+
+	"github.com/nbtca/saturday/model"
+	"github.com/nbtca/saturday/service"
 )
 
 func TestEventService_SendActionNotificationViaPushDeer(t *testing.T) {

@@ -2,8 +2,9 @@ package util
 
 import (
 	"net/http"
-	"saturday/model"
 	"strconv"
+
+	"github.com/nbtca/saturday/model"
 
 	"github.com/gin-gonic/gin"
 )

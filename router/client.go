@@ -1,10 +1,10 @@
 package router
 
 import (
-	"saturday/model"
-	"saturday/model/dto"
-	"saturday/service"
-	"saturday/util"
+	"github.com/nbtca/saturday/model"
+	"github.com/nbtca/saturday/model/dto"
+	"github.com/nbtca/saturday/service"
+	"github.com/nbtca/saturday/util"
 
 	"github.com/gin-gonic/gin"
 )

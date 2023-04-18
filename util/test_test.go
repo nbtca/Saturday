@@ -1,9 +1,10 @@
 package util_test
 
 import (
-	"saturday/model"
-	"saturday/util"
 	"testing"
+
+	"github.com/nbtca/saturday/model"
+	"github.com/nbtca/saturday/util"
 )
 
 // func TestCreateToken(t *testing.T) {

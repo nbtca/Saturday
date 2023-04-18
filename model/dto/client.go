@@ -1,6 +1,6 @@
 package dto
 
-import "saturday/model"
+import "github.com/nbtca/saturday/model"
 
 type WxLoginRequest struct {
 	Code string `json:"code" binding:"required"`
