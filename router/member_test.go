@@ -1,10 +1,11 @@
 package router_test
 
 import (
-	"saturday/util"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/nbtca/saturday/util"
 
 	"github.com/gin-gonic/gin"
 )

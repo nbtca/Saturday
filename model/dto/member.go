@@ -1,6 +1,6 @@
 package dto
 
-import model "saturday/model"
+import model "github.com/nbtca/saturday/model"
 
 type MemberId struct {
 	MemberId string `uri:"MemberId" json:"memberId" binding:"required,len=10,numeric"`

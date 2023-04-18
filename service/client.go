@@ -2,9 +2,10 @@ package service
 
 import (
 	"fmt"
-	"saturday/model"
-	"saturday/repo"
-	"saturday/util"
+
+	"github.com/nbtca/saturday/model"
+	"github.com/nbtca/saturday/repo"
+	"github.com/nbtca/saturday/util"
 )
 
 type ClientService struct {

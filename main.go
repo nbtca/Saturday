@@ -3,9 +3,10 @@ package main
 import (
 	"log"
 	"os"
-	"saturday/repo"
-	"saturday/router"
-	"saturday/util"
+
+	"github.com/nbtca/saturday/repo"
+	"github.com/nbtca/saturday/router"
+	"github.com/nbtca/saturday/util"
 
 	"github.com/joho/godotenv"
 )

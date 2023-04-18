@@ -3,8 +3,9 @@ package repo
 import (
 	"database/sql"
 	"log"
-	"saturday/model"
-	"saturday/util"
+
+	"github.com/nbtca/saturday/model"
+	"github.com/nbtca/saturday/util"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"

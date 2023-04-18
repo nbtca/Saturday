@@ -1,4 +1,4 @@
-module saturday
+module github.com/nbtca/saturday
 
 go 1.17
 

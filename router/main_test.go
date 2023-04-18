@@ -7,10 +7,11 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"saturday/repo"
-	"saturday/router"
-	"saturday/util"
 	"testing"
+
+	"github.com/nbtca/saturday/repo"
+	"github.com/nbtca/saturday/router"
+	"github.com/nbtca/saturday/util"
 
 	"github.com/gin-gonic/gin"
 )

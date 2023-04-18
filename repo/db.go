@@ -2,7 +2,8 @@ package repo
 
 import (
 	"os"
-	"saturday/util"
+
+	"github.com/nbtca/saturday/util"
 
 	"github.com/jmoiron/sqlx"
 )

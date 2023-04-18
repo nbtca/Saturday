@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"saturday/service"
-	"saturday/util"
 	"strconv"
+
+	"github.com/nbtca/saturday/service"
+	"github.com/nbtca/saturday/util"
 
 	"github.com/gin-gonic/gin"
 )

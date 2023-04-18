@@ -3,9 +3,10 @@ package middleware_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"saturday/middleware"
-	"saturday/util"
 	"testing"
+
+	"github.com/nbtca/saturday/middleware"
+	"github.com/nbtca/saturday/util"
 
 	"github.com/gin-gonic/gin"
 )

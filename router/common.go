@@ -2,8 +2,9 @@ package router
 
 import (
 	"net/http"
-	"saturday/model/dto"
-	"saturday/util"
+
+	"github.com/nbtca/saturday/model/dto"
+	"github.com/nbtca/saturday/util"
 
 	"github.com/gin-gonic/gin"
 )

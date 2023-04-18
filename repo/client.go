@@ -2,9 +2,10 @@ package repo
 
 import (
 	"database/sql"
-	"saturday/model"
-	"saturday/util"
 	"time"
+
+	"github.com/nbtca/saturday/model"
+	"github.com/nbtca/saturday/util"
 
 	"github.com/Masterminds/squirrel"
 )
