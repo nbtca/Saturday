@@ -8,7 +8,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: saturday
-  IMAGE_NAME_FULL: ${{ env.REGISTRY }}/nbtca/${{ env.IMAGE_NAME }}
+  IMAGE_NAME_FULL: ghcr.io/nbtca/saturday
   
 jobs:
   dev_Deploy:
