@@ -14,7 +14,8 @@ import (
 func main() {
 
 	if err := godotenv.Load(); err != nil {
-		util.Logger.Fatal("Error loading .env file")
+		util.Logger.Warning("Error loading .env file")
+		log.Println(err)
 	}
 
 	util.InitValidator()

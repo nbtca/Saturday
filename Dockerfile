@@ -1,11 +1,20 @@
-FROM alpine:latest
+FROM golang as builder
+COPY . /app
+WORKDIR /app
+# RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o saturday .
+RUN go env -w CGO_ENABLED=0 &&\
+  go build -v -o saturday .
 
-RUN apk add --no-cache tzdata
+FROM alpine:latest as deploy
 ENV TZ=Asia/Shanghai
+RUN apk add --no-cache tzdata  &&\
+  mkdir /app
 
-RUN mkdir /app
-WORKDIR /app/
-
-COPY ./saturday .
+WORKDIR /app
+COPY --from=builder /app/saturday /app
 
 ENV GIN_MODE=release
+ENV Port=80
+
+EXPOSE 80
+ENTRYPOINT [ "./saturday" ]
