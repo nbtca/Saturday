@@ -8,6 +8,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: saturday
+  IMAGE_NAME_FULL: ${{ env.REGISTRY }}/nbtca/${{ env.IMAGE_NAME }}
   
 jobs:
   dev_Deploy:
@@ -50,8 +51,8 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:dev
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME_FULL }}:dev
+            ${{ env.IMAGE_NAME_FULL }}:latest
 
       - name: ssh pipelines
         uses: cross-the-world/ssh-pipeline@master
@@ -63,5 +64,5 @@ jobs:
           script: |
             cd /home/nbtca/weekend/saturday_dev
             docker-compose stop && docker-compose rm -f
-            docker rmi ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            docker rmi ${{ env.IMAGE_NAME_FULL }}:latest
             docker-compose up -d
