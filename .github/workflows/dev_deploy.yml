@@ -45,8 +45,8 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{IMAGE_NAME}}:dev
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{IMAGE_NAME}}:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:dev
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
 
       - name: ssh pipelines
         uses: cross-the-world/ssh-pipeline@master
