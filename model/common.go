@@ -1,6 +1,7 @@
 package model
 
 type Identity struct {
-	Id   string
-	Role string
+	Id     string
+	Member Member
+	Role   string
 }

@@ -40,9 +40,12 @@ func GetPaginationQuery(c *gin.Context) (offset uint64, limit uint64, err error)
 
 func GetIdentity(c *gin.Context) model.Identity {
 	id := c.GetString("id")
+	rawMember, _ := c.Get("member")
+	member := rawMember.(model.Member)
 	role := c.GetString("role")
 	return model.Identity{
-		Id:   id,
-		Role: role,
+		Id:     id,
+		Member: member,
+		Role:   role,
 	}
 }

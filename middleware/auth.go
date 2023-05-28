@@ -33,6 +33,7 @@ func Auth(role ...Role) func(c *gin.Context) {
 		for _, roleObj := range role {
 			if string(roleObj) == claims.Role {
 				c.Set("id", claims.Who)
+				c.Set("member", claims.Member)
 				c.Set("role", claims.Role)
 				return
 			}

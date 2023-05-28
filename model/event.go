@@ -80,10 +80,11 @@ func CreatePublicEvent(e Event) PublicEvent {
 
 type EventActionNotifyRequest struct {
 	Subject    string
-	Model     string
-	Problem   string
-	Link      string
-	GmtCreate string
+	Model      string
+	Problem    string
+	ActorAlias string
+	Link       string
+	GmtCreate  string
 }
 
 type EventActionNotifyResponse struct {
