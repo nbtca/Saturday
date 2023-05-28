@@ -36,5 +36,5 @@ func Upload(name string, reader io.Reader) (string, error) {
 	if err = bucket.PutObject(objectName, reader); err != nil {
 		return "", err
 	}
-	return "https://sunday-res.oss-cn-hangzhou.aliyuncs.com/" + objectName, nil
+	return "https://oss.nbtca.space/" + objectName, nil
 }
