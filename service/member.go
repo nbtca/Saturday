@@ -71,7 +71,7 @@ func (service *MemberService) CreateMember(member *model.Member) error {
 }
 
 func (service *MemberService) CreateToken(member model.Member) (string, error) {
-	res, err := util.CreateToken(util.Payload{Who: member.MemberId, Role: member.Role})
+	res, err := util.CreateToken(util.Payload{Who: member.MemberId, Member: member, Role: member.Role})
 	return res, err
 }
 

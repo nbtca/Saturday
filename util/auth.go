@@ -5,14 +5,16 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/nbtca/saturday/model"
 )
 
 // TODO gen key
 var key = []byte(genKey())
 
 type Payload struct {
-	Who  string
-	Role string
+	Who    string
+	Member model.Member
+	Role   string
 }
 
 type Claims struct {
@@ -26,6 +28,7 @@ func CreateToken(payload Payload) (string, error) {
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(), //过期时间
 			IssuedAt:  time.Now().Unix(),
+			Issuer:    "saturday",
 			Subject:   "token",
 		},
 		Payload: payload,

@@ -98,6 +98,16 @@ func (EventRouter) Accept(c *gin.Context) {
 	if err := service.EventServiceApp.Act(&event, identity, util.Accept); util.CheckError(c, err) {
 		return
 	}
+	go func() {
+		if err := service.EventServiceApp.SendActionNotifyViaRPC(&model.EventActionNotifyRequest{
+			Subject:    "接受维修",
+			ActorAlias: identity.Member.Alias,
+			Model:      event.Model,
+			Problem:    event.Problem,
+		}); err != nil {
+			util.Logger.Error(err)
+		}
+	}()
 	c.JSON(200, event)
 }
 
@@ -122,6 +132,16 @@ func (EventRouter) Commit(c *gin.Context) {
 	if err := service.EventServiceApp.Act(&event, identity, util.Commit, req.Content); util.CheckError(c, err) {
 		return
 	}
+	go func() {
+		if err := service.EventServiceApp.SendActionNotifyViaRPC(&model.EventActionNotifyRequest{
+			Subject:    "维修完成",
+			ActorAlias: identity.Member.Alias,
+			Model:      event.Model,
+			Problem:    event.Problem,
+		}); err != nil {
+			util.Logger.Error(err)
+		}
+	}()
 	c.JSON(200, event)
 }
 
@@ -146,6 +166,16 @@ func (EventRouter) RejectCommit(c *gin.Context) {
 	if err := service.EventServiceApp.Act(&event, identity, util.Reject); util.CheckError(c, err) {
 		return
 	}
+	go func() {
+		if err := service.EventServiceApp.SendActionNotifyViaRPC(&model.EventActionNotifyRequest{
+			Subject:    "退回",
+			ActorAlias: identity.Member.Alias,
+			Model:      event.Model,
+			Problem:    event.Problem,
+		}); err != nil {
+			util.Logger.Error(err)
+		}
+	}()
 	c.JSON(200, event)
 }
 
@@ -156,6 +186,16 @@ func (EventRouter) Close(c *gin.Context) {
 	if err := service.EventServiceApp.Act(&event, identity, util.Close); util.CheckError(c, err) {
 		return
 	}
+	go func() {
+		if err := service.EventServiceApp.SendActionNotifyViaRPC(&model.EventActionNotifyRequest{
+			Subject:    "关闭维修",
+			ActorAlias: identity.Member.Alias,
+			Model:      event.Model,
+			Problem:    event.Problem,
+		}); err != nil {
+			util.Logger.Error(err)
+		}
+	}()
 	c.JSON(200, event)
 }
 
@@ -200,7 +240,11 @@ func (EventRouter) Create(c *gin.Context) {
 		return
 	}
 	go func() {
-		if err := service.EventServiceApp.SendActionNotify(event, "新的维修事件"); err != nil {
+		if err := service.EventServiceApp.SendActionNotifyViaRPC(&model.EventActionNotifyRequest{
+			Subject: "新的维修",
+			Model:   event.Model,
+			Problem: event.Problem,
+		}); err != nil {
 			util.Logger.Error(err)
 		}
 	}()
@@ -238,6 +282,15 @@ func (EventRouter) Cancel(c *gin.Context) {
 	if err := service.EventServiceApp.Act(&event, identity, util.Cancel); util.CheckError(c, err) {
 		return
 	}
+	go func() {
+		if err := service.EventServiceApp.SendActionNotifyViaRPC(&model.EventActionNotifyRequest{
+			Subject: "取消维修",
+			Model:   event.Model,
+			Problem: event.Problem,
+		}); err != nil {
+			util.Logger.Error(err)
+		}
+	}()
 	c.JSON(200, event)
 }
 

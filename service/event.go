@@ -78,7 +78,13 @@ func (service EventService) SendActionNotify(event *model.Event, subject string)
 		return util.MakeInternalServerError()
 	}
 	service.SendActionNotifyViaPushDeer(event, subject)
-	if err := service.SendActionNotifyViaRPC(event, subject); err != nil {
+	if err := service.SendActionNotifyViaRPC(&model.EventActionNotifyRequest{
+		Subject:   subject,
+		Model:     event.Model,
+		Problem:   event.Problem,
+		Link:      "A Link to Sunday",
+		GmtCreate: event.GmtCreate,
+	}); err != nil {
 		return service.SendActionNotifyViaMail(event, subject)
 	}
 	return nil
@@ -96,7 +102,7 @@ func (service EventService) SendActionNotifyViaPushDeer(event *model.Event, subj
 	return err
 }
 
-func (service EventService) SendActionNotifyViaRPC(event *model.Event, subject string) error {
+func (service EventService) SendActionNotifyViaRPC(req *model.EventActionNotifyRequest) error {
 	address := os.Getenv("RPC_ADDRESS")
 	if address == "" {
 		return fmt.Errorf("RPC_ADDRESS is not set")
@@ -105,15 +111,15 @@ func (service EventService) SendActionNotifyViaRPC(event *model.Event, subject s
 	if err != nil {
 		return err
 	}
-	req := model.EventActionNotifyRequest{
-		Subject:   subject,
-		Model:     event.Model,
-		Problem:   event.Problem,
-		Link:      "A Link to Sunday",
-		GmtCreate: event.GmtCreate,
-	}
+	// req := model.EventActionNotifyRequest{
+	// 	Subject:   subject,
+	// 	Model:     event.Model,
+	// 	Problem:   event.Problem,
+	// 	Link:      "A Link to Sunday",
+	// 	GmtCreate: event.GmtCreate,
+	// }
 	res := model.EventActionNotifyResponse{}
-	if err = conn.Call("Notify.EventCreate", req, &res); err != nil {
+	if err = conn.Call("Notify.EventActionNotify", req, &res); err != nil {
 		util.Logger.Error(err)
 		return err
 	}
