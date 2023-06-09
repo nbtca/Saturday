@@ -16,18 +16,19 @@ const (
 )
 
 func Auth(role ...Role) func(c *gin.Context) {
-	TokenInvalidErr := util.
-		MakeServiceError(http.StatusUnprocessableEntity).
-		SetMessage("Token Invalid")
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
-			c.AbortWithStatusJSON(TokenInvalidErr.Build())
+			c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
+				SetMessage("not authorized").
+				Build())
 			return
 		}
 		token, claims, err := util.ParseToken(tokenString)
 		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(TokenInvalidErr.Build())
+			c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
+				SetMessage("not authorized").
+				Build())
 			return
 		}
 		for _, roleObj := range role {
