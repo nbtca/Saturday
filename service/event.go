@@ -107,7 +107,7 @@ func (service EventService) SendActionNotifyViaRPC(req *model.EventActionNotifyR
 	if address == "" {
 		return fmt.Errorf("RPC_ADDRESS is not set")
 	}
-	conn, err := rpc.DialHTTP("tcp", ":"+address)
+	conn, err := rpc.DialHTTP("tcp", address)
 	if err != nil {
 		return err
 	}
