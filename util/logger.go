@@ -37,7 +37,8 @@ func getLogger() *logrus.Logger {
 	logger := logrus.New()
 
 	//设置输出
-	logger.Out = src
+	logger.SetOutput(src)
+	logger.SetOutput(os.Stdout)
 
 	//设置日志级别
 	logger.SetLevel(logrus.DebugLevel)
