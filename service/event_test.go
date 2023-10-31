@@ -22,13 +22,13 @@ func TestEventService_SendActionNotificationViaPushDeer(t *testing.T) {
 }
 
 func TestSendActionNotifyViaRPC(t *testing.T) {
-	os.Setenv("RPC_ADDRESS", "8000")
+	os.Setenv("RPC_ADDRESS", ":8000")
 	service := service.EventService{}
-	err := service.SendActionNotifyViaRPC(&model.Event{
+	err := service.SendActionNotifyViaRPC(&model.EventActionNotifyRequest{
 		Model:     "model",
 		Problem:   "problem",
 		GmtCreate: "gmtCreate",
-	}, "test")
+	})
 	if err != nil {
 		log.Print(err)
 	}
