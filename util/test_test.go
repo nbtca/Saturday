@@ -1,6 +1,9 @@
 package util_test
 
 import (
+	"log"
+	"net/url"
+	"os"
 	"testing"
 
 	"github.com/nbtca/saturday/model"
@@ -90,4 +93,39 @@ func TestEventAction(t *testing.T) {
 			}
 		})
 	}
+}
+
+var tokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJuYmYiOjE0NDQ0Nzg0MDB9.u1riaD1rW97opCoAuRCTy4w58Br-Zk-bh7vLiRIsrpU"
+
+func TestParseTokenWithoutBearer(t *testing.T) {
+	_, _, err := util.ParseToken(tokenString)
+	log.Print(err)
+	if err == nil {
+		t.Error("no error at missing `Bearer `")
+	}
+}
+
+func TestParseToken(t *testing.T) {
+	token := "Bearer " + tokenString
+	_, claims, err := util.ParseToken(token)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	log.Println(claims)
+}
+
+func TestParseTokenWithJWKS(t *testing.T) {
+	token := "Bearer eyJhbGciOiJFUzM4NCIsInR5cCI6ImF0K2p3dCIsImtpZCI6Im9VU0hpdWNoNkpGUS1yaGRiTnFvLVRrVy1VRmpudmtSako3aWw1dFdOYU0ifQ.eyJqdGkiOiI4VW10UWVlMjVvZzRlSGc4cl9NUHMiLCJzdWIiOiJjaG16MWl0ejgzcXEiLCJpYXQiOjE2OTg3NTcxMDUsImV4cCI6MTY5ODc2MDcwNSwic2NvcGUiOiIiLCJjbGllbnRfaWQiOiJoMmVqa2tmd2R0ampwZW1iMDIxcm8iLCJpc3MiOiJodHRwczovL2F1dGguYXBwLm5idGNhLnNwYWNlL29pZGMiLCJhdWQiOiJodHRwczovL2FwaS5uYnRjYS5zcGFjZS92MiJ9.uUzXk8zERRhWtWFMnLcLGDF8ZQl-PoSWVWv6MnCjHb1q5P1aHlKVRx2RmSjDr2Nm7n0JZIXsSVQrDXhsB0J64qi2gI4Xuvu3pe11FIpeVxHLY7ObpDzyaeRBHc26P2Lo"
+	jwksURL, err := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc/jwks")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	_, claims, err := util.ParseTokenWithJWKS(jwksURL, token)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	log.Println(claims)
 }

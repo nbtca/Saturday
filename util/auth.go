@@ -1,10 +1,14 @@
 package util
 
 import (
+	"encoding/base64"
+	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/MicahParks/keyfunc"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/nbtca/saturday/model"
 )
 
@@ -35,15 +39,48 @@ func CreateToken(payload Payload) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(key)
-	return tokenString, err
+	return "Bearer " + tokenString, err
 }
 
-func ParseToken(tokenString string) (*jwt.Token, *Claims, error) {
+func CreateBasicAuth(username, password string) string {
+	auth := username + ":" + password
+	return base64.StdEncoding.EncodeToString([]byte(auth))
+}
+
+func GetTokenString(token string) (string, error) {
+	prefix := "Bearer "
+	if !strings.HasPrefix(token, prefix) {
+		return "", fmt.Errorf("unexpected token: %v", token)
+	}
+	tokenString := token[len(prefix):]
+	return tokenString, nil
+}
+
+// parse a jwt token, which should begin with "`Bearer `"
+func ParseToken(token string) (*jwt.Token, *Claims, error) {
 	Claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, Claims, func(token *jwt.Token) (i interface{}, err error) {
+	tokenString, err := GetTokenString(token)
+	if err != nil {
+		return nil, nil, err
+	}
+	t, err := jwt.ParseWithClaims(tokenString, Claims, func(token *jwt.Token) (i interface{}, err error) {
 		return key, nil
 	})
-	return token, Claims, err
+	return t, Claims, err
+}
+
+func ParseTokenWithJWKS(jwksURL string, token string) (*jwt.Token, *jwt.RegisteredClaims, error) {
+	jwks, err := keyfunc.Get(jwksURL, keyfunc.Options{}) // See recommended options in the examples directory.
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create JWKS from the given URL.\nError: %s", err)
+	}
+	tokenString, err := GetTokenString(token)
+	if err != nil {
+		return nil, nil, err
+	}
+	Claims := &jwt.RegisteredClaims{}
+	t, err := jwt.ParseWithClaims(tokenString, Claims, jwks.Keyfunc)
+	return t, Claims, err
 }
 
 /*
@@ -56,7 +93,7 @@ func GenToken(auth string, id ...string) string {
 	if auth == "INVALID" {
 		return "Invalid"
 	} else if auth == "EXPIRED" {
-		return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTM0NDMxNjIsImRhdGEiOnsidWlkIjoiNmYxZjk3MDItNjZkNi00NDdiLThlNTUtNWYwYzY0N2M4ZDNhIiwicm9sZSI6InVzZXIifSwiaWF0IjoxNjUzMzU2NzYyfQ.ocAxJGhw6Xt2vt7bwGcMeRPLOQOmaspznyu9aI7G670"
+		return "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTM0NDMxNjIsImRhdGEiOnsidWlkIjoiNmYxZjk3MDItNjZkNi00NDdiLThlNTUtNWYwYzY0N2M4ZDNhIiwicm9sZSI6InVzZXIifSwiaWF0IjoxNjUzMzU2NzYyfQ.ocAxJGhw6Xt2vt7bwGcMeRPLOQOmaspznyu9aI7G670"
 	} else if auth == "NONE" {
 		return ""
 	}
