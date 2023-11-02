@@ -27,7 +27,7 @@ func TestFetchLogtoToken(t *testing.T) {
 }
 
 func TestFetchLogtoUser(t *testing.T) {
-	res, err := service.LogtoServiceApp.FetchLogtoToken()
+	res, err := service.LogtoServiceApp.FetchLogtoToken("https://default.logto.app/api", "all")
 	if err != nil {
 		t.Error(err)
 	}

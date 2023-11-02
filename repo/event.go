@@ -2,7 +2,6 @@ package repo
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/util"

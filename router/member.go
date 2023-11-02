@@ -113,7 +113,7 @@ func (MemberRouter) CreateTokenViaLogtoToken(c *gin.Context) {
 	// TODO check scope
 
 	userId := claims.Subject
-	res, err := service.LogtoServiceApp.FetchLogtoToken()
+	res, err := service.LogtoServiceApp.FetchLogtoToken("https://default.logto.app/api", "all")
 	if err != nil {
 		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token").Build())
 		return
