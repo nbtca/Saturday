@@ -2,7 +2,6 @@ package repo
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/util"
@@ -96,7 +95,6 @@ func getEvents(f EventFilter, conditions ...squirrel.Eq) ([]model.Event, error) 
 		stat = stat.Where(condition)
 	}
 	getEventSql, getEventArgs, _ := stat.OrderBy("e.event_id " + f.Order).Offset(f.Offset).Limit(f.Limit).ToSql()
-	log.Println(getEventSql)
 	joinEvent := []JoinEvent{}
 	err := db.Select(&joinEvent, getEventSql, getEventArgs...)
 	if err != nil {
