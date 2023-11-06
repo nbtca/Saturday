@@ -4,6 +4,7 @@ import "database/sql"
 
 type Member struct {
 	MemberId    string `json:"memberId" db:"member_id"`
+	LogtoId     string `json:"logtoId" db:"logto_id"`
 	Alias       string `json:"alias"`
 	Password    string `json:"-"`
 	Name        string `json:"name" `

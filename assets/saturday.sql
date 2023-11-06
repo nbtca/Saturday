@@ -196,6 +196,7 @@ COMMIT;
 DROP TABLE IF EXISTS `member`;
 CREATE TABLE `member` (
   `member_id` char(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `logto_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
   `alias` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '昵称',
   `password` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
   `name` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
