@@ -80,6 +80,46 @@ func (l LogtoService) FetchUserById(userId string, token string) (map[string]int
 	return body, nil
 }
 
+func (l LogtoService) FetchUserByToken(token string) (map[string]interface{}, error) {
+	jwksURL, err := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc/jwks")
+	if err != nil {
+		return nil, err
+	}
+
+	invalidTokenError := util.
+		MakeServiceError(http.StatusUnprocessableEntity).
+		AddDetailError("member", "logto token", "invalid token")
+	_, claims, error := util.ParseTokenWithJWKS(jwksURL, token)
+	if error != nil {
+		return nil, invalidTokenError.SetMessage("Invalid token" + error.Error())
+	}
+	// check issuer
+	expectedIssuer, _ := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc")
+	if claims.Issuer != expectedIssuer {
+		return nil, invalidTokenError.SetMessage("Invalid token, invalid issuer")
+	}
+	// check audience
+	// TODO move current resource indicator to config
+	// expectedAudience := "https://api.nbtca.space/v2"
+	// if claims.Audience != expectedAudience {
+	// 	c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token").Build())
+	// 	return
+	// }
+	// TODO check scope
+
+	userId := claims.Subject
+	res, err := l.FetchLogtoToken("https://default.logto.app/api", "all")
+	if err != nil {
+		return nil, invalidTokenError.SetMessage("Invalid token")
+	}
+	accessToken := res["access_token"].(string)
+	user, err := l.FetchUserById(userId, "Bearer "+accessToken)
+	if err != nil {
+		return nil, invalidTokenError.SetMessage("Invalid token")
+	}
+	return user, nil
+}
+
 func MakeLogtoService(endpoint string) LogtoService {
 	return LogtoService{
 		BaseURL: endpoint,

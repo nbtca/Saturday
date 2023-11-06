@@ -20,6 +20,7 @@ func SetupRouter() *gin.Engine {
 		PublicGroup.GET("members/:MemberId", MemberRouterApp.GetPublicMemberById)
 		PublicGroup.GET("members", MemberRouterApp.GetPublicMemberByPage)
 		PublicGroup.POST("members/:MemberId/token", MemberRouterApp.CreateToken)
+		PublicGroup.PATCH("members/:MemberId/logto_id", MemberRouterApp.BindMemberLogtoId)
 		PublicGroup.GET("member/token/logto", MemberRouterApp.CreateTokenViaLogtoToken)
 
 		PublicGroup.POST("clients/token/wechat", ClientRouterApp.CreateTokenViaWeChat)

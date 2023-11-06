@@ -2,11 +2,11 @@ package router
 
 import (
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
+	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
 
@@ -82,72 +82,29 @@ func (MemberRouter) CreateTokenViaLogtoToken(c *gin.Context) {
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
 
 	auth := c.GetHeader("Authorization")
-	// validate JWT and signature
-	jwksURL, err := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc/jwks")
+	user, err := service.LogtoServiceApp.FetchUserByToken(auth)
 	if util.CheckError(c, err) {
 		return
 	}
-	_, claims, error := util.ParseTokenWithJWKS(jwksURL, auth)
 	invalidTokenError := util.
 		MakeServiceError(http.StatusUnprocessableEntity).
 		AddDetailError("member", "logto token", "invalid token")
-		// SetMessage("Invalid token"+error.Error()).
-	if error != nil {
-		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token" + error.Error()).Build())
+	if user["id"] == nil {
+		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token: id missing").Build())
 		return
 	}
-	// check issuer
-	// TODO move logto domain to config
-	expectedIssuer, _ := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc")
-	if claims.Issuer != expectedIssuer {
-		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token, invalid issuer").Build())
-		return
-	}
-	// check audience
-	// TODO move current resource indicator to config
-	// expectedAudience := "https://api.nbtca.space/v2"
-	// if claims.Audience != expectedAudience {
-	// 	c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token").Build())
-	// 	return
-	// }
-	// TODO check scope
-
-	userId := claims.Subject
-	res, err := service.LogtoServiceApp.FetchLogtoToken("https://default.logto.app/api", "all")
-	if err != nil {
-		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token").Build())
-		return
-	}
-	accessToken := res["access_token"].(string)
-	user, err := service.LogtoServiceApp.FetchUserById(userId, "Bearer "+accessToken)
-	if err != nil {
-		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token").Build())
-		return
-	}
-
-	if user["customData"] == nil {
-		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token").Build())
-	}
-
-	customData, ok := user["customData"].(map[string]interface{})
+	logto_id, ok := user["id"].(string)
 	if !ok {
-		c.AbortWithStatusJSON(util.
-			MakeServiceError(http.StatusUnprocessableEntity).
-			SetMessage("Validation Failed").
-			AddDetailError("member", "logto token", "invalid token").
-			Build())
+		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token: failed at getting id").Build())
 		return
 	}
-	memberId, ok := customData["memberId"].(string)
-	if !ok {
-		c.AbortWithStatusJSON(util.
-			MakeServiceError(http.StatusUnprocessableEntity).
-			SetMessage("Validation Failed").
-			AddDetailError("member", "logto token", "invalid token").
-			Build())
+	memberId, err := repo.GetMemberIdByLogtoId(logto_id)
+	if err != nil || !memberId.Valid {
+		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token: member not found").Build())
 		return
 	}
-	member, err := service.MemberServiceApp.GetMemberById(memberId)
+
+	member, err := service.MemberServiceApp.GetMemberById(memberId.String)
 	if util.CheckError(c, err) {
 		return
 	}
@@ -249,6 +206,59 @@ func (MemberRouter) Update(c *gin.Context) {
 	if req.Password != "" {
 		member.Password = req.Password
 	}
+	err = service.MemberServiceApp.UpdateMember(member)
+	if util.CheckError(c, err) {
+		return
+	}
+	c.JSON(200, member)
+}
+
+func (MemberRouter) BindMemberLogtoId(c *gin.Context) {
+	req := &dto.CreateMemberTokenRequest{}
+	if err := util.BindAll(c, req); util.CheckError(c, err) {
+		return
+	}
+	member, err := service.MemberServiceApp.GetMemberById(req.MemberId)
+	if util.CheckError(c, err) {
+		return
+	}
+	if member.Password != req.Password {
+		c.AbortWithStatusJSON(util.
+			MakeServiceError(http.StatusUnprocessableEntity).
+			SetMessage("Validation Failed").
+			AddDetailError("member", "password", "invalid password").
+			Build())
+		return
+	}
+
+	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
+	auth := c.GetHeader("Authorization")
+	user, err := service.LogtoServiceApp.FetchUserByToken(auth)
+	if util.CheckError(c, err) {
+		return
+	}
+	invalidTokenError := util.
+		MakeServiceError(http.StatusUnprocessableEntity).
+		AddDetailError("member", "logto token", "invalid token")
+	if user["id"] == nil {
+		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token: id missing").Build())
+		return
+	}
+	logtoId, ok := user["id"].(string)
+	if !ok {
+		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token: failed at getting id").Build())
+		return
+	}
+	if member.LogtoId != "" {
+		c.AbortWithStatusJSON(util.
+			MakeServiceError(http.StatusUnprocessableEntity).
+			SetMessage("Validation Failed").
+			AddDetailError("member", "logtoId", "already bound").
+			Build())
+		return
+	}
+
+	member.LogtoId = logtoId
 	err = service.MemberServiceApp.UpdateMember(member)
 	if util.CheckError(c, err) {
 		return
