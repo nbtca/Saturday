@@ -63,9 +63,9 @@ func CreateMember(member *model.Member) error {
 	member.GmtCreate = util.GetDate()
 	member.GmtModified = util.GetDate()
 	sqlMember, argsMember, _ := squirrel.Insert("member").Columns(
-		"member_id", "alias", "name", "section", "profile", "avatar",
+		"member_id", "logto_id", "alias", "name", "section", "profile", "avatar",
 		"phone", "qq", "created_by", "gmt_create", "gmt_modified").Values(
-		member.MemberId, member.Alias, member.Name, member.Section,
+		member.MemberId, member.LogtoId, member.Alias, member.Name, member.Section,
 		member.Profile, member.Avatar, member.Phone, member.QQ, member.CreatedBy,
 		member.GmtCreate, member.GmtModified).ToSql()
 	conn, err := db.Beginx()
