@@ -41,6 +41,20 @@ func (MemberRouter) GetPublicMemberByPage(c *gin.Context) {
 	c.JSON(200, members)
 }
 
+func (MemberRouter) GetMemberByPage(c *gin.Context) {
+	offset, limit, err := util.GetPaginationQuery(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	members, err := service.MemberServiceApp.GetMembers(offset, limit)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, members)
+}
+
 func (MemberRouter) GetMemberById(c *gin.Context) {
 	memberId := c.GetString("id")
 	member, err := service.MemberServiceApp.GetMemberById(memberId)
@@ -137,6 +151,50 @@ func (MemberRouter) Create(c *gin.Context) {
 		CreatedBy: c.GetString("id"),
 	}
 	err := service.MemberServiceApp.CreateMember(member)
+	if util.CheckError(c, err) {
+		return
+	}
+	c.JSON(200, member)
+}
+
+func (MemberRouter) CreateWithLogto(c *gin.Context) {
+	req := &dto.CreateMemberWithLogtoRequest{}
+	if err := util.BindAll(c, req); util.CheckError(c, err) {
+		return
+	}
+
+	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
+	auth := c.GetHeader("Authorization")
+	user, err := service.LogtoServiceApp.FetchUserByToken(auth)
+	if util.CheckError(c, err) {
+		return
+	}
+	invalidTokenError := util.
+		MakeServiceError(http.StatusUnprocessableEntity).
+		AddDetailError("member", "logto token", "invalid token")
+	if user["id"] == nil {
+		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token: id missing").Build())
+		return
+	}
+	logtoId, ok := user["id"].(string)
+	if !ok {
+		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token: failed at getting id").Build())
+		return
+	}
+	member := &model.Member{
+		MemberId:  req.MemberId,
+		Alias:     req.Alias,
+		Name:      req.Name,
+		Section:   req.Section,
+		Avatar:    req.Avatar,
+		Profile:   req.Profile,
+		QQ:        req.QQ,
+		Phone:     req.Phone,
+		Role:      "member",
+		CreatedBy: req.MemberId,
+		LogtoId:   logtoId,
+	}
+	err = service.MemberServiceApp.CreateMember(member)
 	if util.CheckError(c, err) {
 		return
 	}

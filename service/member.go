@@ -44,6 +44,14 @@ func (service *MemberService) GetPublicMembers(offset uint64, limit uint64) ([]m
 	return publicMembers, nil
 }
 
+func (service *MemberService) GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
+	members, err := repo.GetMembers(offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	return members, nil
+}
+
 func (service *MemberService) CreateMember(member *model.Member) error {
 	if member.Role != "admin" && member.Role != "member" {
 		return util.

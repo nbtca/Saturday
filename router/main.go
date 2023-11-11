@@ -31,6 +31,7 @@ func SetupRouter() *gin.Engine {
 		PublicGroup.GET("setting", SettingRouterApp.GetMiniAppSetting)
 	}
 
+	Router.POST("/members/:MemberId/logto", MemberRouterApp.CreateWithLogto)
 	Router.PATCH("member/activate",
 		middleware.Auth("member_inactive", "admin_inactive"),
 		MemberRouterApp.Activate)
@@ -64,6 +65,8 @@ func SetupRouter() *gin.Engine {
 	{
 		AdminGroup.POST("/members", MemberRouterApp.CreateMany)
 		AdminGroup.POST("/members/:MemberId", MemberRouterApp.Create)
+		// TODO change this path
+		AdminGroup.GET("/members/full", MemberRouterApp.GetMemberByPage)
 		AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
 
 		AdminGroup.Use(middleware.EventActionPreProcess)
