@@ -61,7 +61,7 @@ func (l LogtoService) FetchLogtoToken(resource string, scope string) (map[string
 func (l LogtoService) FetchUserById(userId string, token string) (map[string]interface{}, error) {
 	requestURL, _ := url.JoinPath(l.BaseURL, "/api/users/", userId)
 	req, _ := http.NewRequest("GET", requestURL, nil)
-	req.Header.Add("Authorization", token)
+	req.Header.Add("Authorization", "Bearer "+token)
 	res, err := http.DefaultClient.Do(req)
 
 	if err != nil {
@@ -92,7 +92,9 @@ func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserReques
 		return nil, err
 	}
 	req, _ := http.NewRequest("PATCH", requestURL, &payload)
-	req.Header.Add("Authorization", token)
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Content-Type", "application/json")
+
 	res, err := http.DefaultClient.Do(req)
 
 	if err != nil {
@@ -143,7 +145,7 @@ func (l LogtoService) FetchUserByToken(token string, accessToken string) (map[st
 	// TODO check scope
 
 	userId := claims.Subject
-	user, err := l.FetchUserById(userId, "Bearer "+accessToken)
+	user, err := l.FetchUserById(userId, accessToken)
 	if err != nil {
 		return nil, invalidTokenError.SetMessage("Invalid token")
 	}

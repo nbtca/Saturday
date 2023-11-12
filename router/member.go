@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -135,18 +136,19 @@ func (MemberRouter) CreateTokenViaLogtoToken(c *gin.Context) {
 
 	patchLogtoUserRequest := dto.PatchLogtoUserRequest{}
 
-	logtoName, ok := user["name"].(string)
-	if member.Alias != "" && ok && logtoName != "" {
+	logtoName, _ := user["name"].(string)
+	if member.Alias != "" && logtoName == "" {
 		patchLogtoUserRequest.Name = member.Alias
-		patchLogtoUserRequest.UserName = member.Alias
 	}
-	logtoAvatar, ok := user["avatar"].(string)
-	if member.Avatar != "" && ok && logtoAvatar != "" {
+	logtoAvatar, _ := user["avatar"].(string)
+	if member.Avatar != "" && logtoAvatar == "" {
 		patchLogtoUserRequest.Avatar = member.Avatar
 	}
 
-	service.LogtoServiceApp.PatchUserById(logto_id, patchLogtoUserRequest, accessToken)
-
+	_, err = service.LogtoServiceApp.PatchUserById(logto_id, patchLogtoUserRequest, accessToken)
+	if err != nil {
+		log.Println(err)
+	}
 	response := dto.CreateMemberTokenResponse{
 		Member: member,
 		Token:  t,
