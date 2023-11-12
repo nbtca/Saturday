@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"log"
+	"os"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -19,7 +20,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestFetchLogtoToken(t *testing.T) {
-	res, err := service.LogtoServiceApp.FetchLogtoToken("https://default.logto.app/api", "all")
+	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
+	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,13 +29,14 @@ func TestFetchLogtoToken(t *testing.T) {
 }
 
 func TestFetchLogtoUser(t *testing.T) {
-	res, err := service.LogtoServiceApp.FetchLogtoToken("https://default.logto.app/api", "all")
+	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
+	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
 	if err != nil {
 		t.Error(err)
 	}
 	token := res["access_token"].(string)
-	userId := "chmz1itz83qq"
-	user, err := service.LogtoServiceApp.FetchUserById(userId, "Bearer "+token)
+	userId := os.Getenv("LOGTO_TEST_USER_ID")
+	user, err := service.LogtoServiceApp.FetchUserById(userId, token)
 	if err != nil {
 		t.Fatal(err)
 	}

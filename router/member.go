@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -95,8 +96,14 @@ func (MemberRouter) CreateToken(c *gin.Context) {
 func (MemberRouter) CreateTokenViaLogtoToken(c *gin.Context) {
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
 
+	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
+	if util.CheckError(c, err) {
+		return
+	}
+	accessToken := res["access_token"].(string)
+
 	auth := c.GetHeader("Authorization")
-	user, err := service.LogtoServiceApp.FetchUserByToken(auth)
+	user, err := service.LogtoServiceApp.FetchUserByToken(auth, accessToken)
 	if util.CheckError(c, err) {
 		return
 	}
@@ -125,6 +132,22 @@ func (MemberRouter) CreateTokenViaLogtoToken(c *gin.Context) {
 	t, err := service.MemberServiceApp.CreateToken(member)
 	if util.CheckError(c, err) {
 		return
+	}
+
+	patchLogtoUserRequest := dto.PatchLogtoUserRequest{}
+
+	logtoName, _ := user["name"].(string)
+	if member.Alias != "" && logtoName == "" {
+		patchLogtoUserRequest.Name = member.Alias
+	}
+	logtoAvatar, _ := user["avatar"].(string)
+	if member.Avatar != "" && logtoAvatar == "" {
+		patchLogtoUserRequest.Avatar = member.Avatar
+	}
+
+	_, err = service.LogtoServiceApp.PatchUserById(logto_id, patchLogtoUserRequest, accessToken)
+	if err != nil {
+		log.Println(err)
 	}
 	response := dto.CreateMemberTokenResponse{
 		Member: member,
@@ -163,9 +186,15 @@ func (MemberRouter) CreateWithLogto(c *gin.Context) {
 		return
 	}
 
+	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
+	if util.CheckError(c, err) {
+		return
+	}
+	accessToken := res["access_token"].(string)
+
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
 	auth := c.GetHeader("Authorization")
-	user, err := service.LogtoServiceApp.FetchUserByToken(auth)
+	user, err := service.LogtoServiceApp.FetchUserByToken(auth, accessToken)
 	if util.CheckError(c, err) {
 		return
 	}
@@ -290,8 +319,15 @@ func (MemberRouter) BindMemberLogtoId(c *gin.Context) {
 	}
 
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
+
+	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
+	if util.CheckError(c, err) {
+		return
+	}
+	accessToken := res["access_token"].(string)
+
 	auth := c.GetHeader("Authorization")
-	user, err := service.LogtoServiceApp.FetchUserByToken(auth)
+	user, err := service.LogtoServiceApp.FetchUserByToken(auth, accessToken)
 	if util.CheckError(c, err) {
 		return
 	}
