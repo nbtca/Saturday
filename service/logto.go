@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,8 +10,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/nbtca/saturday/model/dto"
 	"github.com/nbtca/saturday/util"
 )
+
+var DefaultLogtoResource = "https://default.logto.app/api"
 
 type LogtoService struct {
 	BaseURL string
@@ -80,7 +84,38 @@ func (l LogtoService) FetchUserById(userId string, token string) (map[string]int
 	return body, nil
 }
 
-func (l LogtoService) FetchUserByToken(token string) (map[string]interface{}, error) {
+func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserRequest, token string) (map[string]interface{}, error) {
+	requestURL, _ := url.JoinPath(l.BaseURL, "/api/users/", userId)
+
+	var payload bytes.Buffer
+	if err := json.NewEncoder(&payload).Encode(data); err != nil {
+		return nil, err
+	}
+	req, _ := http.NewRequest("PATCH", requestURL, &payload)
+	req.Header.Add("Authorization", token)
+	res, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	rawBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var body map[string]interface{}
+	if err := json.Unmarshal(rawBody, &body); err != nil {
+		return nil, err
+	}
+
+	if res.Status != "200 OK" {
+		return nil, fmt.Errorf(string(rawBody))
+	}
+	return body, nil
+}
+
+func (l LogtoService) FetchUserByToken(token string, accessToken string) (map[string]interface{}, error) {
 	jwksURL, err := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc/jwks")
 	if err != nil {
 		return nil, err
@@ -108,11 +143,6 @@ func (l LogtoService) FetchUserByToken(token string) (map[string]interface{}, er
 	// TODO check scope
 
 	userId := claims.Subject
-	res, err := l.FetchLogtoToken("https://default.logto.app/api", "all")
-	if err != nil {
-		return nil, invalidTokenError.SetMessage("Invalid token")
-	}
-	accessToken := res["access_token"].(string)
 	user, err := l.FetchUserById(userId, "Bearer "+accessToken)
 	if err != nil {
 		return nil, invalidTokenError.SetMessage("Invalid token")

@@ -95,8 +95,14 @@ func (MemberRouter) CreateToken(c *gin.Context) {
 func (MemberRouter) CreateTokenViaLogtoToken(c *gin.Context) {
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
 
+	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
+	if util.CheckError(c, err) {
+		return
+	}
+	accessToken := res["access_token"].(string)
+
 	auth := c.GetHeader("Authorization")
-	user, err := service.LogtoServiceApp.FetchUserByToken(auth)
+	user, err := service.LogtoServiceApp.FetchUserByToken(auth, accessToken)
 	if util.CheckError(c, err) {
 		return
 	}
@@ -126,6 +132,21 @@ func (MemberRouter) CreateTokenViaLogtoToken(c *gin.Context) {
 	if util.CheckError(c, err) {
 		return
 	}
+
+	patchLogtoUserRequest := dto.PatchLogtoUserRequest{}
+
+	logtoName, ok := user["name"].(string)
+	if member.Alias != "" && ok && logtoName != "" {
+		patchLogtoUserRequest.Name = member.Alias
+		patchLogtoUserRequest.UserName = member.Alias
+	}
+	logtoAvatar, ok := user["avatar"].(string)
+	if member.Avatar != "" && ok && logtoAvatar != "" {
+		patchLogtoUserRequest.Avatar = member.Avatar
+	}
+
+	service.LogtoServiceApp.PatchUserById(logto_id, patchLogtoUserRequest, accessToken)
+
 	response := dto.CreateMemberTokenResponse{
 		Member: member,
 		Token:  t,
@@ -163,9 +184,15 @@ func (MemberRouter) CreateWithLogto(c *gin.Context) {
 		return
 	}
 
+	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
+	if util.CheckError(c, err) {
+		return
+	}
+	accessToken := res["access_token"].(string)
+
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
 	auth := c.GetHeader("Authorization")
-	user, err := service.LogtoServiceApp.FetchUserByToken(auth)
+	user, err := service.LogtoServiceApp.FetchUserByToken(auth, accessToken)
 	if util.CheckError(c, err) {
 		return
 	}
@@ -290,8 +317,15 @@ func (MemberRouter) BindMemberLogtoId(c *gin.Context) {
 	}
 
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
+
+	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
+	if util.CheckError(c, err) {
+		return
+	}
+	accessToken := res["access_token"].(string)
+
 	auth := c.GetHeader("Authorization")
-	user, err := service.LogtoServiceApp.FetchUserByToken(auth)
+	user, err := service.LogtoServiceApp.FetchUserByToken(auth, accessToken)
 	if util.CheckError(c, err) {
 		return
 	}
