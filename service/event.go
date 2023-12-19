@@ -131,25 +131,28 @@ func (service EventService) SendActionNotifyViaRPC(req *model.EventActionNotifyR
 
 func (service EventService) SendActionNotifyViaMail(event *model.Event, subject string) error {
 	m := gomail.NewMessage()
-	// TODO
-	m.SetHeader("To", "709196390@qq.com")
+	receiverAddress := os.Getenv("MAIL_RECEIVER_ADDRESS")
+	if receiverAddress == "" {
+		return fmt.Errorf("MAIL_RECEIVER_ADDRESS is not set")
+	}
+	m.SetHeader("To", receiverAddress)
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", fmt.Sprintf(
 		`<div>
-		<span style="padding-right:10px;">型号</span>
-		<span>%s</span>
-	</div>
-	<div>
-		<span style="padding-right:10px;">问题描述</span>
-		<span>%s</span>
-	</div>
-	<div>
-		<span style="padding-right:10px;">创建时间</span>
-		<span>%s</span>
-	</div>
-	<div>
-		<a style="padding-right:10px;">在 Sunday 中处理</a>
-	</div>`, event.Model, event.Problem, event.GmtCreate))
+  <span style="padding-right:10px;">型号:</span>
+  <span>%s</span>
+</div>
+<div>
+  <span style="padding-right:10px;">问题描述:</span>
+  <span>%s</span>
+</div>
+<div>
+  <span style="padding-right:10px;">创建时间:</span>
+  <span>%s</span>
+</div>
+<div style="padding-top:10px;">
+  <a href="https://repair.nbtca.space">在 Sunday 中处理</a>
+</div>`, event.Model, event.Problem, event.GmtCreate))
 
 	if err := util.SendMail(m); err != nil {
 		return util.MakeInternalServerError().SetMessage("fail on mail")

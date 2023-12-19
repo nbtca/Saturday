@@ -1,13 +1,16 @@
 package util_test
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"os"
 	"testing"
 
+	"github.com/joho/godotenv"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/util"
+	"gopkg.in/gomail.v2"
 )
 
 // func TestCreateToken(t *testing.T) {
@@ -33,6 +36,13 @@ import (
 // 		fmt.Println(v)
 // 	}
 // }
+
+func TestMain(m *testing.M) {
+	if err := godotenv.Load("../.env"); err != nil {
+		util.Logger.Warning("Error loading .env file")
+	}
+	m.Run()
+}
 
 func TestEventAction(t *testing.T) {
 	rawAPITestCase, err := util.GetCsvMap("testdata/event-action.csv")
@@ -128,4 +138,36 @@ func TestParseTokenWithJWKS(t *testing.T) {
 		return
 	}
 	log.Println(claims)
+}
+
+func TestSendMail(t *testing.T) {
+
+	m := gomail.NewMessage()
+	util.InitDialer()
+	receiverAddress := os.Getenv("MAIL_RECEIVER_ADDRESS")
+	if receiverAddress == "" {
+		t.Error("MAIL_RECEIVER_ADDRESS is not set")
+	}
+	m.SetHeader("To", receiverAddress)
+	m.SetHeader("Subject", "test")
+	m.SetBody("text/html", fmt.Sprintf(
+		`<div>
+  <span style="padding-right:10px;">型号:</span>
+  <span>%s</span>
+</div>
+<div>
+  <span style="padding-right:10px;">问题描述:</span>
+  <span>%s</span>
+</div>
+<div>
+  <span style="padding-right:10px;">创建时间:</span>
+  <span>%s</span>
+</div>
+<div style="padding-top:10px;">
+  <a href="https://repair.nbtca.space">在 Sunday 中处理</a>
+</div>`, "MacBook", "clean", "2021-10-10"))
+
+	if err := util.SendMail(m); err != nil {
+		t.Error(err)
+	}
 }
