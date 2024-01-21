@@ -1,6 +1,9 @@
 package router
 
 import (
+	"time"
+
+	"github.com/gin-contrib/cors"
 	"github.com/nbtca/saturday/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +13,14 @@ func SetupRouter() *gin.Engine {
 	Router := gin.Default()
 
 	Router.Use(middleware.ErrorHandler)
+	Router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"https://repair.nbtca.space"},
+		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "DELETE"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge: 12 * time.Hour,
+	}))
 
 	Router.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
