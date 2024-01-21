@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/rpc"
-	"net/url"
 	"os"
 
 	"github.com/nbtca/saturday/model"
