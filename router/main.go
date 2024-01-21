@@ -1,6 +1,7 @@
 package router
 
 import (
+	"regexp"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -19,6 +20,10 @@ func SetupRouter() *gin.Engine {
 		AllowHeaders:     []string{"Origin"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			match, _ := regexp.MatchString(`https:\/\/.*\.nbtca\.space`, origin)
+			return match
+		},
 		MaxAge: 12 * time.Hour,
 	}))
 
