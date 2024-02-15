@@ -13,7 +13,6 @@ RUN apk add --no-cache tzdata  &&\
 WORKDIR /app
 COPY --from=builder /app/saturday /app
 
-ENV GIN_MODE=release
 ENV Port=80
 
 EXPOSE 80
