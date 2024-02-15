@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/nbtca/saturday/model"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -191,5 +192,12 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 	} else {
 		eventLog = eh.createEventLog(createEventLogArgs{})
 	}
+	Logger.WithFields(logrus.Fields{
+		"event_id":    eventLog.EventId,
+		"action":      eventLog.Action,
+		"member_id":   eventLog.MemberId,
+		"gmt_create":  eventLog.GmtCreate,
+		"description": eventLog.Description,
+	}).Info("new event action")
 	return eventLog
 }

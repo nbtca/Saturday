@@ -2,15 +2,21 @@ package util
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
+type ContextLogger struct {
+	*logrus.Logger
+	Context *gin.Context
+}
+
 func getLogger() *logrus.Logger {
-	
 	now := time.Now()
 	logFilePath := ""
 	if dir, err := os.Getwd(); err == nil {
@@ -36,9 +42,9 @@ func getLogger() *logrus.Logger {
 	//实例化
 	logger := logrus.New()
 
-	//设置输出
-	logger.SetOutput(src)
-	logger.SetOutput(os.Stdout)
+	mw := io.MultiWriter(os.Stdout, src)
+	logrus.SetOutput(mw)
+	logger.Out = mw
 
 	//设置日志级别
 	logger.SetLevel(logrus.DebugLevel)
@@ -46,7 +52,11 @@ func getLogger() *logrus.Logger {
 	//设置日志格式
 	logger.SetFormatter(&logrus.TextFormatter{
 		TimestampFormat: "2006-01-02 15:04:05",
+		FieldMap: logrus.FieldMap{
+
+		},
 	})
+	
 	return logger
 }
 

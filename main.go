@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/router"
 	"github.com/nbtca/saturday/util"
@@ -24,6 +25,7 @@ func main() {
 	repo.InitDB()
 	defer repo.CloseDB()
 
+	gin.DefaultWriter = util.Logger.Out
 	r := router.SetupRouter()
 
 	port := os.Getenv("PORT")
@@ -32,5 +34,5 @@ func main() {
 	}
 	r.Run(":" + port)
 
-	util.Logger.Info("Starting server at %v...", port)
+	util.Logger.Infof("Starting server at %s...", port)
 }
