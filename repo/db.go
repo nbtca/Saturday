@@ -3,10 +3,8 @@ package repo
 import (
 	"context"
 	"database/sql"
-	"log"
 	"os"
 	"time"
-	"unsafe"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/nbtca/saturday/util"
@@ -30,9 +28,9 @@ func (h *Hooks) Before(ctx context.Context, query string, args ...interface{}) (
 func (h *Hooks) After(ctx context.Context, query string, args ...interface{}) (context.Context, error) {
 	begin := ctx.Value("begin").(time.Time)
 	util.Logger.WithFields(logrus.Fields{
-		"query": query,
-		"args":  args,
-		"elapsed":  time.Since(begin),
+		"query":   query,
+		"args":    args,
+		"elapsed": time.Since(begin),
 	}).Debug("SQL executed")
 	return ctx, nil
 }
