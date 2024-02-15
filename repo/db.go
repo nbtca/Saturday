@@ -9,6 +9,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/nbtca/saturday/util"
 	"github.com/qustavo/sqlhooks/v2"
+	"github.com/sirupsen/logrus"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -26,7 +27,11 @@ func (h *Hooks) Before(ctx context.Context, query string, args ...interface{}) (
 // After hook will get the timestamp registered on the Before hook and print the elapsed time
 func (h *Hooks) After(ctx context.Context, query string, args ...interface{}) (context.Context, error) {
 	begin := ctx.Value("begin").(time.Time)
-	util.Logger.Debugf("time:%s, query:%s, args:%q", time.Since(begin), query, args)
+	util.Logger.WithFields(logrus.Fields{
+		"query": query,
+		"args":  args,
+		"time":  time.Since(begin),
+	}).Debug("SQL executed")
 	return ctx, nil
 }
 
