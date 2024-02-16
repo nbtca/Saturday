@@ -50,13 +50,10 @@ func getLogger() *logrus.Logger {
 	logger.SetLevel(logrus.DebugLevel)
 
 	//设置日志格式
-	logger.SetFormatter(&logrus.TextFormatter{
+	logger.SetFormatter(&logrus.JSONFormatter{
 		TimestampFormat: "2006-01-02 15:04:05",
-		FieldMap: logrus.FieldMap{
-
-		},
 	})
-	
+
 	return logger
 }
 

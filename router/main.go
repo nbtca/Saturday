@@ -14,6 +14,8 @@ func SetupRouter() *gin.Engine {
 	Router := gin.Default()
 
 	Router.Use(middleware.ErrorHandler)
+	Router.Use(middleware.Logger)
+	Router.Use(gin.Recovery())
 	Router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"https://repair.nbtca.space"},
 		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "DELETE"},
