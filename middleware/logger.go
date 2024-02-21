@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,9 +15,8 @@ func Logger(c *gin.Context) {
 
 	endTime := time.Now()
 
-	latencyTime := endTime.Sub(startTime)
+	latencyTime := endTime.Sub(startTime).Microseconds() 
 
-	log.Println(c.GetTime("time_stamp").Format(time.RFC1123))
 	util.Logger.WithFields(logrus.Fields{
 		"status_code":   c.Writer.Status(),
 		"latency":       latencyTime,
