@@ -35,6 +35,7 @@
 
    PORT=<PORT_TO_LISTEN>
    # 以下为可选配置
+   NSQ_HOST=<YOUR_NSQD_HOST>:<YOUR_NSQD_TCP_PORT (4150 IN COMMON)>
    RPC_PORT=<YOUR_RPC_PORT>
    ```
 5. 启动服务

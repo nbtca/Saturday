@@ -8,8 +8,26 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/joho/godotenv/autoload"
+	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 )
+
+// NSQHook 是一个用于将日志消息发送到 NSQ 的 logrus 钩子
+type NSQHook struct {
+	Producer *nsq.Producer
+}
+
+// Fire 根据 logrus.Entry 发送消息到 NSQ
+func (hook *NSQHook) Fire(entry *logrus.Entry) error {
+	// 将日志消息发送到 NSQ
+	return hook.Producer.Publish("log_topic", []byte(entry.Message))
+}
+
+// Levels 返回日志级别，这里使用 logrus 默认的所有级别
+func (hook *NSQHook) Levels() []logrus.Level {
+	return logrus.AllLevels
+}
 
 type ContextLogger struct {
 	*logrus.Logger
@@ -41,6 +59,20 @@ func getLogger() *logrus.Logger {
 
 	//实例化
 	logger := logrus.New()
+
+	nsqHost := os.Getenv("NSQ_HOST")
+	if nsqHost != "" {
+		nsqConfig := nsq.NewConfig()
+		// 设置 NSQ 生产者
+		producer, err := nsq.NewProducer(nsqHost, nsqConfig)
+		if err != nil {
+			logger.Fatal(err)
+		}
+
+		logger.Hooks.Add(&NSQHook{
+			Producer: producer,
+		})
+	}
 
 	mw := io.MultiWriter(os.Stdout, src)
 	logrus.SetOutput(mw)
