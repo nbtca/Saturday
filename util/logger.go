@@ -21,7 +21,11 @@ type NSQHook struct {
 // Fire 根据 logrus.Entry 发送消息到 NSQ
 func (hook *NSQHook) Fire(entry *logrus.Entry) error {
 	// 将日志消息发送到 NSQ
-	return hook.Producer.Publish("log_topic", []byte(entry.Message))
+	byte, err := entry.Bytes()
+	if err != nil {
+		return err
+	}
+	return hook.Producer.Publish("log_topic", byte)
 }
 
 // Levels 返回日志级别，这里使用 logrus 默认的所有级别
@@ -60,6 +64,18 @@ func getLogger() *logrus.Logger {
 	//实例化
 	logger := logrus.New()
 
+	mw := io.MultiWriter(os.Stdout, src)
+	logrus.SetOutput(mw)
+	logger.Out = mw
+
+	//设置日志级别
+	logger.SetLevel(logrus.DebugLevel)
+
+	//设置日志格式
+	logger.SetFormatter(&logrus.JSONFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
+
 	nsqHost := os.Getenv("NSQ_HOST")
 	if nsqHost != "" {
 		nsqConfig := nsq.NewConfig()
@@ -73,18 +89,6 @@ func getLogger() *logrus.Logger {
 			Producer: producer,
 		})
 	}
-
-	mw := io.MultiWriter(os.Stdout, src)
-	logrus.SetOutput(mw)
-	logger.Out = mw
-
-	//设置日志级别
-	logger.SetLevel(logrus.DebugLevel)
-
-	//设置日志格式
-	logger.SetFormatter(&logrus.JSONFormatter{
-		TimestampFormat: "2006-01-02 15:04:05",
-	})
 
 	return logger
 }
