@@ -79,7 +79,7 @@ func getLogger() *logrus.Logger {
 	nsqHost := os.Getenv("NSQ_HOST")
 	if nsqHost != "" {
 		nsqConfig := nsq.NewConfig()
-		nsqConfig.AuthSecret = os.Getenv("NSQ_AUTH_SECRET")
+		nsqConfig.AuthSecret = os.Getenv("NSQ_SECRET")
 		// 设置 NSQ 生产者
 		producer, err := nsq.NewProducer(nsqHost, nsqConfig)
 		if err != nil {
