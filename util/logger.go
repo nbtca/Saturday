@@ -13,13 +13,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// NSQHook 是一个用于将日志消息发送到 NSQ 的 logrus 钩子
-type NSQHook struct {
+type ContextLogger struct {
+	*logrus.Logger
+	Context *gin.Context
+}
+
+type NSQHookForError struct {
 	Producer *nsq.Producer
 }
 
 // Fire 根据 logrus.Entry 发送消息到 NSQ
-func (hook *NSQHook) Fire(entry *logrus.Entry) error {
+func (hook *NSQHookForError) Fire(entry *logrus.Entry) error {
 	// 将日志消息发送到 NSQ
 	byte, err := entry.Bytes()
 	if err != nil {
@@ -28,14 +32,10 @@ func (hook *NSQHook) Fire(entry *logrus.Entry) error {
 	return hook.Producer.Publish("log_topic", byte)
 }
 
-// Levels 返回日志级别，这里使用 logrus 默认的所有级别
-func (hook *NSQHook) Levels() []logrus.Level {
-	return logrus.AllLevels
-}
-
-type ContextLogger struct {
-	*logrus.Logger
-	Context *gin.Context
+// Levels 返回日志级别，这里只返回 ErrorLevel
+func (hook *NSQHookForError) Levels() []logrus.Level {
+	levels := [1]logrus.Level{logrus.ErrorLevel}
+	return levels[:]
 }
 
 func getLogger() *logrus.Logger {
@@ -76,17 +76,8 @@ func getLogger() *logrus.Logger {
 		TimestampFormat: "2006-01-02 15:04:05",
 	})
 
-	nsqHost := os.Getenv("NSQ_HOST")
-	if nsqHost != "" {
-		nsqConfig := nsq.NewConfig()
-		nsqConfig.AuthSecret = os.Getenv("NSQ_SECRET")
-		// 设置 NSQ 生产者
-		producer, err := nsq.NewProducer(nsqHost, nsqConfig)
-		if err != nil {
-			logger.Fatal(err)
-		}
-
-		logger.Hooks.Add(&NSQHook{
+	if producer := GetNSQProducer(); producer != nil {
+		logger.Hooks.Add(&NSQHookForError{
 			Producer: producer,
 		})
 	}
