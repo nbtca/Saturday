@@ -8,6 +8,8 @@ import (
 )
 
 var NSQProducer *nsq.Producer
+var LogTopic = os.Getenv("LOG_TOPIC")
+var EventTopic = os.Getenv("EVENT_TOPIC")
 
 func GetNSQProducer() *nsq.Producer {
 	nsqHost := os.Getenv("NSQ_HOST")

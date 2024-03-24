@@ -218,7 +218,7 @@ func (hook *NSQHookForEvent) Fire(entry *logrus.Entry) error {
 	if err != nil {
 		return err
 	}
-	return hook.Producer.Publish("event_topic", byte)
+	return hook.Producer.Publish(EventTopic, byte)
 }
 
 func (hook *NSQHookForEvent) Levels() []logrus.Level {
