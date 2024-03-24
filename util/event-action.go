@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/nbtca/saturday/model"
+	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 )
 
@@ -192,7 +193,13 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 	} else {
 		eventLog = eh.createEventLog(createEventLogArgs{})
 	}
-	Logger.WithFields(logrus.Fields{
+	logger := getLogger()
+	if producer := GetNSQProducer(); producer != nil {
+		logger.Hooks.Add(&NSQHookForEvent{
+			Producer: producer,
+		})
+	}
+	logger.WithFields(logrus.Fields{
 		"event_id":    eventLog.EventId,
 		"action":      eventLog.Action,
 		"member_id":   eventLog.MemberId,
@@ -200,4 +207,20 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 		"description": eventLog.Description,
 	}).Info("new event action")
 	return eventLog
+}
+
+type NSQHookForEvent struct {
+	Producer *nsq.Producer
+}
+
+func (hook *NSQHookForEvent) Fire(entry *logrus.Entry) error {
+	byte, err := entry.Bytes()
+	if err != nil {
+		return err
+	}
+	return hook.Producer.Publish("event_topic", byte)
+}
+
+func (hook *NSQHookForEvent) Levels() []logrus.Level {
+	return logrus.AllLevels
 }
