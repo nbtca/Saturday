@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/nbtca/saturday/model"
-	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 )
 
@@ -205,14 +204,16 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 
 	if producer := GetNSQProducer(); producer != nil {
 		mapEventLog := map[string]interface{}{
-			"event_id":     eventLog.EventId,
-			"action":       eventLog.Action,
-			"member_id":    eventLog.MemberId,
-			"member_alias": eh.event.Member.Alias,
-			"problem":      eh.event.Problem,
-			"model":        eh.event.Model,
-			"gmt_create":   eventLog.GmtCreate,
-			"description":  eventLog.Description,
+			"event_id":    eventLog.EventId,
+			"member_id":   eventLog.MemberId,
+			"action":      eventLog.Action,
+			"problem":     eh.event.Problem,
+			"model":       eh.event.Model,
+			"gmt_create":  eventLog.GmtCreate,
+			"description": eventLog.Description,
+		}
+		if eh.event.Member != nil {
+			mapEventLog["member_alias"] = eh.event.Member.Alias
 		}
 		jsonMap, _ := json.Marshal(mapEventLog)
 		producer.PublishAsync(EventTopic, jsonMap, nil)
@@ -221,18 +222,18 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 	return eventLog
 }
 
-type NSQHookForEvent struct {
-	Producer *nsq.Producer
-}
+// type NSQHookForEvent struct {
+// 	Producer *nsq.Producer
+// }
 
-func (hook *NSQHookForEvent) Fire(entry *logrus.Entry) error {
-	byte, err := entry.Bytes()
-	if err != nil {
-		return err
-	}
-	return hook.Producer.Publish(EventTopic, byte)
-}
+// func (hook *NSQHookForEvent) Fire(entry *logrus.Entry) error {
+// 	byte, err := entry.Bytes()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return hook.Producer.Publish(EventTopic, byte)
+// }
 
-func (hook *NSQHookForEvent) Levels() []logrus.Level {
-	return logrus.AllLevels
-}
+// func (hook *NSQHookForEvent) Levels() []logrus.Level {
+// 	return logrus.AllLevels
+// }
