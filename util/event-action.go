@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/nbtca/saturday/model"
@@ -195,9 +196,19 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 	}
 	logger := getLogger()
 	if producer := GetNSQProducer(); producer != nil {
-		logger.Hooks.Add(&NSQHookForEvent{
-			Producer: producer,
-		})
+		mapEventLog := map[string]interface{}{
+			"event_id":    eventLog.EventId,
+			"action":      eventLog.Action,
+			"member_id":   eventLog.MemberId,
+			"gmt_create":  eventLog.GmtCreate,
+			"description": eventLog.Description,
+			"data":        eh.event,
+		}
+		jsonMap, _ := json.Marshal(mapEventLog)
+		producer.PublishAsync(EventTopic, jsonMap, nil)
+		// logger.Hooks.Add(&NSQHookForEvent{
+		// 	Producer: producer,
+		// })
 	}
 	logger.WithFields(logrus.Fields{
 		"event_id":    eventLog.EventId,
