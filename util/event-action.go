@@ -194,29 +194,30 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 	} else {
 		eventLog = eh.createEventLog(createEventLogArgs{})
 	}
-	logger := getLogger()
-	if producer := GetNSQProducer(); producer != nil {
-		mapEventLog := map[string]interface{}{
-			"event_id":    eventLog.EventId,
-			"action":      eventLog.Action,
-			"member_id":   eventLog.MemberId,
-			"gmt_create":  eventLog.GmtCreate,
-			"description": eventLog.Description,
-			"data":        eh.event,
-		}
-		jsonMap, _ := json.Marshal(mapEventLog)
-		producer.PublishAsync(EventTopic, jsonMap, nil)
-		// logger.Hooks.Add(&NSQHookForEvent{
-		// 	Producer: producer,
-		// })
-	}
-	logger.WithFields(logrus.Fields{
+
+	Logger.WithFields(logrus.Fields{
 		"event_id":    eventLog.EventId,
 		"action":      eventLog.Action,
 		"member_id":   eventLog.MemberId,
 		"gmt_create":  eventLog.GmtCreate,
 		"description": eventLog.Description,
 	}).Info("new event action")
+
+	if producer := GetNSQProducer(); producer != nil {
+		mapEventLog := map[string]interface{}{
+			"event_id":     eventLog.EventId,
+			"action":       eventLog.Action,
+			"member_id":    eventLog.MemberId,
+			"member_alias": eh.event.Member.Alias,
+			"problem":      eh.event.Problem,
+			"model":        eh.event.Model,
+			"gmt_create":   eventLog.GmtCreate,
+			"description":  eventLog.Description,
+		}
+		jsonMap, _ := json.Marshal(mapEventLog)
+		producer.PublishAsync(EventTopic, jsonMap, nil)
+	}
+
 	return eventLog
 }
 
