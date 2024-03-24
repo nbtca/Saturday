@@ -193,9 +193,9 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 	} else {
 		eventLog = eh.createEventLog(createEventLogArgs{})
 	}
-	logger := Logger
+	logger := getLogger()
 	if producer := GetNSQProducer(); producer != nil {
-		logger.Hooks.Add(&NSQHookForError{
+		logger.Hooks.Add(&NSQHookForEvent{
 			Producer: producer,
 		})
 	}

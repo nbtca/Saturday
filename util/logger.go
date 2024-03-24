@@ -32,9 +32,9 @@ func (hook *NSQHookForError) Fire(entry *logrus.Entry) error {
 	return hook.Producer.Publish("log_topic", byte)
 }
 
-// Levels 返回日志级别，这里只返回 ErrorLevel
+// Levels 返回日志级别，这里返回 ErrorLevel,FatalLevel,PanicLevel
 func (hook *NSQHookForError) Levels() []logrus.Level {
-	levels := [1]logrus.Level{logrus.ErrorLevel}
+	levels := [3]logrus.Level{logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel}
 	return levels[:]
 }
 
