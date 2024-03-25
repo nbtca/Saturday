@@ -214,6 +214,8 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 		}
 		if eh.event.Member != nil {
 			mapEventLog["member_alias"] = eh.event.Member.Alias
+		} else {
+			mapEventLog["member_alias"] = ""
 		}
 		jsonMap, _ := json.Marshal(mapEventLog)
 		producer.PublishAsync(EventTopic, jsonMap, nil)
