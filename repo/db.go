@@ -6,7 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/nbtca/saturday/util"
 	"github.com/qustavo/sqlhooks/v2"
 	"github.com/sirupsen/logrus"
@@ -31,13 +32,14 @@ func (h *Hooks) After(ctx context.Context, query string, args ...interface{}) (c
 		"query":   query,
 		"args":    args,
 		"elapsed": time.Since(begin),
+		"id":      ctx.Value("uuid"),
 	}).Debug("SQL executed")
 	return ctx, nil
 }
 
 func InitDB() {
 	var err error
-	sql.Register("mysqlWithHooks", sqlhooks.Wrap(&mysql.MySQLDriver{}, &Hooks{}))
+	sql.Register("mysqlWithHooks", sqlhooks.Wrap(&stdlib.Driver{},&Hooks{}))
 	db, err = sqlx.Connect("mysqlWithHooks", os.Getenv("DB_URL"))
 
 	if err != nil {
