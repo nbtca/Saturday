@@ -1,7 +1,6 @@
 FROM golang as builder
 COPY . /app
 WORKDIR /app
-# RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o saturday .
 RUN go env -w CGO_ENABLED=0 &&\
   go build -v -o saturday .
 
@@ -12,6 +11,7 @@ RUN apk add --no-cache tzdata  &&\
 
 WORKDIR /app
 COPY --from=builder /app/saturday /app
+COPY --from=builder /app/migrations /app
 
 ENV Port=80
 
