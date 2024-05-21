@@ -13,6 +13,10 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/jmoiron/sqlx"
+
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 var db *sqlx.DB
@@ -41,6 +45,10 @@ func InitDB() {
 	var err error
 	sql.Register("mysqlWithHooks", sqlhooks.Wrap(&stdlib.Driver{},&Hooks{}))
 	db, err = sqlx.Connect("mysqlWithHooks", os.Getenv("DB_URL"))
+	m, err := migrate.NewWithDatabaseInstance(
+		"file:///migrations",
+		"postgres", driver)
+	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
 
 	if err != nil {
 		util.Logger.Fatal(err)
