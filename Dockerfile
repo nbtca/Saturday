@@ -11,7 +11,7 @@ RUN apk add --no-cache tzdata  &&\
 
 WORKDIR /app
 COPY --from=builder /app/saturday /app
-COPY --from=builder /app/migrations /app
+COPY --from=builder /app/migrations /app/migrations
 
 ENV Port=80
 
