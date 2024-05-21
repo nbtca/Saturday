@@ -1,0 +1,16 @@
+-- Active: 1716099216043@@101.43.241.54@55443@weekend_dev@public
+
+ALTER TABLE "client" ALTER COLUMN "gmt_create" DROP DEFAULT;
+ALTER TABLE "client" ALTER COLUMN "gmt_modified" DROP DEFAULT;
+
+
+ALTER TABLE "event" ALTER COLUMN "gmt_create" DROP DEFAULT;
+ALTER TABLE "event" ALTER COLUMN "gmt_modified" DROP DEFAULT;
+
+
+ALTER TABLE "event_log" ALTER COLUMN "gmt_create" DROP DEFAULT;
+
+ALTER TABLE "event_log" ALTER COLUMN "gmt_create" DROP DEFAULT;
+
+ALTER TABLE "member" ALTER COLUMN "gmt_create" DROP DEFAULT;
+ALTER TABLE "member" ALTER COLUMN "gmt_modified" DROP DEFAULT;
