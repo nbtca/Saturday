@@ -64,7 +64,6 @@ func InitDB() {
 	}
 
 	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
-	m.Close()
 
 	db.SetMaxOpenConns(1000)               // The default is 0 (unlimited)
 	db.SetMaxIdleConns(10)                 // defaultMaxIdleConns = 2
