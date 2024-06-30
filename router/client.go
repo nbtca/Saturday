@@ -1,44 +1,44 @@
 package router
 
 import (
+	"context"
+
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
 	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 type ClientRouter struct{}
 
-func (ClientRouter) CreateTokenViaWeChat(c *gin.Context) {
-	wxLoginRequest := &dto.WxLoginRequest{}
-	if err := util.BindAll(c, wxLoginRequest); util.CheckError(c, err) {
-		return
+func (ClientRouter) CreateTokenViaWeChat(c context.Context, input *struct {
+	Body struct {
+		Code string `json:"code"`
 	}
-	openid, err := util.CodeToSession(wxLoginRequest.Code)
-	if util.CheckError(c, err) {
-		return
+}) (*util.CommonResponse[dto.ClientTokenResponse], error) {
+	openid, err := util.CodeToSession(input.Body.Code)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 	client, err := service.ClientServiceApp.GetClientByOpenId(openid)
-	if util.CheckError(c, err) {
-		return
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 	if client == (model.Client{}) {
 		client, err = service.ClientServiceApp.CreateClientByOpenId(openid)
-		if util.CheckError(c, err) {
-			return
+		if err != nil {
+			return nil, huma.Error422UnprocessableEntity(err.Error())
 		}
 	}
 	token, err := service.ClientServiceApp.CreateTokenViaWechat(client)
-	if util.CheckError(c, err) {
-		return
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	res := dto.ClientTokenResponse{
+	return util.MakeCommonResponse(dto.ClientTokenResponse{
 		Token:  token,
 		Client: client,
-	}
-	c.JSON(200, res)
+	}), nil
 }
 
 var ClientRouterApp = ClientRouter{}
