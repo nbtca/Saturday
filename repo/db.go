@@ -6,12 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/jackc/pgx/v5/stdlib"
-
-	_ "github.com/lib/pq"
+	"github.com/Masterminds/squirrel"
+	pq "github.com/lib/pq"
+	"github.com/qustavo/sqlhooks/v2"
 
 	"github.com/nbtca/saturday/util"
-	"github.com/qustavo/sqlhooks/v2"
 	"github.com/sirupsen/logrus"
 
 	"github.com/jmoiron/sqlx"
@@ -20,6 +19,9 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
+
+// sq is a squirrel.StatementBuilderType with Correct PlaceholderFormat
+var sq squirrel.StatementBuilderType
 
 var db *sqlx.DB
 
@@ -45,8 +47,9 @@ func (h *Hooks) After(ctx context.Context, query string, args ...interface{}) (c
 
 func InitDB() {
 	var err error
-	sql.Register("mysqlWithHooks", sqlhooks.Wrap(&stdlib.Driver{}, &Hooks{}))
-	db, err = sqlx.Connect("mysqlWithHooks", os.Getenv("DB_URL"))
+	sql.Register("pqHooked", sqlhooks.Wrap(&pq.Driver{}, &Hooks{}))
+	sqlx.BindDriver("pqHooked", sqlx.DOLLAR)
+	db, err = sqlx.Connect("pqHooked", os.Getenv("DB_URL"))
 	if err != nil {
 		util.Logger.Fatal(err)
 	}
@@ -68,6 +71,8 @@ func InitDB() {
 	db.SetMaxOpenConns(1000)               // The default is 0 (unlimited)
 	db.SetMaxIdleConns(10)                 // defaultMaxIdleConns = 2
 	db.SetConnMaxLifetime(time.Minute * 5) // 0, connections are reused forever.
+
+	sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 }
 
 func SetDB(dbx *sqlx.DB) {

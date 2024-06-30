@@ -11,7 +11,7 @@ import (
 )
 
 func GetClientByOpenId(openId string) (model.Client, error) {
-	statement, args, _ := squirrel.Select("*").From("client").Where(squirrel.Eq{"openid": openId}).ToSql()
+	statement, args, _ := sq.Select("*").From("client").Where(squirrel.Eq{"openid": openId}).ToSql()
 	client := model.Client{}
 	if err := db.Get(&client, statement, args...); err != nil {
 		if err == sql.ErrNoRows {
@@ -25,7 +25,7 @@ func GetClientByOpenId(openId string) (model.Client, error) {
 func CreateClient(client *model.Client) error {
 	client.GmtCreate = util.GetDate()
 	client.GmtModified = util.GetDate()
-	sql, args, _ := squirrel.Insert("client").Columns("openid", "gmt_create", "gmt_modified").
+	sql, args, _ := sq.Insert("client").Columns("openid", "gmt_create", "gmt_modified").
 		Values(client.OpenId, time.Now(), time.Now()).ToSql()
 	res, err := db.Exec(sql, args...)
 	if err != nil {

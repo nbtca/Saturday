@@ -24,14 +24,14 @@ func getEventStatement() squirrel.SelectBuilder {
 
 	// when column prefix is set, table must set with correspond alias(first letter of alias)
 	// for example: when column prefix is "member", the table should be aliased to "m".
-	return squirrel.Select(fields...).
+	return sq.Select(fields...).
 		From("event_view as e").
 		LeftJoin("member_view as m USING (member_id)").
 		LeftJoin("member_view as a ON (e.closed_by=a.member_id)")
 }
 
 func getLogStatement() squirrel.SelectBuilder {
-	return squirrel.Select(EventLogFields...).From("event_log_view")
+	return sq.Select(EventLogFields...).From("event_log_view")
 }
 
 /*
@@ -120,7 +120,7 @@ func GetClientEvents(f EventFilter, clientId string) ([]model.Event, error) {
 }
 
 func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
-	sql, args, _ := squirrel.Update("event").
+	sql, args, _ := sq.Update("event").
 		Set("model", event.Model).
 		Set("phone", event.Phone).
 		Set("qq", event.QQ).
@@ -153,7 +153,7 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 func CreateEvent(event *model.Event) error {
 	event.GmtCreate = util.GetDate()
 	event.GmtModified = util.GetDate()
-	createEventSql, args, _ := squirrel.Insert("event").Columns(
+	createEventSql, args, _ := sq.Insert("event").Columns(
 		"event_id", "client_id", "model", "phone", "qq",
 		"contact_preference", "problem", "member_id", "closed_by",
 		"gmt_create", "gmt_modified").Values(
@@ -178,7 +178,7 @@ func CreateEvent(event *model.Event) error {
 }
 
 func CreateEventLog(eventLog *model.EventLog, conn *sqlx.Tx) error {
-	sql, args, _ := squirrel.Insert("event_log").Columns("event_id", "description", "member_id", "gmt_create").
+	sql, args, _ := sq.Insert("event_log").Columns("event_id", "description", "member_id", "gmt_create").
 		Values(eventLog.EventId, eventLog.Description, eventLog.MemberId, util.GetDate()).ToSql()
 	res, err := conn.Exec(sql, args...)
 	if err != nil {
@@ -195,7 +195,8 @@ func CreateEventLog(eventLog *model.EventLog, conn *sqlx.Tx) error {
 
 func ExistEventAction(action string) (bool, error) {
 	var count int
-	err := db.Get(&count, "SELECT count(*) as count FROM event_action where action = ?", action)
+	sql, args, _ := sq.Select("count(*) as count").From("event_action").Where(squirrel.Eq{"action": action}).ToSql()
+	err := db.Get(&count, sql, args...)
 	if err != nil {
 		return false, err
 	}
@@ -210,7 +211,13 @@ func SetEventAction(eventLogId int64, action string, conn *sqlx.Tx) error {
 		SELECT event_action_id FROM event_action WHERE action=?))
 		ON DUPLICATE KEY UPDATE event_action_id=(
 		SELECT event_action_id FROM event_action WHERE action= ? )`
-	_, err := conn.Exec(sql, eventLogId, action, action)
+	if db.DriverName() == "pqHooked" {
+		sql = `INSERT INTO event_event_action_relation VALUES ($1,(
+		SELECT event_action_id FROM event_action WHERE action=$2))
+		ON CONFLICT (event_log_id) DO UPDATE SET event_action_id=(
+		SELECT event_action_id FROM event_action WHERE action=$3 )`
+	}
+	_, err := conn.Exec(db.Rebind(sql), eventLogId, action, action)
 	return err
 }
 
@@ -230,12 +237,20 @@ func SetEventStatus(eventId int64, status string, conn *sqlx.Tx) (sql.Result, er
 	sql := `INSERT INTO event_event_status_relation (event_id, event_status_id)
 	VALUES (?, (Select event_status_id from event_status where status = ?))
 	ON DUPLICATE KEY UPDATE event_status_id=(SELECT event_status_id FROM event_status WHERE status=?)`
-	return conn.Exec(sql, eventId, status, status)
+
+	if db.DriverName() == "pqHooked" {
+		sql = `INSERT INTO event_event_status_relation (event_id, event_status_id)
+		VALUES ($1, (Select event_status_id from event_status where status = $2))
+		ON CONFLICT (event_id) DO UPDATE SET event_status_id=(SELECT event_status_id FROM event_status WHERE status=$3)`
+	}
+
+	return conn.Exec(db.Rebind(sql), eventId, status, status)
 }
 
 func GetEventClientId(eventId int64) (int64, error) {
 	var clientId int64
-	err := db.Get(&clientId, "SELECT client_id FROM event WHERE event_id = ?", eventId)
+	sql, args, _ := sq.Select("client_id").From("event").Where(squirrel.Eq{"event_id": eventId}).ToSql()
+	err := db.Get(&clientId, sql, args...)
 	if err != nil {
 		return 0, err
 	}
