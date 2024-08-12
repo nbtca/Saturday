@@ -38,7 +38,7 @@ func SetupRouter() *gin.Engine {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	api := humagin.New(Router, huma.DefaultConfig("My API", "1.0.0"))
+	api := humagin.New(Router, huma.DefaultConfig("Saturday API", "1.0.0"))
 
 	huma.Register(api, huma.Operation{
 		OperationID: "ping",
