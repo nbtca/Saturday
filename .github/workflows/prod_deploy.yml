@@ -2,7 +2,7 @@ name: Deploy for production
 
 on:
   push:
-    branches: ["v2"]
+    branches: ["main"]
     
 env:
   REGISTRY: ghcr.io
@@ -19,9 +19,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: "v2"
-
       - name: Login DockerHub
         uses: docker/login-action@v2
         with:

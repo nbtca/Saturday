@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -48,7 +49,7 @@ func SetColumnPrefix(prefix string, column string) string {
 func Prefixer(prefix string, columns []string) []string {
 	ans := make([]string, len(columns))
 	for i, v := range columns {
-		ans[i] = fmt.Sprint(string(prefix[0]), ".", v, " as '", SetColumnPrefix(prefix, v), "'")
+		ans[i] = fmt.Sprint(string(prefix[0]), ".", v, " as", strconv.Quote(SetColumnPrefix(prefix, v)))
 	}
 	return ans
 }

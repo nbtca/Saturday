@@ -1,0 +1,14 @@
+version: "3"
+services:
+  server:
+    image: ghcr.io/nbtca/saturday
+    ports:
+      - 80:80
+    volumes:
+      - ./logs/:/app/logs/
+    environment:
+      DB_URL: root:password@(host.docker.internal:3306)/saturday_dev?parseTime=True
+      PORT: 80
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  
