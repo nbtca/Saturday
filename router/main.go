@@ -117,7 +117,14 @@ func SetupRouter() *gin.Engine {
 		Tags:        []string{"Event", "Public"},
 	}, EventRouterApp.GetPublicEventByPage)
 
-	Router.POST("/members/:MemberId/logto", MemberRouterApp.CreateWithLogto)
+	huma.Register(api, huma.Operation{
+		OperationID: "create-member-with-logto",
+		Method:      http.MethodPost,
+		Path:        "/members/:MemberId/logto",
+		Summary:     "Create member with logto",
+		Tags:        []string{"Member", "Private"},
+	}, MemberRouterApp.CreateWithLogto)
+
 	Router.PATCH("member/activate",
 		middleware.Auth("member_inactive", "admin_inactive"),
 		MemberRouterApp.Activate)

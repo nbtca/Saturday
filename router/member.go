@@ -167,54 +167,56 @@ func (MemberRouter) Create(c *gin.Context) {
 	c.JSON(200, member)
 }
 
-func (MemberRouter) CreateWithLogto(c *gin.Context) {
-	req := &dto.CreateMemberWithLogtoRequest{}
-	if err := util.BindAll(c, req); util.CheckError(c, err) {
-		return
-	}
-
+func (MemberRouter) CreateWithLogto(c context.Context, input *struct {
+	MemberId string `path:"MemberId" maxLength:"10" example:"2333333333" doc:"Member Id"`
+	LogtoId  string `json:"logtoId" doc:"Logto Id"`
+	Name     string `json:"name" minLength:"2" maxLength:"4" doc:"Name"`
+	Section  string `json:"section"`
+	Alias    string `json:"alias" maxLength:"20"`
+	Avatar   string `json:"avatar" maxLength:"255"`
+	Profile  string `json:"profile" maxLength:"1000"`
+	Phone    string `json:"phone"`
+	QQ       string `json:"qq" minLength:"5" maxLength:"20"`
+	Auth     string `header:"Authorization"`
+}) (*util.CommonResponse[model.Member], error) {
 	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
-	if util.CheckError(c, err) {
-		return
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 	accessToken := res["access_token"].(string)
 
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
-	auth := c.GetHeader("Authorization")
-	user, err := service.LogtoServiceApp.FetchUserByToken(auth, accessToken)
-	if util.CheckError(c, err) {
-		return
+	user, err := service.LogtoServiceApp.FetchUserByToken(input.Auth, accessToken)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	invalidTokenError := util.
-		MakeServiceError(http.StatusUnprocessableEntity).
-		AddDetailError("member", "logto token", "invalid token")
 	if user["id"] == nil {
-		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token: id missing").Build())
-		return
+		return nil, huma.Error422UnprocessableEntity("Invalid token: id missing")
 	}
 	logtoId, ok := user["id"].(string)
 	if !ok {
-		c.AbortWithStatusJSON(invalidTokenError.SetMessage("Invalid token: failed at getting id").Build())
-		return
+		return nil, huma.Error422UnprocessableEntity("Invalid token: failed at getting id")
 	}
+
 	member := &model.Member{
-		MemberId:  req.MemberId,
-		Alias:     req.Alias,
-		Name:      req.Name,
-		Section:   req.Section,
-		Avatar:    req.Avatar,
-		Profile:   req.Profile,
-		QQ:        req.QQ,
-		Phone:     req.Phone,
+		MemberId:  input.MemberId,
+		Alias:     input.Alias,
+		Name:      input.Name,
+		Section:   input.Section,
+		Avatar:    input.Avatar,
+		Profile:   input.Profile,
+		QQ:        input.QQ,
+		Phone:     input.Phone,
 		Role:      "member",
-		CreatedBy: req.MemberId,
+		CreatedBy: input.MemberId,
 		LogtoId:   logtoId,
 	}
-	err = service.MemberServiceApp.CreateMember(member)
-	if util.CheckError(c, err) {
-		return
+	if err = service.MemberServiceApp.CreateMember(member); err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, member)
+
+	return util.MakeCommonResponse(member), nil
+
 }
 
 func (MemberRouter) CreateMany(c *gin.Context) {
