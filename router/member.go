@@ -215,7 +215,7 @@ func (MemberRouter) CreateWithLogto(c context.Context, input *struct {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 
-	return util.MakeCommonResponse(member), nil
+	return util.MakeCommonResponse(*member), nil
 
 }
 
