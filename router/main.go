@@ -1,14 +1,23 @@
 package router
 
 import (
+	"context"
+	"net/http"
 	"regexp"
 	"time"
 
+	"github.com/danielgtaylor/huma/v2"
+	"github.com/danielgtaylor/huma/v2/adapters/humagin"
 	"github.com/gin-contrib/cors"
 	"github.com/nbtca/saturday/middleware"
+	"github.com/nbtca/saturday/util"
 
 	"github.com/gin-gonic/gin"
 )
+
+type PingResponse struct {
+	Pong string `json:"message" example:"ping" doc:"Ping message"`
+}
 
 func SetupRouter() *gin.Engine {
 	Router := gin.Default()
@@ -29,27 +38,93 @@ func SetupRouter() *gin.Engine {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	Router.GET("/ping", func(c *gin.Context) {
-		c.String(200, "pong")
+	api := humagin.New(Router, huma.DefaultConfig("My API", "1.0.0"))
+
+	huma.Register(api, huma.Operation{
+		OperationID: "ping",
+		Method:      http.MethodGet,
+		Path:        "/ping",
+		Summary:     "Ping",
+		Tags:        []string{"Common", "Public"},
+	}, func(ctx context.Context, input *struct{}) (*util.CommonResponse[PingResponse], error) {
+		resp := PingResponse{
+			Pong: "Hello",
+		}
+		return util.MakeCommonResponse(resp), nil
 	})
 
-	PublicGroup := Router.Group("/")
-	{
-		PublicGroup.GET("members/:MemberId", MemberRouterApp.GetPublicMemberById)
-		PublicGroup.GET("members", MemberRouterApp.GetPublicMemberByPage)
-		PublicGroup.POST("members/:MemberId/token", MemberRouterApp.CreateToken)
-		PublicGroup.PATCH("members/:MemberId/logto_id", MemberRouterApp.BindMemberLogtoId)
-		PublicGroup.GET("member/token/logto", MemberRouterApp.CreateTokenViaLogtoToken)
+	huma.Register(api, huma.Operation{
+		OperationID: "get-public-member",
+		Method:      http.MethodGet,
+		Path:        "/members/{MemberId}",
+		Summary:     "Get a public member by id",
+		Tags:        []string{"Member", "Public"},
+	}, MemberRouterApp.GetPublicMemberById)
 
-		PublicGroup.POST("clients/token/wechat", ClientRouterApp.CreateTokenViaWeChat)
+	huma.Register(api, huma.Operation{
+		OperationID: "get-public-member-by-page",
+		Method:      http.MethodGet,
+		Path:        "/members",
+		Summary:     "Get a public member by page",
+		Tags:        []string{"Member", "Public"},
+	}, MemberRouterApp.GetPublicMemberByPage)
 
-		PublicGroup.GET("events/:EventId", EventRouterApp.GetPublicEventById)
-		PublicGroup.GET("events", EventRouterApp.GetPublicEventByPage)
+	huma.Register(api, huma.Operation{
+		OperationID: "create-token",
+		Method:      http.MethodPost,
+		Path:        "/members/{MemberId}/token",
+		Summary:     "Create token",
+		Tags:        []string{"Member", "Public"},
+	}, MemberRouterApp.CreateToken)
 
-		PublicGroup.GET("setting", SettingRouterApp.GetMiniAppSetting)
-	}
+	huma.Register(api, huma.Operation{
+		OperationID: "create-token-via-logto-token",
+		Method:      http.MethodGet,
+		Path:        "/member/token/logto",
+		Summary:     "Create token via logto token",
+		Tags:        []string{"Member", "Public"},
+	}, MemberRouterApp.CreateTokenViaLogtoToken)
 
-	Router.POST("/members/:MemberId/logto", MemberRouterApp.CreateWithLogto)
+	huma.Register(api, huma.Operation{
+		OperationID: "bind-member-logto-id",
+		Method:      http.MethodPatch,
+		Path:        "/members/{MemberId}/logto_id",
+		Summary:     "Bind member logto id",
+		Tags:        []string{"Member", "Public"},
+	}, MemberRouterApp.BindMemberLogtoId)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "create-token-via-wechat",
+		Method:      http.MethodPost,
+		Path:        "clients/token/wechat",
+		Summary:     "Create token via wechat",
+		Tags:        []string{"Client", "Public"},
+	}, ClientRouterApp.CreateTokenViaWeChat)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-public-event-by-id",
+		Method:      http.MethodGet,
+		Path:        "/events/{EventId}",
+		Summary:     "Get a public event by id",
+		Tags:        []string{"Event", "Public"},
+	}, EventRouterApp.GetPublicEventById)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-public-event-by-page",
+		Method:      http.MethodGet,
+		Path:        "/events",
+		Summary:     "Get a public event by page",
+		Tags:        []string{"Event", "Public"},
+	}, EventRouterApp.GetPublicEventByPage)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "create-member-with-logto",
+		Method:      http.MethodPost,
+		Path:        "/members/:MemberId/logto",
+		Summary:     "Create member with logto",
+		Tags:        []string{"Member", "Private"},
+	}, MemberRouterApp.CreateWithLogto)
+
 	Router.PATCH("member/activate",
 		middleware.Auth("member_inactive", "admin_inactive"),
 		MemberRouterApp.Activate)
