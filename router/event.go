@@ -13,6 +13,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func validateOrder(order string) string {
+	if order != "ASC" && order != "DESC" {
+		return "ASC"
+	}
+	return order
+}
+
 type EventRouter struct{}
 
 func (EventRouter) GetPublicEventById(c *gin.Context) {
@@ -34,7 +41,7 @@ func (EventRouter) GetPublicEventByPage(c *gin.Context) {
 		return
 	}
 	status := c.DefaultQuery("status", "")
-	order := c.DefaultQuery("order", "ASC")
+	order := validateOrder(c.DefaultQuery("order", "ASC"))
 	events, err := service.EventServiceApp.GetPublicEvents(repo.EventFilter{
 		Offset: offset,
 		Limit:  limit,
@@ -77,7 +84,7 @@ func (EventRouter) GetMemberEventByPage(c *gin.Context) {
 	}
 	identity := util.GetIdentity(c)
 	status := c.DefaultQuery("status", "")
-	order := c.DefaultQuery("order", "ASC")
+	order := validateOrder(c.DefaultQuery("order", "ASC"))
 	events, err := service.EventServiceApp.GetMemberEvents(repo.EventFilter{
 		Offset: offset,
 		Limit:  limit,
