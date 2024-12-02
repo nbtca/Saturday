@@ -1,9 +1,11 @@
 package router
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
 	"github.com/nbtca/saturday/repo"
@@ -13,39 +15,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type EventRouter struct{}
-
-func (EventRouter) GetPublicEventById(c *gin.Context) {
-	eventId := &dto.EventID{}
-	if err := util.BindAll(c, eventId); util.CheckError(c, err) {
-		return
-	}
-	event, err := service.EventServiceApp.GetPublicEventById(eventId.EventID)
-	if util.CheckError(c, err) {
-		return
-	}
-	c.JSON(200, event)
+type EventRouter struct {
+	huma huma.API
 }
 
-func (EventRouter) GetPublicEventByPage(c *gin.Context) {
-	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
+func (EventRouter) GetPublicEventById(c context.Context, input *struct {
+	EventID int64 `path:"EventId"`
+}) (*util.CommonResponse[model.PublicEvent], error) {
+	event, err := service.EventServiceApp.GetPublicEventById(input.EventID)
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	status := c.DefaultQuery("status", "")
-	order := c.DefaultQuery("order", "ASC")
+	return util.MakeCommonResponse(event), nil
+}
+
+func (EventRouter) GetPublicEventByPage(c context.Context, input *struct {
+	dto.PageRequest
+	Status string `query:"status"`
+	Order  string `query:"order" default:"ASC"`
+}) (*util.CommonResponse[[]model.PublicEvent], error) {
 	events, err := service.EventServiceApp.GetPublicEvents(repo.EventFilter{
-		Offset: offset,
-		Limit:  limit,
-		Status: status,
-		Order:  order,
+		Offset: input.Offset,
+		Limit:  input.Limit,
+		Status: input.Status,
+		Order:  input.Order,
 	})
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, events)
+	return util.MakeCommonResponse(events), nil
 }
 
 func (EventRouter) GetEventById(c *gin.Context) {

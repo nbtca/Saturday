@@ -212,8 +212,8 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 			"gmt_create":  eventLog.GmtCreate,
 			"description": eventLog.Description,
 		}
-		if eh.event.Member != nil {
-			mapEventLog["member_alias"] = eh.event.Member.Alias
+		if eh.actor.Member.Alias != "" {
+			mapEventLog["member_alias"] = eh.actor.Member.Alias
 		} else {
 			mapEventLog["member_alias"] = ""
 		}
@@ -224,18 +224,3 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 	return eventLog
 }
 
-// type NSQHookForEvent struct {
-// 	Producer *nsq.Producer
-// }
-
-// func (hook *NSQHookForEvent) Fire(entry *logrus.Entry) error {
-// 	byte, err := entry.Bytes()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return hook.Producer.Publish(EventTopic, byte)
-// }
-
-// func (hook *NSQHookForEvent) Levels() []logrus.Level {
-// 	return logrus.AllLevels
-// }
