@@ -85,7 +85,6 @@ func (MemberRouter) CreateToken(ctx context.Context, input *struct {
 }
 
 func (MemberRouter) CreateTokenViaLogtoToken(c context.Context, input *struct {
-	MemberId      string `path:"MemberId" maxLength:"10" example:"2333333333" doc:"Member Id"`
 	Authorization string `header:"Authorization"`
 }) (*util.CommonResponse[dto.CreateMemberTokenResponse], error) {
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
@@ -293,7 +292,7 @@ func (MemberRouter) BindMemberLogtoId(c context.Context, input *struct {
 	MemberId      string `path:"MemberId" maxLength:"10" example:"2333333333" doc:"Member Id"`
 	Authorization string `header:"Authorization"`
 	Body          struct {
-		Password string `json:"password" binding:""`
+		Password string `json:"password"`
 	}
 }) (*util.CommonResponse[model.Member], error) {
 	member, err := service.MemberServiceApp.GetMemberById(input.MemberId)
