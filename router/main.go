@@ -96,7 +96,7 @@ func SetupRouter() *gin.Engine {
 	huma.Register(api, huma.Operation{
 		OperationID: "create-token-via-wechat",
 		Method:      http.MethodPost,
-		Path:        "clients/token/wechat",
+		Path:        "/clients/token/wechat",
 		Summary:     "Create token via wechat",
 		Tags:        []string{"Client", "Public"},
 	}, ClientRouterApp.CreateTokenViaWeChat)
