@@ -134,10 +134,13 @@ func (MemberRouter) CreateTokenViaLogtoToken(c *gin.Context) {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 
-	member.Role = service.MemberServiceApp.MapLogtoUserRole(logto_roles)
-	err = service.MemberServiceApp.UpdateMember(member)
-	if err != nil {
-		return nil, huma.Error422UnprocessableEntity("error at syncing member role" + err.Error())
+	mappedRole := service.MemberServiceApp.MapLogtoUserRole(logto_roles)
+	if mappedRole != member.Role && mappedRole != "" {
+		member.Role = mappedRole
+		err = service.MemberServiceApp.UpdateMember(member)
+		if err != nil {
+			return nil, huma.Error422UnprocessableEntity("error at syncing member role" + err.Error())
+		}
 	}
 
 	t, err := service.MemberServiceApp.CreateToken(member)
