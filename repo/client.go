@@ -27,13 +27,11 @@ func CreateClient(client *model.Client) error {
 	client.GmtModified = util.GetDate()
 	sql, args, _ := sq.Insert("client").Columns("openid", "gmt_create", "gmt_modified").
 		Values(client.OpenId, time.Now(), time.Now()).ToSql()
-	res, err := db.Exec(sql, args...)
+	var id int64
+	err := db.QueryRow(sql+"RETURNING id", args...).Scan(&id)
 	if err != nil {
 		return err
 	}
-	client.ClientId, err = res.LastInsertId()
-	if err != nil {
-		return err
-	}
+	client.ClientId = id
 	return nil
 }

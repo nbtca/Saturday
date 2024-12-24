@@ -154,10 +154,10 @@ func CreateEvent(event *model.Event) error {
 	event.GmtCreate = util.GetDate()
 	event.GmtModified = util.GetDate()
 	createEventSql, args, _ := sq.Insert("event").Columns(
-		"event_id", "client_id", "model", "phone", "qq",
+		"client_id", "model", "phone", "qq",
 		"contact_preference", "problem", "member_id", "closed_by",
 		"gmt_create", "gmt_modified").Values(
-		event.EventId, event.ClientId, event.Model, event.Phone, event.QQ,
+		event.ClientId, event.Model, event.Phone, event.QQ,
 		event.ContactPreference, event.Problem, event.MemberId, event.ClosedBy,
 		event.GmtCreate, event.GmtModified).ToSql()
 	conn, err := db.Beginx()
@@ -165,11 +165,13 @@ func CreateEvent(event *model.Event) error {
 		return err
 	}
 	defer util.RollbackOnErr(err, conn)
-	res, err := conn.Exec(createEventSql, args...)
+	var id int64
+	err = conn.QueryRow(createEventSql+"RETURNING event_id", args...).Scan(&id)
+	// res, err := conn.Exec(createEventSql, args...)
 	if err != nil {
 		return err
 	}
-	event.EventId, _ = res.LastInsertId()
+	event.EventId = id
 	if err = conn.Commit(); err != nil {
 		return err
 
@@ -180,12 +182,12 @@ func CreateEvent(event *model.Event) error {
 func CreateEventLog(eventLog *model.EventLog, conn *sqlx.Tx) error {
 	sql, args, _ := sq.Insert("event_log").Columns("event_id", "description", "member_id", "gmt_create").
 		Values(eventLog.EventId, eventLog.Description, eventLog.MemberId, util.GetDate()).ToSql()
-	res, err := conn.Exec(sql, args...)
+	var eventLogId int64
+	err := db.QueryRow(sql+"RETURNING id", args...).Scan(&eventLogId)
 	if err != nil {
 		return err
 	}
-	eventLogId, _ := res.LastInsertId()
-	eventLog.EventLogId = int64(eventLogId)
+	eventLog.EventLogId = eventLogId
 	err = SetEventAction(eventLogId, eventLog.Action, conn)
 	if err != nil {
 		return err
