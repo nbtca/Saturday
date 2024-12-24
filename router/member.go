@@ -131,7 +131,10 @@ func (MemberRouter) CreateTokenViaLogtoToken(c *gin.Context) {
 	}
 	logto_roles, err := service.LogtoServiceApp.FetchUserRole(logto_id, accessToken)
 	if err != nil {
-		return nil, huma.Error422UnprocessableEntity(err.Error())
+		c.AbortWithStatusJSON(util.
+			MakeServiceError(http.StatusUnprocessableEntity).
+			SetMessage("error at FetchLogtoToken" + err.Error()).
+			Build())
 	}
 
 	mappedRole := service.MemberServiceApp.MapLogtoUserRole(logto_roles)
@@ -139,7 +142,10 @@ func (MemberRouter) CreateTokenViaLogtoToken(c *gin.Context) {
 		member.Role = mappedRole
 		err = service.MemberServiceApp.UpdateMember(member)
 		if err != nil {
-			return nil, huma.Error422UnprocessableEntity("error at syncing member role" + err.Error())
+			c.AbortWithStatusJSON(util.
+				MakeServiceError(http.StatusUnprocessableEntity).
+				SetMessage("error at syncing member role" + err.Error()).
+				Build())
 		}
 	}
 
