@@ -224,7 +224,7 @@ CREATE VIEW public.event_view AS
     event.closed_by,
     event.gmt_create,
     event.gmt_modified,
-    event_status.status
+    COALESCE(event_status.status, ''::character varying) AS status
    FROM ((public.event
      LEFT JOIN public.event_event_status_relation ON ((event.event_id = event_event_status_relation.event_id)))
      LEFT JOIN public.event_status ON ((event_event_status_relation.event_status_id = event_status.event_status_id)));
@@ -331,7 +331,7 @@ CREATE VIEW public.member_view AS
     member.created_by,
     member.gmt_create,
     member.gmt_modified,
-    role.role,
+    COALESCE(role.role, ''::character varying) AS role,
     member.logto_id
    FROM ((public.member
      LEFT JOIN public.member_role_relation ON ((member.member_id = (member_role_relation.member_id)::bpchar)))
