@@ -116,6 +116,17 @@ func (MemberRouter) CreateTokenViaLogtoToken(c context.Context, input *struct {
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
+	logto_roles, err := service.LogtoServiceApp.FetchUserRole(logto_id, accessToken)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+
+	member.Role = service.MemberServiceApp.MapLogtoUserRole(logto_roles)
+	err = service.MemberServiceApp.UpdateMember(member)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity("error at syncing member role" + err.Error())
+	}
+
 	t, err := service.MemberServiceApp.CreateToken(member)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
