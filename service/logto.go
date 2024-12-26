@@ -158,4 +158,43 @@ func MakeLogtoService(endpoint string) LogtoService {
 	}
 }
 
+type LogtoUserRole struct {
+	TenantId    string `json:"tenantId"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Type        string `json:"type"`
+	IsDefault   bool   `json:"isDefault"`
+}
+type FetchUserRoleResponse []LogtoUserRole
+
+func (l LogtoService) FetchUserRole(userId string, accessToken string) (FetchUserRoleResponse, error) {
+	userRoleURL, err := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/api/users/", userId, "/roles")
+	if err != nil {
+		return nil, err
+	}
+	req, _ := http.NewRequest("GET", userRoleURL, nil)
+	req.Header.Add("Authorization", "Bearer "+accessToken)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	rawBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Status != "200 OK" {
+		return nil, fmt.Errorf(string(rawBody))
+	}
+
+	var body FetchUserRoleResponse
+	if err := json.Unmarshal(rawBody, &body); err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
 var LogtoServiceApp LogtoService

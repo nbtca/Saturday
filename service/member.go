@@ -100,6 +100,18 @@ func (service *MemberService) CreateToken(member model.Member) (string, error) {
 // 	return nil
 // }
 
+func (service MemberService) MapLogtoUserRole(roles []LogtoUserRole) string {
+	role := ""
+	for _, r := range roles {
+		if r.Name == "Repair Admin" {
+			role = "admin"
+		} else if r.Name == "Repair Member" && role == "" {
+			role = "member"
+		}
+	}
+	return role
+}
+
 func (service *MemberService) UpdateMember(member model.Member) error {
 	exist, err := repo.ExistRole(member.Role)
 	if err != nil {
