@@ -1,10 +1,15 @@
 package service
 
 import (
+	"bytes"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"net/rpc"
 	"os"
+
+	"github.com/google/go-github/v69/github"
+	md "github.com/nao1215/markdown"
 
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/repo"
@@ -145,6 +150,53 @@ func (service EventService) SendActionNotifyViaMail(event *model.Event, subject 
 	return nil
 }
 
+func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
+	if util.Action(eventLog.Action) == util.Create {
+		body := event.ToMarkdownString()
+		issue, _, err := util.CreateIssue(&github.IssueRequest{
+			Title:  &event.Problem,
+			Body:   &body,
+			Labels: &[]string{"ticket"},
+		})
+		if err != nil {
+			return err
+		}
+		event.GithubIssueId = sql.NullInt64{
+			Valid: true,
+			Int64: int64(*issue.ID),
+		}
+		event.GithubIssueNumber = sql.NullInt64{
+			Valid: true,
+			Int64: int64(*issue.Number),
+		}
+		return nil
+	}
+	if !event.GithubIssueId.Valid {
+		return fmt.Errorf("event.GithubIssueId is not valid")
+	}
+
+	buf := new(bytes.Buffer)
+	description := md.NewMarkdown(buf).
+		H2(eventLog.Action).
+		PlainText(eventLog.Description).
+		PlainText(fmt.Sprintf("By %s", identity.Member.Alias)).String()
+	_, _, err := util.CreateIssueComment(int(event.GithubIssueNumber.Int64), &github.IssueComment{
+		Body: &description,
+	})
+	if err != nil {
+		return err
+	}
+
+	if util.Action(eventLog.Action) == util.Close || util.Action(eventLog.Action) == util.Cancel {
+		_, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 /*
 this function validates the action and then perform action to the event.
 it also persists the event and event log.
@@ -159,6 +211,12 @@ func (service EventService) Act(event *model.Event, identity model.Identity, act
 	}
 
 	log := handler.Handle()
+
+	err := syncEventActionToGithubIssue(event, log, identity)
+	if err != nil {
+		util.Logger.Error(err)
+	}
+
 	// persist event
 	if err := repo.UpdateEvent(event, &log); err != nil {
 		return err
