@@ -1,8 +1,8 @@
 module github.com/nbtca/saturday
 
-go 1.21
+go 1.22.0
 
-toolchain go1.22.2
+toolchain go1.23.4
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
@@ -14,9 +14,11 @@ require (
 	github.com/go-playground/validator/v10 v10.18.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/google/go-github/v69 v69.1.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
+	github.com/nao1215/markdown v0.7.0
 	github.com/nsqio/go-nsq v1.1.0
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/qustavo/sqlhooks/v2 v2.1.0
@@ -31,13 +33,15 @@ require (
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/kr/text v0.1.0 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.51.0 // indirect
 	go.opentelemetry.io/otel/trace v1.26.0 // indirect

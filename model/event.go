@@ -1,8 +1,18 @@
 package model
 
+import (
+	"bytes"
+	"database/sql"
+	"fmt"
+
+	md "github.com/nao1215/markdown"
+)
+
 type Event struct {
 	EventId           int64         `json:"eventId" db:"event_id"`
 	ClientId          int64         `json:"clientId" db:"client_id"`
+	GithubIssueId     sql.NullInt64 `json:"githubIssueId" db:"github_issue_id"`
+	GithubIssueNumber sql.NullInt64 `json:"githubIssueNumber" db:"github_issue_number"`
 	Model             string        `json:"model"`
 	Phone             string        `json:"phone"`
 	QQ                string        `json:"qq"`
@@ -16,6 +26,17 @@ type Event struct {
 	Logs              []EventLog    `json:"logs"`
 	GmtCreate         string        `json:"gmtCreate" db:"gmt_create"`
 	GmtModified       string        `json:"gmtModified" db:"gmt_modified"`
+}
+
+func (e Event) ToMarkdownString() string {
+	buf := new(bytes.Buffer)
+	markdown := md.NewMarkdown(buf).H2("Description")
+	markdown.PlainText(e.Problem)
+	if e.Model != "" {
+		markdown.BulletList(fmt.Sprintf("Model: %s", e.Model))
+	}
+	markdown.Blockquote("footer")
+	return markdown.String()
 }
 
 type Status struct {
