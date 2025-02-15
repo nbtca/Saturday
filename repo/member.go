@@ -52,6 +52,18 @@ func GetMemberIdByLogtoId(logtoId string) (sql.NullString, error) {
 	return memberId, nil
 }
 
+func GetMemberByLogtoId(logtoId string) (model.Member, error) {
+	statement, args, _ := getMemberStatement().Where(squirrel.Eq{"logto_id": logtoId}).ToSql()
+	member := model.Member{}
+	if err := db.Get(&member, statement, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return model.Member{}, nil
+		}
+		return model.Member{}, err
+	}
+	return member, nil
+}
+
 func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
 	sql, args, _ := getMemberStatement().Offset(offset).Limit(limit).ToSql()
 	members := []model.Member{}

@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"net/http"
+	"slices"
 
+	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
 
 	"github.com/gin-gonic/gin"
@@ -17,31 +19,41 @@ const (
 
 func Auth(role ...Role) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
-		if tokenString == "" {
+		token := c.GetHeader("Authorization")
+		if token == "" {
 			c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
 				SetMessage("not authorized").
 				Build())
 			return
 		}
-		token, claims, err := util.ParseToken(tokenString)
-		if err != nil || !token.Valid {
+		// strip bearer
+		token = token[7:]
+		userinfo, err := service.LogtoServiceApp.FetchUserInfo(token)
+		if err != nil {
 			c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
 				SetMessage("not authorized").
 				Build())
 			return
 		}
-		for _, roleObj := range role {
-			if string(roleObj) == claims.Role {
-				c.Set("id", claims.Who)
-				c.Set("member", claims.Member)
-				c.Set("role", claims.Role)
-				return
+		var role string
+		if slices.Contains(userinfo.Roles, "Repair Admin") {
+			role = "admin"
+		} else if slices.Contains(userinfo.Roles, "Repair Member") {
+			role = "member"
+		}
+		if role != "" {
+			member, err := service.MemberServiceApp.GetMemberByLogtoId(userinfo.Sub)
+			if err != nil {
+				c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
+					SetMessage("not authorized").
+					Build())
 			}
+			c.Set("id", member.MemberId)
+			c.Set("member", member)
+			c.Set("role", role)
+			c.Set("user", userinfo)
+			return
 		}
-		c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
-			SetMessage("not authorized").
-			Build())
 	}
 }
 
