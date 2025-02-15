@@ -183,7 +183,7 @@ func CreateEventLog(eventLog *model.EventLog, conn *sqlx.Tx) error {
 	sql, args, _ := sq.Insert("event_log").Columns("event_id", "description", "member_id", "gmt_create").
 		Values(eventLog.EventId, eventLog.Description, eventLog.MemberId, util.GetDate()).ToSql()
 	var eventLogId int64
-	err := db.QueryRow(sql+"RETURNING id", args...).Scan(&eventLogId)
+	err := db.QueryRow(sql+"RETURNING event_log_id", args...).Scan(&eventLogId)
 	if err != nil {
 		return err
 	}

@@ -53,6 +53,7 @@ func InitDB() {
 	if err != nil {
 		util.Logger.Fatal(err)
 	}
+	util.Logger.Debug("Connected to database")
 
 	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
 	if err != nil {
@@ -73,6 +74,7 @@ func InitDB() {
 	db.SetConnMaxLifetime(time.Minute * 5) // 0, connections are reused forever.
 
 	sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	util.Logger.Trace("Initialized database")
 }
 
 func SetDB(dbx *sqlx.DB) {
