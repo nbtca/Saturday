@@ -24,6 +24,20 @@ func (service *MemberService) GetMemberById(id string) (model.Member, error) {
 	}
 }
 
+func (service *MemberService) GetMemberByLogtoId(logtoId string) (model.Member, error) {
+	member, err := repo.GetMemberByLogtoId(logtoId)
+	if err != nil {
+		return model.Member{}, err
+	}
+	if member == (model.Member{}) {
+		error := util.MakeServiceError(http.StatusUnprocessableEntity).SetMessage("Validation Failed").
+			AddDetailError("member", "logtoId", "invalid logtoId")
+		return member, error
+	} else {
+		return member, nil
+	}
+}
+
 func (service *MemberService) GetPublicMemberById(id string) (model.PublicMember, error) {
 	member, err := service.GetMemberById(id)
 	if err != nil {
