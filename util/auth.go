@@ -49,7 +49,7 @@ func CreateBasicAuth(username, password string) string {
 
 func GetTokenString(token string) (string, error) {
 	prefix := "Bearer "
-	if !strings.HasPrefix(token, prefix) {
+	if !strings.HasPrefix(token, prefix) && !strings.HasPrefix(token, strings.ToLower(prefix)) {
 		return "", fmt.Errorf("unexpected token: %v", token)
 	}
 	tokenString := token[len(prefix):]
