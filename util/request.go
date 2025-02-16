@@ -49,3 +49,11 @@ func GetIdentity(c *gin.Context) model.Identity {
 		Role:   role,
 	}
 }
+
+type CommonResponse[T any] struct {
+	Body T
+}
+
+func MakeCommonResponse[T any](body T) *CommonResponse[T] {
+	return &CommonResponse[T]{Body: body}
+}

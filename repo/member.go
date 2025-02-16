@@ -14,12 +14,13 @@ var memberFields = []string{"member_id", "alias", "password", "name", "section",
 	"phone", "qq", "avatar", "created_by", "gmt_create", "gmt_modified"}
 
 func getMemberStatement() squirrel.SelectBuilder {
-	return squirrel.Select("*").From("member_view")
+	return sq.Select("*").From("member_view")
 }
 
 func ExistMember(id string) (bool, error) {
 	var count int
-	err := db.Get(&count, "SELECT count(*) as count FROM member where member_id = ?", id)
+	sql, args, _ := sq.Select("count(*) as count").From("member").Where(squirrel.Eq{"member_id": id}).ToSql()
+	err := db.Get(&count, sql, args...)
 	if err != nil {
 		return false, err
 	}
@@ -43,11 +44,24 @@ func GetMemberById(id string) (model.Member, error) {
 
 func GetMemberIdByLogtoId(logtoId string) (sql.NullString, error) {
 	var memberId sql.NullString
-	err := db.Get(&memberId, "SELECT member_id FROM member where logto_id = ?", logtoId)
+	s, args, _ := sq.Select("member_id").From("member").Where(squirrel.Eq{"logto_id": logtoId}).ToSql()
+	err := db.Get(&memberId, s, args...)
 	if err != nil {
 		return sql.NullString{}, err
 	}
 	return memberId, nil
+}
+
+func GetMemberByLogtoId(logtoId string) (model.Member, error) {
+	statement, args, _ := getMemberStatement().Where(squirrel.Eq{"logto_id": logtoId}).ToSql()
+	member := model.Member{}
+	if err := db.Get(&member, statement, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return model.Member{}, nil
+		}
+		return model.Member{}, err
+	}
+	return member, nil
 }
 
 func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
@@ -62,7 +76,7 @@ func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
 func CreateMember(member *model.Member) error {
 	member.GmtCreate = util.GetDate()
 	member.GmtModified = util.GetDate()
-	sqlMember, argsMember, _ := squirrel.Insert("member").Columns(
+	sqlMember, argsMember, _ := sq.Insert("member").Columns(
 		"member_id", "logto_id", "alias", "name", "section", "profile", "avatar",
 		"phone", "qq", "created_by", "gmt_create", "gmt_modified").Values(
 		member.MemberId, member.LogtoId, member.Alias, member.Name, member.Section,
@@ -86,7 +100,7 @@ func CreateMember(member *model.Member) error {
 }
 
 func UpdateMember(member model.Member) error {
-	sql, args, _ := squirrel.Update("member").
+	sql, args, _ := sq.Update("member").
 		Set("logto_id", member.LogtoId).
 		Set("alias", member.Alias).
 		Set("name", member.Name).

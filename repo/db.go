@@ -6,13 +6,22 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
-	"github.com/nbtca/saturday/util"
+	"github.com/Masterminds/squirrel"
+	pq "github.com/lib/pq"
 	"github.com/qustavo/sqlhooks/v2"
+
+	"github.com/nbtca/saturday/util"
 	"github.com/sirupsen/logrus"
 
 	"github.com/jmoiron/sqlx"
+
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
+
+// sq is a squirrel.StatementBuilderType with Correct PlaceholderFormat
+var sq squirrel.StatementBuilderType
 
 var db *sqlx.DB
 
@@ -31,21 +40,41 @@ func (h *Hooks) After(ctx context.Context, query string, args ...interface{}) (c
 		"query":   query,
 		"args":    args,
 		"elapsed": time.Since(begin),
+		"id":      ctx.Value("uuid"),
 	}).Debug("SQL executed")
 	return ctx, nil
 }
 
 func InitDB() {
 	var err error
-	sql.Register("mysqlWithHooks", sqlhooks.Wrap(&mysql.MySQLDriver{}, &Hooks{}))
-	db, err = sqlx.Connect("mysqlWithHooks", os.Getenv("DB_URL"))
-
+	sql.Register("pqHooked", sqlhooks.Wrap(&pq.Driver{}, &Hooks{}))
+	sqlx.BindDriver("pqHooked", sqlx.DOLLAR)
+	db, err = sqlx.Connect("pqHooked", os.Getenv("DB_URL"))
 	if err != nil {
 		util.Logger.Fatal(err)
 	}
+	util.Logger.Debug("Connected to database")
+
+	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		util.Logger.Fatal(err)
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
+		"postgres", driver)
+	if err != nil {
+		util.Logger.Fatal(err)
+	}
+
+	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
+
 	db.SetMaxOpenConns(1000)               // The default is 0 (unlimited)
 	db.SetMaxIdleConns(10)                 // defaultMaxIdleConns = 2
 	db.SetConnMaxLifetime(time.Minute * 5) // 0, connections are reused forever.
+
+	sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	util.Logger.Trace("Initialized database")
 }
 
 func SetDB(dbx *sqlx.DB) {
