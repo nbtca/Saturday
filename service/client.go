@@ -11,7 +11,7 @@ import (
 type ClientService struct {
 }
 
-func (service ClientService) CreateTokenViaWechat(client model.Client) (string, error) {
+func (service ClientService) CreateClientToken(client model.Client) (string, error) {
 	res, err := util.CreateToken(util.Payload{Who: fmt.Sprint(client.ClientId), Role: "client"})
 	return res, err
 }
@@ -24,8 +24,25 @@ func (service ClientService) GetClientByOpenId(openId string) (model.Client, err
 	return client, nil
 }
 
+func (service ClientService) GetClientByLogtoId(logtoId string) (model.Client, error) {
+	client, err := repo.GetClientByLogtoId(logtoId)
+	if err != nil {
+		return model.Client{}, err
+	}
+	return client, nil
+}
+
 func (service ClientService) CreateClientByOpenId(openId string) (model.Client, error) {
 	client := model.Client{OpenId: openId}
+	err := repo.CreateClient(&client)
+	if err != nil {
+		return model.Client{}, err
+	}
+	return client, nil
+}
+
+func (service ClientService) CreateClientByLogtoId(logtoId string) (model.Client, error) {
+	client := model.Client{LogtoId: logtoId}
 	err := repo.CreateClient(&client)
 	if err != nil {
 		return model.Client{}, err

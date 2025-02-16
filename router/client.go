@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/gin-gonic/gin"
+	"github.com/nbtca/saturday/middleware"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
 	"github.com/nbtca/saturday/service"
@@ -31,7 +33,7 @@ func (ClientRouter) CreateTokenViaWeChat(c context.Context, input *struct {
 			return nil, huma.Error422UnprocessableEntity(err.Error())
 		}
 	}
-	token, err := service.ClientServiceApp.CreateTokenViaWechat(client)
+	token, err := service.ClientServiceApp.CreateClientToken(client)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
@@ -39,6 +41,42 @@ func (ClientRouter) CreateTokenViaWeChat(c context.Context, input *struct {
 		Token:  token,
 		Client: client,
 	}), nil
+}
+
+func (ClientRouter) CreateTokenViaLogto(c *gin.Context) {
+	user := c.Value("user").(middleware.AuthContextUser)
+	response := dto.ClientTokenResponse{}
+	logtoId := user.UserInfo.Sub
+	if logtoId == "" {
+		c.Error(huma.Error422UnprocessableEntity("user not found"))
+		// return nil, huma.Error422UnprocessableEntity("user not found")
+	}
+	client, err := service.ClientServiceApp.GetClientByLogtoId(logtoId)
+	if err != nil {
+		c.Error(huma.Error422UnprocessableEntity(err.Error()))
+		// return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	if client == (model.Client{}) {
+		client, err = service.ClientServiceApp.CreateClientByLogtoId(logtoId)
+		if err != nil {
+			// return nil, huma.Error422UnprocessableEntity(err.Error())
+			c.Error(huma.Error422UnprocessableEntity(err.Error()))
+		}
+	}
+	token, err := service.ClientServiceApp.CreateClientToken(client)
+	if err != nil {
+		// return nil, huma.Error422UnprocessableEntity(err.Error())
+		c.Error(huma.Error422UnprocessableEntity(err.Error()))
+	}
+	response = dto.ClientTokenResponse{
+		Token:  token,
+		Client: client,
+	}
+	c.JSON(200, response)
+	// return util.MakeCommonResponse(dto.ClientTokenResponse{
+	// 	Token:  token,
+	// 	Client: client,
+	// }), nil
 }
 
 var ClientRouterApp = ClientRouter{}

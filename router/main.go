@@ -101,6 +101,8 @@ func SetupRouter() *gin.Engine {
 		Tags:        []string{"Client", "Public"},
 	}, ClientRouterApp.CreateTokenViaWeChat)
 
+	Router.POST("/clients/token/logto", middleware.Auth("client"), ClientRouterApp.CreateTokenViaLogto)
+
 	huma.Register(api, huma.Operation{
 		OperationID: "get-public-event-by-id",
 		Method:      http.MethodGet,
