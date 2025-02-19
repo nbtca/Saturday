@@ -197,4 +197,49 @@ func (l LogtoService) FetchUserRole(userId string, accessToken string) (FetchUse
 	return body, nil
 }
 
+type FetchUserInfoResponse struct {
+	Sub           string                 `json:"sub"`
+	Name          string                 `json:"name"`
+	Picture       string                 `json:"picture"`
+	UpdatedAt     int64                  `json:"updated_at"`
+	Username      string                 `json:"username"`
+	CreatedAt     int64                  `json:"created_at"`
+	Email         string                 `json:"email"`
+	EmailVerified bool                   `json:"email_verified"`
+	CustomData    map[string]interface{} `json:"custom_data"`
+	Roles         []string               `json:"roles"`
+}
+
+func (l LogtoService) FetchUserInfo(accessToken string) (FetchUserInfoResponse, error) {
+	userInfoEndpointURL, err := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc/me")
+	if err != nil {
+		return FetchUserInfoResponse{}, err
+	}
+	req, _ := http.NewRequest("GET", userInfoEndpointURL, nil)
+
+	req.Header.Add("Authorization", "Bearer "+accessToken)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return FetchUserInfoResponse{}, err
+	}
+	defer res.Body.Close()
+	rawBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		return FetchUserInfoResponse{}, err
+	}
+
+	if res.Status != "200 OK" {
+		return FetchUserInfoResponse{}, fmt.Errorf(string(rawBody))
+	}
+
+	var body FetchUserInfoResponse
+	if err := json.Unmarshal(rawBody, &body); err != nil {
+		return FetchUserInfoResponse{}, err
+	}
+
+	return body, nil
+
+}
+
 var LogtoServiceApp LogtoService
