@@ -41,8 +41,15 @@
    LOG_TOPIC=<YOUR_NSQ_LOG_TOPIC_NAME>
 
    RPC_PORT=<YOUR_RPC_PORT>
+
+   LOGTO_APPID=<LOGTO_APPID>
+   LOGTO_APP_SECRET=<LOGTO_APP_SECRET>
+   LOGTO_ENDPOINT=<LOGTO_ENDPOINT>
+
+   GITHUB_OWNER=<Github_Repo_Owner>
+   GITHUB_REPO=<Github_Repo_Name>
+   GITHUB_TOKEN=<Github_Token>
    ```
-5. 启动服务
    在项目根目录下运行
    ``` sh
    go run main.go
