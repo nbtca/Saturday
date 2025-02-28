@@ -390,7 +390,7 @@ INSERT INTO public.role (role_id,role) VALUES
 (0,'member_inactive'),
 (1,'admin_inactive'),
 (2,'member'),
-(4,'admin');
+(3,'admin');
 
 --
 -- Name: client client_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
