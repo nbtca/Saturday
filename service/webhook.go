@@ -1,7 +1,9 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"regexp"
@@ -115,4 +117,63 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 		}
 	}
 	return nil
+}
+
+type LogtoWebHook struct {
+}
+
+type UserEvent struct {
+	Event        string         `json:"event"`
+	CreatedAt    string         `json:"createdAt"`
+	UserAgent    string         `json:"userAgent"`
+	IP           string         `json:"ip"`
+	Path         string         `json:"path"`
+	Method       string         `json:"method"`
+	Status       int            `json:"status"`
+	Params       map[string]any `json:"params"`
+	MatchedRoute string         `json:"matchedRoute"`
+	Data         map[string]any `json:"data"`
+	HookID       string         `json:"hookId"`
+}
+
+func (l *LogtoWebHook) Handle(request *http.Request) error {
+	bodyBytes, err := io.ReadAll(request.Body)
+	if err != nil {
+		return err
+	}
+	defer request.Body.Close() // Always close the body when done
+
+	userEvent := &UserEvent{}
+	if err := json.Unmarshal(bodyBytes, userEvent); err != nil {
+		return fmt.Errorf("failed to parse request body into UserEvent: %v", err)
+	}
+
+	log.Printf("Received UserEvent: %+v", userEvent)
+
+	// Try to map UserEvent.Data to FetchLogtoUsersResponse
+	var logtoUsersResponse FetchLogtoUsersResponse
+	dataBytes, err := json.Marshal(userEvent.Data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal UserEvent.Data: %v", err)
+	}
+	if err := json.Unmarshal(dataBytes, &logtoUsersResponse); err != nil {
+		log.Printf("UserEvent.Data is not FetchLogtoUsersResponse: %v", err)
+		return nil
+	} else {
+		log.Printf("UserEvent.Data successfully mapped to FetchLogtoUsersResponse: %+v", logtoUsersResponse)
+	}
+	member, err := MemberServiceApp.GetMemberByLogtoId(logtoUsersResponse.Id)
+	if err != nil {
+		return err
+	}
+	if member.MemberId == "" {
+		return util.MakeValidationError("member not found", nil)
+	}
+	if gh, ok := logtoUsersResponse.Identities["github"]; ok {
+		member.GithubId = gh.UserId
+	} else {
+		return nil
+	}
+	return MemberServiceApp.UpdateMember(member)
+
 }

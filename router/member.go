@@ -100,14 +100,10 @@ func (MemberRouter) CreateTokenViaLogtoToken(c context.Context, input *struct {
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	if user["id"] == nil {
+	if user.Id == "" {
 		return nil, huma.Error422UnprocessableEntity("Invalid token: id missing")
 	}
-	logto_id, ok := user["id"].(string)
-	if !ok {
-		return nil, huma.Error422UnprocessableEntity("Invalid token: failed at getting id")
-	}
-	memberId, err := repo.GetMemberIdByLogtoId(logto_id)
+	memberId, err := repo.GetMemberIdByLogtoId(user.Id)
 	if err != nil || !memberId.Valid {
 		return nil, huma.Error422UnprocessableEntity("Invalid token: member not found")
 	}
@@ -116,7 +112,7 @@ func (MemberRouter) CreateTokenViaLogtoToken(c context.Context, input *struct {
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	logto_roles, err := service.LogtoServiceApp.FetchUserRole(logto_id, accessToken)
+	logto_roles, err := service.LogtoServiceApp.FetchUserRole(user.Id, accessToken)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
@@ -137,16 +133,14 @@ func (MemberRouter) CreateTokenViaLogtoToken(c context.Context, input *struct {
 
 	patchLogtoUserRequest := dto.PatchLogtoUserRequest{}
 
-	logtoName, _ := user["name"].(string)
-	if member.Alias != "" && logtoName == "" {
+	if member.Alias != "" && user.Name == "" {
 		patchLogtoUserRequest.Name = member.Alias
 	}
-	logtoAvatar, _ := user["avatar"].(string)
-	if member.Avatar != "" && logtoAvatar == "" {
+	if member.Avatar != "" && user.Avatar == "" {
 		patchLogtoUserRequest.Avatar = member.Avatar
 	}
 
-	_, err = service.LogtoServiceApp.PatchUserById(logto_id, patchLogtoUserRequest, accessToken)
+	_, err = service.LogtoServiceApp.PatchUserById(user.Id, patchLogtoUserRequest, accessToken)
 	if err != nil {
 		log.Println(err)
 	}
@@ -203,12 +197,8 @@ func (MemberRouter) CreateWithLogto(c context.Context, input *struct {
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	if user["id"] == nil {
+	if user.Id == "" {
 		return nil, huma.Error422UnprocessableEntity("Invalid token: id missing")
-	}
-	logtoId, ok := user["id"].(string)
-	if !ok {
-		return nil, huma.Error422UnprocessableEntity("Invalid token: failed at getting id")
 	}
 
 	member := &model.Member{
@@ -222,8 +212,12 @@ func (MemberRouter) CreateWithLogto(c context.Context, input *struct {
 		Phone:     input.Phone,
 		Role:      "member",
 		CreatedBy: input.MemberId,
-		LogtoId:   logtoId,
+		LogtoId:   user.Id,
 	}
+	if gh, ok := user.Identities["github"]; ok {
+		member.GithubId = gh.UserId
+	}
+
 	if err = service.MemberServiceApp.CreateMember(member); err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
@@ -329,18 +323,14 @@ func (MemberRouter) BindMemberLogtoId(c context.Context, input *struct {
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	if user["id"] == nil {
+	if user.Id == "" {
 		return nil, huma.Error422UnprocessableEntity("Invalid token: id missing")
-	}
-	logtoId, ok := user["id"].(string)
-	if !ok {
-		return nil, huma.Error422UnprocessableEntity("Invalid token: failed at getting id")
 	}
 	if member.LogtoId != "" {
 		return nil, huma.Error422UnprocessableEntity("Validation Failed: member logtoId already bound")
 	}
 
-	member.LogtoId = logtoId
+	member.LogtoId = user.Id
 	err = service.MemberServiceApp.UpdateMember(member)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())

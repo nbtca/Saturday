@@ -113,6 +113,7 @@ func CreateMember(member *model.Member) error {
 func UpdateMember(member model.Member) error {
 	sql, args, _ := sq.Update("member").
 		Set("logto_id", member.LogtoId).
+		Set("github_id", member.GithubId).
 		Set("alias", member.Alias).
 		Set("name", member.Name).
 		Set("section", member.Section).
