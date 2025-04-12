@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"net/rpc"
 	"os"
 
 	"github.com/google/go-github/v69/github"
