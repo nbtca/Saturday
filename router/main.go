@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
 
@@ -39,7 +40,7 @@ func SetupRouter() *gin.Engine {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	hook, _ := service.MakeGithubWebHook("terepanhakkan")
+	hook, _ := service.MakeGithubWebHook(os.Getenv("GITHUB_WEBHOOK_SECRET"))
 	Router.Handle("POST", "/webhook", func(ctx *gin.Context) {
 		err := hook.Handle(ctx.Request)
 		if err != nil {
