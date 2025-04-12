@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/nbtca/saturday/model/dto"
 	"github.com/nbtca/saturday/util"
 )
@@ -18,6 +21,45 @@ var DefaultLogtoResource = "https://default.logto.app/api"
 
 type LogtoService struct {
 	BaseURL string
+	token   string
+}
+
+func (l LogtoService) getToken() (string, error) {
+
+	validate := func(token string) bool {
+		if token == "" {
+			return false
+		}
+		parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("LOGTO_APP_SECRET")), nil
+		}, jwt.WithoutClaimsValidation())
+		if err != nil {
+			return false
+		}
+		// Check if the token is valid and not expired
+		if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok {
+			// Check for expiration claim ('exp')
+			if exp, ok := claims["exp"].(float64); ok {
+				// Convert 'exp' to time
+				expirationTime := time.Unix(int64(exp), 0)
+				// Check if the token is expired
+				if time.Now().After(expirationTime) {
+					return false
+				}
+			}
+		}
+		return true
+	}
+
+	if !validate(l.token) {
+		res, err := l.FetchLogtoToken(DefaultLogtoResource, "all")
+		if err != nil {
+			return "", err
+		}
+		l.token = res["access_token"].(string)
+		return l.token, nil
+	}
+	return l.token, nil
 }
 
 func (l LogtoService) FetchLogtoToken(resource string, scope string) (map[string]interface{}, error) {
@@ -56,6 +98,74 @@ func (l LogtoService) FetchLogtoToken(resource string, scope string) (map[string
 	}
 
 	return body, nil
+}
+
+type FetchLogtoUsersRequest struct {
+	Page         int32
+	PageSize     int32
+	SearchParams map[string]interface{}
+}
+type LogtoUserIdentities struct {
+	UserId  string                 `json:"userId"`
+	Details map[string]interface{} `json:"details"`
+}
+
+type FetchLogtoUsersResponse struct {
+	Id            string                         `json:"id"`
+	UserName      string                         `json:"username"`
+	PrimaryEmail  string                         `json:"primaryEmail"`
+	PrimaryPhone  string                         `json:"primaryPhone"`
+	Name          string                         `json:"name"`
+	Avatar        string                         `json:"avatar"`
+	Identities    map[string]LogtoUserIdentities `json:"identities"`
+	CustomerData  map[string]interface{}         `json:"customData"`
+	SSOIdentities []map[string]string            `json:"ssoIdentities"`
+}
+
+func (l LogtoService) FetchUsers(request FetchLogtoUsersRequest) ([]FetchLogtoUsersResponse, error) {
+	if request.Page < 1 {
+		request.Page = 1
+	}
+	if request.PageSize < 1 {
+		request.PageSize = 10
+	}
+	query := url.Values{
+		"page":      {fmt.Sprint(request.Page)},
+		"page_size": {fmt.Sprint(request.PageSize)},
+	}
+	for key, value := range request.SearchParams {
+		query.Add(key, fmt.Sprint(value))
+	}
+	requestURL, _ := url.JoinPath(l.BaseURL, "/api/users")
+	requestURL = requestURL + "?" + query.Encode()
+	log.Println(requestURL)
+	req, _ := http.NewRequest("GET", requestURL, nil)
+	token, err := l.getToken()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	res, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	rawBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var body []FetchLogtoUsersResponse
+	if err := json.Unmarshal(rawBody, &body); err != nil {
+		return nil, err
+	}
+
+	if res.Status != "200 OK" {
+		return nil, fmt.Errorf(string(rawBody))
+	}
+	return body, nil
+
 }
 
 func (l LogtoService) FetchUserById(userId string, token string) (map[string]interface{}, error) {
@@ -243,3 +353,7 @@ func (l LogtoService) FetchUserInfo(accessToken string) (FetchUserInfoResponse, 
 }
 
 var LogtoServiceApp LogtoService
+
+func init() {
+	LogtoServiceApp = MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
+}

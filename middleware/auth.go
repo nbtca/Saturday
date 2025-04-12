@@ -28,7 +28,7 @@ func Auth(acceptableRoles ...Role) func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
 		if token == "" {
 			c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
-				SetMessage("not authorized").
+				SetMessage("not authorized, missing token").
 				Build())
 			return
 		}
@@ -38,7 +38,7 @@ func Auth(acceptableRoles ...Role) func(c *gin.Context) {
 			tokenParsed, claims, err := util.ParseToken(token)
 			if err != nil || !tokenParsed.Valid {
 				c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
-					SetMessage("not authorized").
+					SetMessage("not authorized, token not valid.").
 					Build())
 				return
 			}
@@ -67,7 +67,7 @@ func Auth(acceptableRoles ...Role) func(c *gin.Context) {
 		userinfo, err := service.LogtoServiceApp.FetchUserInfo(token)
 		if err != nil {
 			c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
-				SetMessage("not authorized").
+				SetMessage("not authorized" + err.Error()).
 				Build())
 			return
 		}
