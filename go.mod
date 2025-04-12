@@ -12,12 +12,14 @@ require (
 	github.com/gin-contrib/cors v1.6.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.22.1
+	github.com/go-playground/webhooks/v6 v6.4.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/go-github/v69 v69.1.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
+	github.com/mostafa/go-api-client v0.1.2
 	github.com/nao1215/markdown v0.7.0
 	github.com/nsqio/go-nsq v1.1.0
 	github.com/ory/dockertest/v3 v3.10.0

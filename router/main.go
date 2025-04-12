@@ -10,6 +10,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humagin"
 	"github.com/gin-contrib/cors"
 	"github.com/nbtca/saturday/middleware"
+	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
 
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,16 @@ func SetupRouter() *gin.Engine {
 		},
 		MaxAge: 12 * time.Hour,
 	}))
+
+	hook, _ := service.MakeGithubWebHook("terepanhakkan")
+	Router.Handle("POST", "/webhook", func(ctx *gin.Context) {
+		err := hook.Handle(ctx.Request)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+		}
+	})
 
 	api := humagin.New(Router, huma.DefaultConfig("Saturday API", "1.0.0"))
 

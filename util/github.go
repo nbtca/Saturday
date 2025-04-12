@@ -26,9 +26,14 @@ func CreateIssueComment(number int, issueComment *github.IssueComment) (*github.
 	return ghClient.Issues.CreateComment(context.Background(), owner, repo, number, issueComment)
 }
 
-func CloseIssue(number int) (*github.Issue, *github.Response, error) {
+func CloseIssue(number int, stateReason string) (*github.Issue, *github.Response, error) {
 	state := "closed"
 	return ghClient.Issues.Edit(context.Background(), owner, repo, number, &github.IssueRequest{
-		State: &state,
+		State:       &state,
+		StateReason: &stateReason,
 	})
+}
+
+func GetUserById(id int64) (*github.User, *github.Response, error) {
+	return ghClient.Users.GetByID(context.Background(), id)
 }

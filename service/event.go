@@ -77,45 +77,18 @@ func (service EventService) CreateEvent(event *model.Event) error {
 	return nil
 }
 
+func (service EventService) Accept(event *model.Event, identity model.Identity) error {
+	if err := service.Act(event, identity, util.Accept); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (service EventService) SendActionNotify(event *model.Event, subject string) error {
 	if event == nil {
 		return util.MakeInternalServerError()
 	}
-	service.SendActionNotifyViaRPC(&model.EventActionNotifyRequest{
-		Subject:   subject,
-		Model:     event.Model,
-		Problem:   event.Problem,
-		Link:      "A Link to Sunday",
-		GmtCreate: event.GmtCreate,
-	})
 	service.SendActionNotifyViaMail(event, subject)
-	return nil
-}
-
-func (service EventService) SendActionNotifyViaRPC(req *model.EventActionNotifyRequest) error {
-	address := os.Getenv("RPC_ADDRESS")
-	if address == "" {
-		return fmt.Errorf("RPC_ADDRESS is not set")
-	}
-	conn, err := rpc.DialHTTP("tcp", address)
-	if err != nil {
-		return err
-	}
-	// req := model.EventActionNotifyRequest{
-	// 	Subject:   subject,
-	// 	Model:     event.Model,
-	// 	Problem:   event.Problem,
-	// 	Link:      "A Link to Sunday",
-	// 	GmtCreate: event.GmtCreate,
-	// }
-	res := model.EventActionNotifyResponse{}
-	if err = conn.Call("Notify.EventActionNotify", req, &res); err != nil {
-		util.Logger.Error(err)
-		return err
-	}
-	if !res.Success {
-		return fmt.Errorf("failed to send action notify via rpc")
-	}
 	return nil
 }
 
@@ -153,8 +126,9 @@ func (service EventService) SendActionNotifyViaMail(event *model.Event, subject 
 func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
 	if util.Action(eventLog.Action) == util.Create {
 		body := event.ToMarkdownString()
+		title := fmt.Sprintf("%s(#%v)", event.Problem, event.EventId)
 		issue, _, err := util.CreateIssue(&github.IssueRequest{
-			Title:  &event.Problem,
+			Title:  &title,
 			Body:   &body,
 			Labels: &[]string{"ticket"},
 		})
@@ -178,22 +152,30 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 	buf := new(bytes.Buffer)
 	description := md.NewMarkdown(buf).
 		H2(eventLog.Action).
-		PlainText(eventLog.Description).
-		PlainText(fmt.Sprintf("By %s", identity.Member.Alias)).String()
+		PlainText(eventLog.Description)
+	if util.Action(eventLog.Action) == util.Cancel {
+		description = description.PlainText("Cancelled by client")
+	} else {
+		description = description.PlainText(fmt.Sprintf("By %s", identity.Member.Alias))
+	}
+	commentBody := description.String()
+
 	_, _, err := util.CreateIssueComment(int(event.GithubIssueNumber.Int64), &github.IssueComment{
-		Body: &description,
+		Body: &commentBody,
 	})
 	if err != nil {
 		return err
 	}
 
-	if util.Action(eventLog.Action) == util.Close || util.Action(eventLog.Action) == util.Cancel {
-		_, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64))
-		if err != nil {
+	if util.Action(eventLog.Action) == util.Close {
+		if _, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64), "complete"); err != nil {
+			return err
+		}
+	} else if util.Action(eventLog.Action) == util.Cancel {
+		if _, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64), "not_planned"); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -204,6 +186,7 @@ it also persists the event and event log.
 func (service EventService) Act(event *model.Event, identity model.Identity, action util.Action, description ...string) error {
 	handler := util.MakeEventActionHandler(action, event, identity)
 	if err := handler.ValidateAction(); err != nil {
+		util.Logger.Error("validate action failed", err)
 		return err
 	}
 	for _, d := range description {

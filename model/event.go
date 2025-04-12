@@ -35,7 +35,6 @@ func (e Event) ToMarkdownString() string {
 	if e.Model != "" {
 		markdown.BulletList(fmt.Sprintf("Model: %s", e.Model))
 	}
-	markdown.Blockquote("footer")
 	return markdown.String()
 }
 

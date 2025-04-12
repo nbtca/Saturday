@@ -51,7 +51,7 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 			return gh.onAssign(issue, event)
 		}
 		if issue.Action == "unassigned" {
-			log.Printf("issue unassigned %v", issue)
+			return gh.onUnassign(issue, event)
 		}
 		if issue.Action == "closed" {
 			log.Printf("issue closed %v", issue)
@@ -105,5 +105,10 @@ func (gh *GithubWebHook) onAssign(issue github.IssuesPayload, event model.Event)
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (gh *GithubWebHook) onUnassign(issue github.IssuesPayload, event model.Event) error {
+	// TODO
 	return nil
 }
