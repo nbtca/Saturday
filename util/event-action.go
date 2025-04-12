@@ -65,7 +65,7 @@ var eventActionMap map[Action]eventActionHandler = map[Action]eventActionHandler
 	},
 	Accept: {
 		action:     Accept,
-		role:       []string{"member"},
+		role:       []string{"member", "admin"},
 		prevStatus: Open,
 		nextStatus: Accepted,
 		customLog: func(eh *eventActionHandler) model.EventLog {
@@ -223,4 +223,3 @@ func (eh *eventActionHandler) Handle() model.EventLog {
 
 	return eventLog
 }
-

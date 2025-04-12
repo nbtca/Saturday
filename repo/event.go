@@ -11,7 +11,7 @@ import (
 )
 
 var eventFields = []string{"event_id", "client_id", "model", "phone", "qq", "contact_preference",
-	"problem", "member_id", "closed_by", "status", "gmt_create", "gmt_modified", "status"}
+	"problem", "member_id", "closed_by", "status", "gmt_create", "gmt_modified", "status", "github_issue_id", "github_issue_number"}
 
 var EventLogFields = []string{"event_log_id", "description", "gmt_create", "member_id", "action"}
 
@@ -79,6 +79,32 @@ func GetEventById(id int64) (model.Event, error) {
 	return event, nil
 }
 
+func GetEventByIssueId(issueId int64) (model.Event, error) {
+	getEventSql, getEventArgs, _ := getEventStatement().Where(squirrel.Eq{"github_issue_id": issueId}).ToSql()
+	conn, err := db.Beginx()
+	if err != nil {
+		return model.Event{}, err
+	}
+	joinEvent := JoinEvent{}
+	if err := conn.Get(&joinEvent, getEventSql, getEventArgs...); err != nil {
+		if err == sql.ErrNoRows {
+			return model.Event{}, nil
+		}
+		conn.Rollback()
+		return model.Event{}, err
+	}
+	getLogSql, getLogArgs, _ := getLogStatement().Where(squirrel.Eq{"event_id": joinEvent.Event.EventId}).ToSql()
+	defer util.RollbackOnErr(err, conn)
+	event := joinEvent.ToEvent()
+	if err = conn.Select(&event.Logs, getLogSql, getLogArgs...); err != nil {
+		return model.Event{}, err
+	}
+	if err = conn.Commit(); err != nil {
+		return model.Event{}, err
+	}
+	return event, nil
+}
+
 type EventFilter struct {
 	Offset uint64
 	Limit  uint64
@@ -120,16 +146,22 @@ func GetClientEvents(f EventFilter, clientId string) ([]model.Event, error) {
 }
 
 func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
-	sql, args, _ := sq.Update("event").
+	builder := sq.Update("event").
 		Set("model", event.Model).
 		Set("phone", event.Phone).
 		Set("qq", event.QQ).
 		Set("contact_preference", event.ContactPreference).
 		Set("problem", event.Problem).
 		Set("member_id", event.MemberId).
-		Set("closed_by", event.ClosedBy).
-		// Set("gmt_modified", event.GmtModified).
-		Where(squirrel.Eq{"event_id": event.EventId}).ToSql()
+		Set("closed_by", event.ClosedBy)
+	if event.GithubIssueId.Valid {
+		builder = builder.Set("github_issue_id", event.GithubIssueId.Int64)
+	}
+	if event.GithubIssueNumber.Valid {
+		builder = builder.Set("github_issue_number", event.GithubIssueNumber.Int64)
+	}
+
+	sql, args, _ := builder.Where(squirrel.Eq{"event_id": event.EventId}).ToSql()
 	conn, err := db.Beginx()
 	if err != nil {
 		return err
