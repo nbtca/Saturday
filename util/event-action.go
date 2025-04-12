@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/nbtca/saturday/model"
 	"github.com/sirupsen/logrus"
@@ -148,12 +149,22 @@ func MakeEventActionHandler(action Action, event *model.Event, identity model.Id
 
 // check if the action is valid
 func (eh *eventActionHandler) ValidateAction() error {
+	roles := []string{eh.actor.Role}
+	if eh.actor.Id == eh.event.MemberId {
+		roles = append(roles, "member_current")
+	}
+	clientId, _ := strconv.ParseInt(eh.actor.Id, 10, 64)
+	if clientId == eh.event.ClientId {
+		roles = append(roles, "client_current")
+	}
 	if len(eh.role) != 0 {
 		exist := false
-		for _, role := range eh.role {
-			if role == eh.actor.Role {
-				exist = true
-				break
+		for _, role := range roles {
+			for _, r := range eh.role {
+				if role == r {
+					exist = true
+					break
+				}
 			}
 		}
 		if !exist {

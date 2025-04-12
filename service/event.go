@@ -167,7 +167,7 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 	}
 
 	if util.Action(eventLog.Action) == util.Close {
-		if _, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64), "complete"); err != nil {
+		if _, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64), "completed"); err != nil {
 			return err
 		}
 	} else if util.Action(eventLog.Action) == util.Cancel {
@@ -185,7 +185,7 @@ it also persists the event and event log.
 func (service EventService) Act(event *model.Event, identity model.Identity, action util.Action, description ...string) error {
 	handler := util.MakeEventActionHandler(action, event, identity)
 	if err := handler.ValidateAction(); err != nil {
-		util.Logger.Error("validate action failed", err)
+		util.Logger.Error("validate action failed: ", err)
 		return err
 	}
 	for _, d := range description {

@@ -63,6 +63,17 @@ func GetMemberByLogtoId(logtoId string) (model.Member, error) {
 	}
 	return member, nil
 }
+func GetMemberByGithubId(githubId string) (model.Member, error) {
+	statement, args, _ := getMemberStatement().Where(squirrel.Eq{"github_id": githubId}).ToSql()
+	member := model.Member{}
+	if err := db.Get(&member, statement, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return model.Member{}, nil
+		}
+		return model.Member{}, err
+	}
+	return member, nil
+}
 
 func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
 	sql, args, _ := getMemberStatement().Offset(offset).Limit(limit).ToSql()
