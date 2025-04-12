@@ -45,7 +45,6 @@ func (ClientRouter) CreateTokenViaWeChat(c context.Context, input *struct {
 
 func (ClientRouter) CreateTokenViaLogto(c *gin.Context) {
 	user := c.Value("user").(middleware.AuthContextUser)
-	response := dto.ClientTokenResponse{}
 	logtoId := user.UserInfo.Sub
 	if logtoId == "" {
 		c.Error(huma.Error422UnprocessableEntity("user not found"))
@@ -68,7 +67,7 @@ func (ClientRouter) CreateTokenViaLogto(c *gin.Context) {
 		// return nil, huma.Error422UnprocessableEntity(err.Error())
 		c.Error(huma.Error422UnprocessableEntity(err.Error()))
 	}
-	response = dto.ClientTokenResponse{
+	response := dto.ClientTokenResponse{
 		Token:  token,
 		Client: client,
 	}

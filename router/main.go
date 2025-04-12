@@ -50,6 +50,16 @@ func SetupRouter() *gin.Engine {
 		}
 	})
 
+	logtoHook := service.LogtoWebHook{}
+	Router.Handle("POST", "/webhook/logto", func(ctx *gin.Context) {
+		err := logtoHook.Handle(ctx.Request)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+		}
+	})
+
 	api := humagin.New(Router, huma.DefaultConfig("Saturday API", "1.0.0"))
 
 	huma.Register(api, huma.Operation{

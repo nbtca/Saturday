@@ -168,7 +168,7 @@ func (l LogtoService) FetchUsers(request FetchLogtoUsersRequest) ([]FetchLogtoUs
 
 }
 
-func (l LogtoService) FetchUserById(userId string, token string) (map[string]interface{}, error) {
+func (l LogtoService) FetchUserById(userId string, token string) (*FetchLogtoUsersResponse, error) {
 	requestURL, _ := url.JoinPath(l.BaseURL, "/api/users/", userId)
 	req, _ := http.NewRequest("GET", requestURL, nil)
 	req.Header.Add("Authorization", "Bearer "+token)
@@ -183,7 +183,7 @@ func (l LogtoService) FetchUserById(userId string, token string) (map[string]int
 		return nil, err
 	}
 
-	var body map[string]interface{}
+	var body FetchLogtoUsersResponse
 	if err := json.Unmarshal(rawBody, &body); err != nil {
 		return nil, err
 	}
@@ -191,7 +191,7 @@ func (l LogtoService) FetchUserById(userId string, token string) (map[string]int
 	if res.Status != "200 OK" {
 		return nil, fmt.Errorf(string(rawBody))
 	}
-	return body, nil
+	return &body, nil
 }
 
 func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserRequest, token string) (map[string]interface{}, error) {
@@ -227,7 +227,7 @@ func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserReques
 	return body, nil
 }
 
-func (l LogtoService) FetchUserByToken(token string, accessToken string) (map[string]interface{}, error) {
+func (l LogtoService) FetchUserByToken(token string, accessToken string) (*FetchLogtoUsersResponse, error) {
 	jwksURL, err := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc/jwks")
 	if err != nil {
 		return nil, err
