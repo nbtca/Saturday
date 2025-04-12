@@ -82,12 +82,14 @@ The aim is to achieve a two-way sync between Saturday and Github Issues. The fol
 | --- | --- | ---|
 | Create | Create Github Issue | |
 | Cancel | Close Github Issue as not planned  | |
-| Accept | Assign member to github issue  | Not implemented |
 | Commit | Add comment in github issue  | |
 | Drop | Add comment in github issue  | |
-| Approve | Add comment in github issue and close issue | |
+| close | Add comment in github issue and close issue | |
 
 ### From Github to Saturday
 
 | Event Action | Github Action | Description |
 | --- | --- | ---|
+| Accept | @nbtca-bot accept | |
+| Commit | @nbtca-bot commit | |
+| Close | @nbtca-bot close | |

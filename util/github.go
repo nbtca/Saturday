@@ -37,3 +37,11 @@ func CloseIssue(number int, stateReason string) (*github.Issue, *github.Response
 func GetUserById(id int64) (*github.User, *github.Response, error) {
 	return ghClient.Users.GetByID(context.Background(), id)
 }
+
+func AddIssueAssignee(issueNumber int, assignees []string) (*github.Issue, *github.Response, error) {
+	return ghClient.Issues.AddAssignees(context.Background(), owner, repo, issueNumber, assignees)
+}
+
+func AddIssueLabels(issueNumber int, labels []string) ([]*github.Label, *github.Response, error) {
+	return ghClient.Issues.AddLabelsToIssue(context.Background(), owner, repo, int(issueNumber), labels)
+}

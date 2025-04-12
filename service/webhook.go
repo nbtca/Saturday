@@ -1,8 +1,12 @@
 package service
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/go-playground/webhooks/v6/github"
 	"github.com/nbtca/saturday/model"
@@ -36,9 +40,16 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 		return err
 	}
 	switch payload.(type) {
-	case github.IssuesPayload:
-		issue := payload.(github.IssuesPayload)
-		event, err := repo.GetEventByIssueId(issue.Issue.ID)
+	case github.IssueCommentPayload:
+		comment := payload.(github.IssueCommentPayload)
+
+		match := regexp.MustCompile(`@nbtca-bot\s+(\w+)`).FindStringSubmatch(comment.Comment.Body)
+		if len(match) < 2 {
+			return nil
+		}
+		action := match[1]
+
+		event, err := repo.GetEventByIssueId(comment.Issue.ID)
 		if err != nil {
 			return err
 		}
@@ -46,69 +57,62 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 			return nil
 		}
 		log.Printf("event found %v", event)
-
-		if issue.Action == "assigned" {
-			return gh.onAssign(issue, event)
+		member, err := MemberServiceApp.GetMemberByGithubId(strconv.FormatInt(comment.Sender.ID, 10))
+		if err != nil {
+			return err
 		}
-		if issue.Action == "unassigned" {
-			return gh.onUnassign(issue, event)
+		if member.MemberId == "" {
+			return util.MakeValidationError("member not found", nil)
 		}
-		if issue.Action == "closed" {
-			log.Printf("issue closed %v", issue)
+		logtoToken, _ := LogtoServiceApp.getToken()
+		logtoUserRoleResponse, err := LogtoServiceApp.FetchUserRole(member.LogtoId, logtoToken)
+		if err != nil {
+			return fmt.Errorf("logto user role error %v", err)
 		}
-	case github.IssueCommentPayload:
-		comment := payload.(github.IssueCommentPayload)
-		log.Printf("issue comment %+v", comment)
-	}
-	return nil
-}
+		identity := model.Identity{
+			Id:     member.MemberId,
+			Member: member,
+			Role:   MemberServiceApp.MapLogtoUserRole(logtoUserRoleResponse),
+		}
 
-// assignee Id -> github user email -> logto user -> member
-func (gh *GithubWebHook) onAssign(issue github.IssuesPayload, event model.Event) error {
-	log.Printf("issue assigned %v", issue.Issue.ID)
+		if comment.Action == "created" && action == "accept" {
+			err := EventServiceApp.Act(&event, identity, util.Accept)
+			if err != nil {
+				return err
+			}
+			user, _, err := util.GetUserById(comment.Sender.ID)
+			if err != nil {
+				return err
+			}
+			_, _, err = util.AddIssueAssignee(int(comment.Issue.Number), []string{*user.Login})
+			if err != nil {
+				return err
+			}
 
-	assigneeId := issue.Assignee.ID
-	if assigneeId == 0 {
-		return nil
-	}
-	assignee, _, _ := util.GetUserById(assigneeId)
-	if assignee == nil {
-		return nil
-	}
-	log.Printf("assignee %v", assignee)
-	users, _ := LogtoServiceApp.FetchUsers(FetchLogtoUsersRequest{
-		PageSize: 1,
-		SearchParams: map[string]interface{}{
-			"search.primaryEmail": *assignee.Email,
-		},
-	})
-	if len(users) == 0 {
-		return nil
-	}
-	user := users[0]
-	member, err := MemberServiceApp.GetMemberByLogtoId(user.Id)
-	if err != nil {
-		return err
-	}
-	if member.MemberId == "" {
-		return nil
-	}
+			_, _, err = util.AddIssueLabels(int(comment.Issue.Number), []string{"accepted"})
+			if err != nil {
+				return err
+			}
+		}
+		if comment.Action == "created" && action == "commit" {
+			re := regexp.MustCompile(`@nbtca-bot\s+\w+`)
+			text := comment.Comment.Body
+			cleaned := re.ReplaceAllString(text, "")
+			cleaned = strings.TrimSpace(cleaned)
 
-	token, _ := LogtoServiceApp.getToken()
-	roles, _ := LogtoServiceApp.FetchUserRole(user.Id, token)
-	log.Printf("member %v", member)
-	err = EventServiceApp.Accept(&event, model.Identity{
-		Id:     member.MemberId,
-		Member: member,
-		Role:   MemberServiceApp.MapLogtoUserRole(roles),
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
+			if err := EventServiceApp.Act(&event, identity, util.Commit, cleaned); err != nil {
+				return err
+			}
 
-func (gh *GithubWebHook) onUnassign(issue github.IssuesPayload, event model.Event) error {
-	// TODO
+			_, _, err := util.AddIssueLabels(int(comment.Issue.Number), []string{"ready for review"})
+			if err != nil {
+				return err
+			}
+		}
+
+		if comment.Action == "created" && action == "close" {
+			return EventServiceApp.Act(&event, identity, util.Close)
+		}
+	}
 	return nil
 }
