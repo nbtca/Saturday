@@ -109,9 +109,3 @@ func Auth(acceptableRoles ...Role) func(c *gin.Context) {
 	}
 }
 
-// admin is also member
-func StepDown(role string) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		c.Set("role", role)
-	}
-}
