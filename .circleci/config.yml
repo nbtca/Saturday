@@ -1,0 +1,18 @@
+version: 2.1
+
+jobs:
+  docker-build:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker Image
+          command: |
+            docker build .
+
+workflows:
+  build-workflow:
+    jobs:
+      - docker-build
