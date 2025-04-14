@@ -1,15 +1,6 @@
 version: 2.1
 
 jobs:
-  say-hello:
-    docker:
-      - image: cimg/base:current
-    steps:
-      - checkout
-      - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
-
   docker-build:
     docker:
       - image: cimg/base:current
@@ -20,9 +11,18 @@ jobs:
           name: Build Docker Image
           command: |
             docker build -t my-image:latest .
-
+  go-build:
+    docker:
+      - image: golang:latest  # Use your preferred Go version
+    steps:
+      - checkout
+      - run:
+          name: Go Build
+          command: |
+            go version
+            go build -v .
 workflows:
   say-hello-workflow:
     jobs:
-      - say-hello
       - docker-build
+      - go-build
