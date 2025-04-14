@@ -10,19 +10,9 @@ jobs:
       - run:
           name: Build Docker Image
           command: |
-            docker build -t my-image:latest .
-  go-build:
-    docker:
-      - image: golang:latest  # Use your preferred Go version
-    steps:
-      - checkout
-      - run:
-          name: Go Build
-          command: |
-            go version
-            go build -v .
+            docker build .
+
 workflows:
-  say-hello-workflow:
+  build-workflow:
     jobs:
       - docker-build
-      - go-build
