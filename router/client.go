@@ -50,18 +50,12 @@ func (ClientRouter) CreateTokenViaLogto(c *gin.Context) {
 		c.Error(huma.Error422UnprocessableEntity("user not found"))
 		// return nil, huma.Error422UnprocessableEntity("user not found")
 	}
-	client, err := service.ClientServiceApp.GetClientByLogtoId(logtoId)
+
+	client, err := service.ClientServiceApp.CreateClientByLogtoIdIfNotExists(logtoId)
 	if err != nil {
 		c.Error(huma.Error422UnprocessableEntity(err.Error()))
-		// return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	if client == (model.Client{}) {
-		client, err = service.ClientServiceApp.CreateClientByLogtoId(logtoId)
-		if err != nil {
-			// return nil, huma.Error422UnprocessableEntity(err.Error())
-			c.Error(huma.Error422UnprocessableEntity(err.Error()))
-		}
-	}
+
 	token, err := service.ClientServiceApp.CreateClientToken(client)
 	if err != nil {
 		// return nil, huma.Error422UnprocessableEntity(err.Error())
@@ -72,10 +66,6 @@ func (ClientRouter) CreateTokenViaLogto(c *gin.Context) {
 		Client: client,
 	}
 	c.JSON(200, response)
-	// return util.MakeCommonResponse(dto.ClientTokenResponse{
-	// 	Token:  token,
-	// 	Client: client,
-	// }), nil
 }
 
 var ClientRouterApp = ClientRouter{}

@@ -3,7 +3,6 @@ package util
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/nbtca/saturday/model"
 	"github.com/sirupsen/logrus"
@@ -128,9 +127,11 @@ var eventActionMap map[Action]eventActionHandler = map[Action]eventActionHandler
 		},
 	},
 	Update: {
-		action:    Update,
-		role:      []string{"admin"},
-		customLog: idLog,
+		action:     Update,
+		prevStatus: Open,
+		nextStatus: Open,
+		role:       []string{"admin", "current_client"},
+		customLog:  idLog,
 	},
 }
 
@@ -153,8 +154,7 @@ func (eh *eventActionHandler) ValidateAction() error {
 	if eh.actor.Id == eh.event.MemberId {
 		roles = append(roles, "member_current")
 	}
-	clientId, _ := strconv.ParseInt(eh.actor.Id, 10, 64)
-	if clientId == eh.event.ClientId {
+	if eh.actor.ClientId == eh.event.ClientId {
 		roles = append(roles, "client_current")
 	}
 	if len(eh.role) != 0 {
@@ -168,11 +168,13 @@ func (eh *eventActionHandler) ValidateAction() error {
 			}
 		}
 		if !exist {
+			Logger.Debugf("event action role not match, %s != %s", eh.actor.Role, eh.role)
 			return MakeServiceError(http.StatusUnprocessableEntity).
 				SetMessage("invalid role")
 		}
 	}
 	if eh.prevStatus != eh.event.Status {
+		Logger.Debugf("event status not match, %s != %s", eh.prevStatus, eh.event.Status)
 		return MakeServiceError(http.StatusUnprocessableEntity).
 			SetMessage("action not allowed")
 	}

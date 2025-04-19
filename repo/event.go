@@ -141,7 +141,7 @@ func GetMemberEvents(f EventFilter, memberId string) ([]model.Event, error) {
 	return getEvents(f, squirrel.Eq{"e.member_id": memberId})
 }
 
-func GetClientEvents(f EventFilter, clientId string) ([]model.Event, error) {
+func GetClientEvents(f EventFilter, clientId int64) ([]model.Event, error) {
 	return getEvents(f, squirrel.Eq{"e.client_id": clientId})
 }
 

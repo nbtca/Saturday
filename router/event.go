@@ -3,9 +3,9 @@ package router
 import (
 	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/nbtca/saturday/middleware"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
 	"github.com/nbtca/saturday/repo"
@@ -46,15 +46,24 @@ func (EventRouter) GetPublicEventByPage(c context.Context, input *struct {
 	return util.MakeCommonResponse(events), nil
 }
 
-func (EventRouter) GetEventById(c *gin.Context) {
+func (er EventRouter) GetEventById(c *gin.Context) {
 	eventId := &dto.EventID{}
 	if err := util.BindAll(c, eventId); util.CheckError(c, err) {
 		return
 	}
 	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
-	id := util.GetIdentity(c)
-	ifClientId, _ := strconv.ParseInt(id.Id, 10, 64)
-	if event.MemberId != id.Id && event.ClientId != ifClientId {
+	identity := util.GetIdentity(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+	clientId, err := middleware.GetClientFromContext(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	if event.MemberId != identity.Member.MemberId && event.ClientId != clientId {
 		c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
 			SetMessage("not authorized").
 			Build())
@@ -157,13 +166,16 @@ func (EventRouter) Close(c *gin.Context) {
 	c.JSON(200, event)
 }
 
-func (EventRouter) GetClientEventByPage(c *gin.Context) {
+func (er EventRouter) GetClientEventByPage(c *gin.Context) {
 	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
 	if err != nil {
 		c.Error(err)
 		return
 	}
-	identity := util.GetIdentity(c)
+	clientId, err := middleware.GetClientFromContext(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+	}
 	status := c.DefaultQuery("status", "")
 	order := c.DefaultQuery("order", "ASC")
 	events, err := service.EventServiceApp.GetClientEvents(repo.EventFilter{
@@ -171,7 +183,7 @@ func (EventRouter) GetClientEventByPage(c *gin.Context) {
 		Limit:  limit,
 		Status: status,
 		Order:  order,
-	}, identity.Id)
+	}, clientId)
 	if err != nil {
 		c.Error(err)
 		return
@@ -181,7 +193,14 @@ func (EventRouter) GetClientEventByPage(c *gin.Context) {
 
 func (EventRouter) Create(c *gin.Context) {
 	req := &dto.CreateEventRequest{}
-	req.ClientId, _ = strconv.ParseInt(util.GetIdentity(c).Id, 10, 64)
+
+	clientId, err := middleware.GetClientFromContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	req.ClientId = clientId
+
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
@@ -193,17 +212,24 @@ func (EventRouter) Create(c *gin.Context) {
 		ContactPreference: req.ContactPreference,
 		Problem:           req.Problem,
 	}
-	err := service.EventServiceApp.CreateEvent(event)
+	err = service.EventServiceApp.CreateEvent(event)
 	if util.CheckError(c, err) {
 		return
 	}
 	c.JSON(200, event)
 }
 
-func (EventRouter) Update(c *gin.Context) {
+func (er EventRouter) Update(c *gin.Context) {
 	rawEvent, _ := c.Get("event")
 	event := rawEvent.(model.Event)
 	identity := util.GetIdentity(c)
+	clientId, err := middleware.GetClientFromContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	identity.ClientId = clientId
+
 	req := &dto.UpdateRequest{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
@@ -214,8 +240,14 @@ func (EventRouter) Update(c *gin.Context) {
 	if req.QQ != "" {
 		event.QQ = req.QQ
 	}
-	if req.Phone != "" {
+	if req.Problem != "" {
 		event.Problem = req.Problem
+	}
+	if req.Model != "" {
+		event.Model = req.Model
+	}
+	if req.ContactPreference != "" {
+		event.ContactPreference = req.ContactPreference
 	}
 	if err := service.EventServiceApp.Act(&event, identity, util.Update); util.CheckError(c, err) {
 		return
@@ -224,10 +256,17 @@ func (EventRouter) Update(c *gin.Context) {
 	c.JSON(200, event)
 }
 
-func (EventRouter) Cancel(c *gin.Context) {
+func (er EventRouter) Cancel(c *gin.Context) {
 	raw_Event, _ := c.Get("event")
 	event := raw_Event.(model.Event)
 	identity := util.GetIdentity(c)
+	clientId, err := middleware.GetClientFromContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	identity.ClientId = clientId
+
 	if err := service.EventServiceApp.Act(&event, identity, util.Cancel); util.CheckError(c, err) {
 		return
 	}

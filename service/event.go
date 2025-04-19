@@ -36,7 +36,7 @@ func (service EventService) GetMemberEvents(f repo.EventFilter, memberId string)
 	return repo.GetMemberEvents(f, memberId)
 }
 
-func (service EventService) GetClientEvents(f repo.EventFilter, clientId string) ([]model.Event, error) {
+func (service EventService) GetClientEvents(f repo.EventFilter, clientId int64) ([]model.Event, error) {
 	return repo.GetClientEvents(f, clientId)
 }
 
@@ -66,8 +66,9 @@ func (service EventService) CreateEvent(event *model.Event) error {
 		return err
 	}
 	identity := model.Identity{
-		Id:   fmt.Sprint(event.ClientId),
-		Role: "client",
+		Id:       fmt.Sprint(event.ClientId),
+		ClientId: event.ClientId,
+		Role:     "client",
 	}
 	// insert event status and event log
 	if err := service.Act(event, identity, util.Create); err != nil {
