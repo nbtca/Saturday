@@ -122,6 +122,36 @@ func (service EventService) SendActionNotifyViaMail(event *model.Event, subject 
 	return nil
 }
 
+type EventAnalyzeResult struct {
+	Suggestion string
+	Tag        string
+}
+
+func (service EventService) Analyze(event *model.Event) (EventAnalyzeResult, error) {
+	request := WorkflowRunRequest{
+		Inputs: map[string]interface{}{
+			"EventId": event.EventId,
+		},
+		ResponseMode: "blocking",
+		User:         "saturday",
+	}
+	response, err := RunDifyWorkflow(request)
+	if err != nil {
+		return EventAnalyzeResult{}, err
+	}
+	if response.Data.Error != nil {
+		return EventAnalyzeResult{}, fmt.Errorf("error: %v", response.Data.Error)
+	}
+	if response.Data.Outputs == nil {
+		return EventAnalyzeResult{}, fmt.Errorf("no outputs")
+	}
+	result := EventAnalyzeResult{
+		Suggestion: response.Data.Outputs["suggestion"].(string),
+		Tag:        response.Data.Outputs["tag"].(string),
+	}
+	return result, nil
+}
+
 func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
 	if util.Action(eventLog.Action) == util.Create {
 		body := event.ToMarkdownString()
@@ -142,6 +172,22 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 			Valid: true,
 			Int64: int64(*issue.Number),
 		}
+
+		go func(event *model.Event, issue *github.Issue) {
+			analyzeResult, err := EventServiceApp.Analyze(event)
+			if err != nil {
+				util.Logger.Error("analyze event failed: ", err)
+				return
+			}
+			_, _, err = util.CreateIssueComment(int(issue.GetNumber()), &github.IssueComment{
+				Body: &analyzeResult.Suggestion,
+			})
+			if err != nil {
+				util.Logger.Error("create issue comment for event analyze failed: ", err)
+				return
+			}
+		}(event, issue)
+
 		return nil
 	}
 	if !event.GithubIssueId.Valid {
