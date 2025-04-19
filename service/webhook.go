@@ -66,8 +66,7 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 		if member.MemberId == "" {
 			return util.MakeValidationError("member not found", nil)
 		}
-		logtoToken, _ := LogtoServiceApp.getToken()
-		logtoUserRoleResponse, err := LogtoServiceApp.FetchUserRole(member.LogtoId, logtoToken)
+		logtoUserRoleResponse, err := LogtoServiceApp.FetchUserRole(member.LogtoId)
 		if err != nil {
 			return fmt.Errorf("logto user role error %v", err)
 		}

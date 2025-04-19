@@ -154,7 +154,7 @@ func SetupRouter() *gin.Engine {
 		MemberRouterApp.Activate)
 
 	MemberGroup := Router.Group("/")
-	MemberGroup.Use(middleware.Auth("member", "admin"), middleware.StepDown("member"))
+	MemberGroup.Use(middleware.Auth("member", "admin"))
 	{
 		MemberGroup.GET("/member", MemberRouterApp.GetMemberById)
 		MemberGroup.PUT("/member", MemberRouterApp.Update)

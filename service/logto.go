@@ -194,7 +194,7 @@ func (l LogtoService) FetchUserById(userId string, token string) (*FetchLogtoUse
 	return &body, nil
 }
 
-func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserRequest, token string) (map[string]interface{}, error) {
+func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserRequest) (map[string]interface{}, error) {
 	requestURL, _ := url.JoinPath(l.BaseURL, "/api/users/", userId)
 
 	var payload bytes.Buffer
@@ -202,7 +202,7 @@ func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserReques
 		return nil, err
 	}
 	req, _ := http.NewRequest("PATCH", requestURL, &payload)
-	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Authorization", "Bearer "+l.token)
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := http.DefaultClient.Do(req)
@@ -227,7 +227,7 @@ func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserReques
 	return body, nil
 }
 
-func (l LogtoService) FetchUserByToken(token string, accessToken string) (*FetchLogtoUsersResponse, error) {
+func (l LogtoService) FetchUserByToken(token string) (*FetchLogtoUsersResponse, error) {
 	jwksURL, err := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc/jwks")
 	if err != nil {
 		return nil, err
@@ -255,7 +255,7 @@ func (l LogtoService) FetchUserByToken(token string, accessToken string) (*Fetch
 	// TODO check scope
 
 	userId := claims.Subject
-	user, err := l.FetchUserById(userId, accessToken)
+	user, err := l.FetchUserById(userId, l.token)
 	if err != nil {
 		return nil, invalidTokenError.SetMessage("Invalid token")
 	}
@@ -278,13 +278,13 @@ type LogtoUserRole struct {
 }
 type FetchUserRoleResponse []LogtoUserRole
 
-func (l LogtoService) FetchUserRole(userId string, accessToken string) (FetchUserRoleResponse, error) {
+func (l LogtoService) FetchUserRole(userId string) (FetchUserRoleResponse, error) {
 	userRoleURL, err := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/api/users/", userId, "/roles")
 	if err != nil {
 		return nil, err
 	}
 	req, _ := http.NewRequest("GET", userRoleURL, nil)
-	req.Header.Add("Authorization", "Bearer "+accessToken)
+	req.Header.Add("Authorization", "Bearer "+ l.token)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
