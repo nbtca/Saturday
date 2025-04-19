@@ -31,9 +31,8 @@ func GetClientFromContext(c *gin.Context) (clientId int64, err error) {
 }
 
 /*
-Get event and put to context, and set role to member
-if event's member field equals to id. You are supposed
-to call this before any route that performs event action.
+Get event and put to context. 
+This middleware should be added to any route that performs event action.
 */
 func EventActionPreProcess(c *gin.Context) {
 	rawEventId := c.Param("EventId")
@@ -43,24 +42,9 @@ func EventActionPreProcess(c *gin.Context) {
 			AddDetailError("Event", "EventId", "Invalid EventId").
 			Build())
 	}
-	role := c.GetString("role")
-	id := c.GetString("id")
 	event, err := service.EventServiceApp.GetEventById(eventId)
 	if util.CheckError(c, err) {
 		return
 	}
-	if role == "member" && event.MemberId == id {
-		// set role to current member
-		c.Set("role", "member_current")
-	}
-	// clientId, err := GetClientFromContext(c)
-	// if err != nil {
-	// 	c.AbortWithStatusJSON(http.StatusInternalServerError, err)
-	// 	return
-	// }
-	// if role == "client" && event.ClientId == clientId {
-	// 	// set role to current client
-	// 	c.Set("role", "client_current")
-	// }
 	c.Set("event", event)
 }
