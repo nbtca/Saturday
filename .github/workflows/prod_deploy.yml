@@ -47,7 +47,6 @@ jobs:
           key: ${{ secrets.ACCESS_TOKEN }}
           connect_timeout: 10s
           script: |
-            cd /home/nbtca/weekend/saturday_prod
-            docker compose stop && docker compose rm -f
+            cd /home/nbtca/stacks/weekend
             docker compose pull
-            docker compose up -d
+            docker compose up -d --force-recreate
