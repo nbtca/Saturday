@@ -50,4 +50,18 @@ func (service ClientService) CreateClientByLogtoId(logtoId string) (model.Client
 	return client, nil
 }
 
+func (service ClientService) CreateClientByLogtoIdIfNotExists(logtoId string) (model.Client, error) {
+	client, err := service.GetClientByLogtoId(logtoId)
+	if err != nil {
+		return model.Client{}, err
+	}
+	if client == (model.Client{}) {
+		client, err = service.CreateClientByLogtoId(logtoId)
+		if err != nil {
+			return model.Client{}, err
+		}
+	}
+	return client, nil
+}
+
 var ClientServiceApp = ClientService{}
