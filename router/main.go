@@ -44,6 +44,7 @@ func SetupRouter() *gin.Engine {
 	Router.Handle("POST", "/webhook", func(ctx *gin.Context) {
 		err := hook.Handle(ctx.Request)
 		if err != nil {
+			util.Logger.Errorf("Error handling github webhook: %v", err)
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
@@ -54,6 +55,7 @@ func SetupRouter() *gin.Engine {
 	Router.Handle("POST", "/webhook/logto", func(ctx *gin.Context) {
 		err := logtoHook.Handle(ctx.Request)
 		if err != nil {
+			util.Logger.Errorf("Error handling logto webhook: %v", err)
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
