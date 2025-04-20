@@ -132,6 +132,7 @@ type UserEvent struct {
 	Params       map[string]any `json:"params"`
 	MatchedRoute string         `json:"matchedRoute"`
 	Data         map[string]any `json:"data"`
+	User         map[string]any `json:"user"`
 	HookID       string         `json:"hookId"`
 }
 
@@ -149,17 +150,22 @@ func (l *LogtoWebHook) Handle(request *http.Request) error {
 
 	log.Printf("Received UserEvent: %+v", userEvent)
 
-	// Try to map UserEvent.Data to FetchLogtoUsersResponse
 	var logtoUsersResponse FetchLogtoUsersResponse
-	dataBytes, err := json.Marshal(userEvent.Data)
+	var user map[string]any
+	if userEvent.Event == "PostSignIn" {
+		user = userEvent.User
+	} else {
+		user = userEvent.Data
+	}
+	dataBytes, err := json.Marshal(user)
 	if err != nil {
 		return fmt.Errorf("failed to marshal UserEvent.Data: %v", err)
 	}
 	if err := json.Unmarshal(dataBytes, &logtoUsersResponse); err != nil {
-		log.Printf("UserEvent.Data is not FetchLogtoUsersResponse: %v", err)
+		log.Printf("Not FetchLogtoUsersResponse: %v", err)
 		return nil
 	} else {
-		log.Printf("UserEvent.Data successfully mapped to FetchLogtoUsersResponse: %+v", logtoUsersResponse)
+		log.Printf("Successfully mapped to FetchLogtoUsersResponse: %+v", logtoUsersResponse)
 	}
 	member, err := MemberServiceApp.GetMemberByLogtoId(logtoUsersResponse.Id)
 	if err != nil {
