@@ -87,16 +87,7 @@ func (MemberRouter) CreateToken(ctx context.Context, input *struct {
 func (MemberRouter) CreateTokenViaLogtoToken(c context.Context, input *struct {
 	Authorization string `header:"Authorization"`
 }) (*util.CommonResponse[dto.CreateMemberTokenResponse], error) {
-	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
-
-	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
-	if err != nil {
-		return nil, huma.Error422UnprocessableEntity(err.Error())
-	}
-
-	accessToken := res["access_token"].(string)
-
-	user, err := service.LogtoServiceApp.FetchUserByToken(input.Authorization, accessToken)
+	user, err := service.LogtoServiceApp.FetchUserByToken(input.Authorization)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
@@ -112,7 +103,7 @@ func (MemberRouter) CreateTokenViaLogtoToken(c context.Context, input *struct {
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	logto_roles, err := service.LogtoServiceApp.FetchUserRole(user.Id, accessToken)
+	logto_roles, err := service.LogtoServiceApp.FetchUserRole(user.Id)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
@@ -140,7 +131,7 @@ func (MemberRouter) CreateTokenViaLogtoToken(c context.Context, input *struct {
 		patchLogtoUserRequest.Avatar = member.Avatar
 	}
 
-	_, err = service.LogtoServiceApp.PatchUserById(user.Id, patchLogtoUserRequest, accessToken)
+	_, err = service.LogtoServiceApp.PatchUserById(user.Id, patchLogtoUserRequest)
 	if err != nil {
 		log.Println(err)
 	}
@@ -186,14 +177,8 @@ func (MemberRouter) CreateWithLogto(c context.Context, input *struct {
 	QQ       string `json:"qq" minLength:"5" maxLength:"20"`
 	Auth     string `header:"Authorization"`
 }) (*util.CommonResponse[model.Member], error) {
-	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
-	if err != nil {
-		return nil, huma.Error422UnprocessableEntity(err.Error())
-	}
-	accessToken := res["access_token"].(string)
-
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
-	user, err := service.LogtoServiceApp.FetchUserByToken(input.Auth, accessToken)
+	user, err := service.LogtoServiceApp.FetchUserByToken(input.Auth)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
@@ -311,15 +296,7 @@ func (MemberRouter) BindMemberLogtoId(c context.Context, input *struct {
 		return nil, huma.NewError(http.StatusUnprocessableEntity, "Invalid password")
 	}
 
-	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
-
-	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
-	if err != nil {
-		return nil, huma.Error422UnprocessableEntity(err.Error())
-	}
-	accessToken := res["access_token"].(string)
-
-	user, err := service.LogtoServiceApp.FetchUserByToken(input.Authorization, accessToken)
+	user, err := service.LogtoServiceApp.FetchUserByToken(input.Authorization)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}

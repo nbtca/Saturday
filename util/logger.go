@@ -1,11 +1,8 @@
 package util
 
 import (
-	"fmt"
 	"io"
 	"os"
-	"path"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
@@ -39,32 +36,11 @@ func (hook *NSQHookForError) Levels() []logrus.Level {
 }
 
 func getLogger() *logrus.Logger {
-	now := time.Now()
-	logFilePath := ""
-	if dir, err := os.Getwd(); err == nil {
-		logFilePath = dir + "/logs/"
-	}
-	if err := os.MkdirAll(logFilePath, 0777); err != nil {
-		fmt.Println(err.Error())
-	}
-	logFileName := now.Format("2006-01-02") + ".log"
-	//日志文件
-	fileName := path.Join(logFilePath, logFileName)
-	if _, err := os.Stat(fileName); err != nil {
-		if _, err := os.Create(fileName); err != nil {
-			fmt.Println(err.Error())
-		}
-	}
-	//写入文件
-	src, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	if err != nil {
-		fmt.Println("err", err)
-	}
-
 	//实例化
 	logger := logrus.New()
 
-	mw := io.MultiWriter(os.Stdout, src)
+	//写入到标准输出
+	mw := io.MultiWriter(os.Stdout)
 	logrus.SetOutput(mw)
 	logger.Out = mw
 
