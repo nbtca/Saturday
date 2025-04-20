@@ -202,7 +202,11 @@ func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserReques
 		return nil, err
 	}
 	req, _ := http.NewRequest("PATCH", requestURL, &payload)
-	req.Header.Add("Authorization", "Bearer "+l.token)
+	logtoToken, err := l.getToken()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", "Bearer "+logtoToken)
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := http.DefaultClient.Do(req)
@@ -255,7 +259,12 @@ func (l LogtoService) FetchUserByToken(token string) (*FetchLogtoUsersResponse, 
 	// TODO check scope
 
 	userId := claims.Subject
-	user, err := l.FetchUserById(userId, l.token)
+
+	logtoToken, err := l.getToken()
+	if err != nil {
+		return nil, invalidTokenError.SetMessage("Error get logto token" + err.Error())
+	}
+	user, err := l.FetchUserById(userId, logtoToken)
 	if err != nil {
 		return nil, invalidTokenError.SetMessage("Invalid token")
 	}
@@ -284,7 +293,11 @@ func (l LogtoService) FetchUserRole(userId string) (FetchUserRoleResponse, error
 		return nil, err
 	}
 	req, _ := http.NewRequest("GET", userRoleURL, nil)
-	req.Header.Add("Authorization", "Bearer "+ l.token)
+	logtoToken, err := l.getToken()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", "Bearer "+logtoToken)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
