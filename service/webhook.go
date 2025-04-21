@@ -78,6 +78,9 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 		}
 		util.Logger.Tracef("using identity %v", identity)
 
+		var readyForReviewLabel = "ready for review"
+		var acceptedLabel = "accepted"
+
 		if comment.Action == "created" && action == "accept" {
 			err := EventServiceApp.Act(&event, identity, util.Accept)
 			if err != nil {
@@ -92,18 +95,17 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 				return err
 			}
 
-			_, _, err = util.AddIssueLabels(int(comment.Issue.Number), []string{"accepted"})
+			_, _, err = util.AddIssueLabels(int(comment.Issue.Number), []string{acceptedLabel})
 			if err != nil {
 				return err
 			}
 		}
-		var readyForReviewLabel = "ready for review"
 		if action == "commit" {
 			re := regexp.MustCompile(`@nbtca-bot\s+\w+`)
 			text := comment.Comment.Body
 			cleaned := re.ReplaceAllString(text, "")
 			cleaned = strings.TrimSpace(cleaned)
-			if comment.Action == "created" {
+			if event.Status == util.Accepted {
 				if err := EventServiceApp.Act(&event, identity, util.Commit, cleaned); err != nil {
 					return err
 				}
@@ -115,7 +117,7 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 				return nil
 			}
 
-			if comment.Action == "edited" {
+			if event.Status == util.Committed {
 				return EventServiceApp.Act(&event, identity, util.AlterCommit, cleaned)
 			}
 
@@ -132,6 +134,15 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 
 		if comment.Action == "created" && action == "close" {
 			return EventServiceApp.Act(&event, identity, util.Close)
+		}
+
+		if comment.Action == "created" && action == "drop" {
+			err := EventServiceApp.Act(&event, identity, util.Drop)
+			if err != nil {
+				return err
+			}
+			_, err = util.RemoveIssueLabel(int(comment.Issue.Number), acceptedLabel)
+			return err
 		}
 	}
 	return nil

@@ -91,6 +91,7 @@ The aim is to achieve a two-way sync between Saturday and Github Issues. The fol
 | Event Action | Github Action | Description |
 | --- | --- | ---|
 | accept | @nbtca-bot accept | |
+| drop | @nbtca-bot drop | |
 | commit | @nbtca-bot commit | |
 | alterAccept |  | edit previous comment |
 | reject | @nbtca-bot reject | |
