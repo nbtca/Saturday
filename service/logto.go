@@ -168,9 +168,13 @@ func (l LogtoService) FetchUsers(request FetchLogtoUsersRequest) ([]FetchLogtoUs
 
 }
 
-func (l LogtoService) FetchUserById(userId string, token string) (*FetchLogtoUsersResponse, error) {
+func (l LogtoService) FetchUserById(userId string) (*FetchLogtoUsersResponse, error) {
 	requestURL, _ := url.JoinPath(l.BaseURL, "/api/users/", userId)
 	req, _ := http.NewRequest("GET", requestURL, nil)
+	token, err := l.getToken()
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Add("Authorization", "Bearer "+token)
 	res, err := http.DefaultClient.Do(req)
 
@@ -260,11 +264,7 @@ func (l LogtoService) FetchUserByToken(token string) (*FetchLogtoUsersResponse, 
 
 	userId := claims.Subject
 
-	logtoToken, err := l.getToken()
-	if err != nil {
-		return nil, invalidTokenError.SetMessage("Error get logto token" + err.Error())
-	}
-	user, err := l.FetchUserById(userId, logtoToken)
+	user, err := l.FetchUserById(userId)
 	if err != nil {
 		return nil, invalidTokenError.SetMessage("Invalid token")
 	}

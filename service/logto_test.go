@@ -30,13 +30,8 @@ func TestFetchLogtoToken(t *testing.T) {
 
 func TestFetchLogtoUser(t *testing.T) {
 	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
-	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
-	if err != nil {
-		t.Error(err)
-	}
-	token := res["access_token"].(string)
 	userId := os.Getenv("LOGTO_TEST_USER_ID")
-	user, err := service.LogtoServiceApp.FetchUserById(userId, token)
+	user, err := service.LogtoServiceApp.FetchUserById(userId)
 	if err != nil {
 		t.Fatal(err)
 	}

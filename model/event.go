@@ -28,14 +28,14 @@ type Event struct {
 	GmtModified       string        `json:"gmtModified" db:"gmt_modified"`
 }
 
-func (e Event) ToMarkdownString() string {
+func (e Event) ToMarkdown() *md.Markdown {
 	buf := new(bytes.Buffer)
 	markdown := md.NewMarkdown(buf).H2("Description")
 	markdown.PlainText(e.Problem)
 	if e.Model != "" {
 		markdown.BulletList(fmt.Sprintf("Model: %s", e.Model))
 	}
-	return markdown.String()
+	return markdown
 }
 
 type Status struct {
