@@ -155,11 +155,38 @@ func (service EventService) Analyze(event *model.Event) (EventAnalyzeResult, err
 
 func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
 	if util.Action(eventLog.Action) == util.Create {
-		body := event.ToMarkdownString()
+		body := event.ToMarkdown()
+		body.HorizontalRule()
+		mermaidDiagram := `flowchart LR
+	A[Open] --> |Drop| B[Canceled]
+	A --> |Accept| C[Accepted]
+	C --> |Commit| D[Committed]
+	D --> |AlterCommit| D
+	D --> |Approve| E[Closed]
+	D --> |Reject| C`
+
+		buf := new(bytes.Buffer)
+		m := md.NewMarkdown(buf)
+		m.LF()
+		m.LF()
+		m.PlainText("You can update event status by commenting on this Issue:")
+		m.BulletList(
+			"`@nbtca-bot accept` will accept this ticket",
+			"`@nbtca-bot drop` will drop your previous accept",
+			"`@nbtca-bot commit` will submit this ticket for admin approval",
+			"`@nbtca-bot reject` will send this ticket back to assignee",
+			"`@nbtca-bot close` will close this ticket as completed",
+		)
+		m.CodeBlocks(md.SyntaxHighlightMermaid, mermaidDiagram)
+		m.Blockquote("Get more detailed documentation at [docs.nbtca.space/repair/weekend](http://docs.nbtca.space/repair/weekend.html)")
+
+		body.Details("nbtca-bot commands", m.String())
+		bodyString := body.String()
+
 		title := fmt.Sprintf("%s(#%v)", event.Problem, event.EventId)
 		issue, _, err := util.CreateIssue(&github.IssueRequest{
 			Title:  &title,
-			Body:   &body,
+			Body:   &bodyString,
 			Labels: &[]string{"ticket"},
 		})
 		if err != nil {
@@ -196,13 +223,22 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 	}
 
 	buf := new(bytes.Buffer)
+	memberName := identity.Member.Alias
+	if identity.Member.LogtoId != "" {
+		logtoUser, err := LogtoServiceApp.FetchUserById(identity.Member.LogtoId)
+		if err != nil {
+			util.Logger.Error("fetch logto user failed: ", err)
+			return err
+		}
+		memberName = fmt.Sprintf("%v (%v)", logtoUser.Name, logtoUser.PrimaryEmail)
+	}
 	description := md.NewMarkdown(buf).
 		H2(eventLog.Action).
 		PlainText(eventLog.Description)
 	if util.Action(eventLog.Action) == util.Cancel {
 		description = description.PlainText("Cancelled by client")
 	} else {
-		description = description.PlainText(fmt.Sprintf("By %s", identity.Member.Alias))
+		description = description.PlainText(fmt.Sprintf("By %s", memberName))
 	}
 	commentBody := description.String()
 
@@ -252,6 +288,9 @@ func (service EventService) Act(event *model.Event, identity model.Identity, act
 	}
 	// append log
 	event.Logs = append(event.Logs, log)
+
+	util.Logger.Tracef("event log: %v", log)
+
 	return nil
 }
 

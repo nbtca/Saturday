@@ -90,6 +90,9 @@ The aim is to achieve a two-way sync between Saturday and Github Issues. The fol
 
 | Event Action | Github Action | Description |
 | --- | --- | ---|
-| Accept | @nbtca-bot accept | |
-| Commit | @nbtca-bot commit | |
-| Close | @nbtca-bot close | |
+| accept | @nbtca-bot accept | |
+| drop | @nbtca-bot drop | |
+| commit | @nbtca-bot commit | |
+| alterAccept |  | edit previous comment |
+| reject | @nbtca-bot reject | |
+| close | @nbtca-bot close | |
