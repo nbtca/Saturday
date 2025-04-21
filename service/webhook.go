@@ -50,6 +50,7 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 			return nil
 		}
 		action := match[1]
+		util.Logger.Debugf("event action from webhook: %s", action)
 
 		event, err := repo.GetEventByIssueId(comment.Issue.ID)
 		if err != nil {
@@ -58,7 +59,6 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 		if event.EventId == 0 {
 			return nil
 		}
-		log.Printf("event found %v", event)
 		member, err := MemberServiceApp.GetMemberByGithubId(strconv.FormatInt(comment.Sender.ID, 10))
 		if err != nil {
 			return err
@@ -66,6 +66,7 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 		if member.MemberId == "" {
 			return util.MakeValidationError("member not found", nil)
 		}
+		util.Logger.Tracef("member found: %v", member)
 		logtoUserRoleResponse, err := LogtoServiceApp.FetchUserRole(member.LogtoId)
 		if err != nil {
 			return fmt.Errorf("logto user role error %v", err)
@@ -75,6 +76,7 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 			Member: member,
 			Role:   MemberServiceApp.MapLogtoUserRole(logtoUserRoleResponse),
 		}
+		util.Logger.Tracef("using identity %v", identity)
 
 		if comment.Action == "created" && action == "accept" {
 			err := EventServiceApp.Act(&event, identity, util.Accept)
@@ -95,20 +97,37 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 				return err
 			}
 		}
-		if comment.Action == "created" && action == "commit" {
+		var readyForReviewLabel = "ready for review"
+		if action == "commit" {
 			re := regexp.MustCompile(`@nbtca-bot\s+\w+`)
 			text := comment.Comment.Body
 			cleaned := re.ReplaceAllString(text, "")
 			cleaned = strings.TrimSpace(cleaned)
+			if comment.Action == "created" {
+				if err := EventServiceApp.Act(&event, identity, util.Commit, cleaned); err != nil {
+					return err
+				}
 
-			if err := EventServiceApp.Act(&event, identity, util.Commit, cleaned); err != nil {
-				return err
+				_, _, err := util.AddIssueLabels(int(comment.Issue.Number), []string{readyForReviewLabel})
+				if err != nil {
+					return err
+				}
+				return nil
 			}
 
-			_, _, err := util.AddIssueLabels(int(comment.Issue.Number), []string{"ready for review"})
+			if comment.Action == "edited" {
+				return EventServiceApp.Act(&event, identity, util.AlterCommit, cleaned)
+			}
+
+		}
+
+		if comment.Action == "created" && action == "reject" {
+			err := EventServiceApp.Act(&event, identity, util.Reject)
 			if err != nil {
 				return err
 			}
+			_, err = util.RemoveIssueLabel(int(comment.Issue.Number), readyForReviewLabel)
+			return err
 		}
 
 		if comment.Action == "created" && action == "close" {

@@ -252,6 +252,9 @@ func (service EventService) Act(event *model.Event, identity model.Identity, act
 	}
 	// append log
 	event.Logs = append(event.Logs, log)
+
+	util.Logger.Tracef("event log: %v", log)
+
 	return nil
 }
 

@@ -45,3 +45,7 @@ func AddIssueAssignee(issueNumber int, assignees []string) (*github.Issue, *gith
 func AddIssueLabels(issueNumber int, labels []string) ([]*github.Label, *github.Response, error) {
 	return ghClient.Issues.AddLabelsToIssue(context.Background(), owner, repo, int(issueNumber), labels)
 }
+
+func RemoveIssueLabel(issueNumber int, label string) (*github.Response, error) {
+	return ghClient.Issues.RemoveLabelForIssue(context.Background(), owner, repo, int(issueNumber), label)
+}

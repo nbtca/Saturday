@@ -45,7 +45,7 @@ func getLogger() *logrus.Logger {
 	logger.Out = mw
 
 	//设置日志级别
-	logger.SetLevel(logrus.DebugLevel)
+	logger.SetLevel(logrus.TraceLevel)
 
 	//设置日志格式
 	logger.SetFormatter(&logrus.JSONFormatter{
