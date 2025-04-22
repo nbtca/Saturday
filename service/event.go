@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -84,41 +85,105 @@ func (service EventService) Accept(event *model.Event, identity model.Identity) 
 	return nil
 }
 
-func (service EventService) SendActionNotify(event *model.Event, subject string) error {
+func (service EventService) SendActionNotify(event *model.Event, eventLog model.EventLog, identity model.Identity) {
 	if event == nil {
-		return util.MakeInternalServerError()
+		return
 	}
-	service.SendActionNotifyViaMail(event, subject)
-	return nil
+
+	go func() {
+		err := service.SendActionNotifyViaMail(event, eventLog, identity)
+		if err != nil {
+			util.Logger.Error("send action notify via mail failed: ", err)
+		}
+	}()
+	go func() {
+		err := service.SendActionNotifyViaNSQ(event, eventLog, identity)
+		if err != nil {
+			util.Logger.Error("send action notify via nsq failed: ", err)
+		}
+	}()
+
 }
 
-func (service EventService) SendActionNotifyViaMail(event *model.Event, subject string) error {
-	m := gomail.NewMessage()
-	receiverAddress := os.Getenv("MAIL_RECEIVER_ADDRESS")
-	if receiverAddress == "" {
-		return fmt.Errorf("MAIL_RECEIVER_ADDRESS is not set")
+func (service EventService) SendActionNotifyViaNSQ(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
+	producer := util.GetNSQProducer()
+	if producer == nil {
+		return nil
 	}
-	m.SetHeader("To", receiverAddress)
-	m.SetHeader("Subject", subject)
-	m.SetBody("text/html", fmt.Sprintf(
-		`<div>
-  <span style="padding-right:10px;">型号:</span>
-  <span>%s</span>
-</div>
-<div>
-  <span style="padding-right:10px;">问题描述:</span>
-  <span>%s</span>
-</div>
-<div>
-  <span style="padding-right:10px;">创建时间:</span>
-  <span>%s</span>
-</div>
-<div style="padding-top:10px;">
-  <a href="https://repair.nbtca.space">在 Sunday 中处理</a>
-</div>`, event.Model, event.Problem, event.GmtCreate))
+	var EventTopic = os.Getenv("EVENT_TOPIC")
+	mapEventLog := map[string]interface{}{
+		"event_id":    eventLog.EventId,
+		"member_id":   eventLog.MemberId,
+		"action":      eventLog.Action,
+		"problem":     event.Problem,
+		"model":       event.Model,
+		"gmt_create":  eventLog.GmtCreate,
+		"description": eventLog.Description,
+	}
+	if identity.Member.Alias != "" {
+		mapEventLog["member_alias"] = identity.Member.Alias
+	} else {
+		mapEventLog["member_alias"] = ""
+	}
+	jsonMap, _ := json.Marshal(mapEventLog)
+	return producer.PublishAsync(EventTopic, jsonMap, nil)
+}
 
-	if err := util.SendMail(m); err != nil {
-		return util.MakeInternalServerError().SetMessage("fail on mail")
+func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
+	switch eventLog.Action {
+	case string(util.Accept):
+		m := gomail.NewMessage()
+		receiverAddress := os.Getenv("MAIL_RECEIVER_ADDRESS")
+		if receiverAddress == "" {
+			return fmt.Errorf("MAIL_RECEIVER_ADDRESS is not set")
+		}
+		issueNumber, err := event.GithubIssueNumber.Value()
+		if err != nil {
+			return fmt.Errorf("event.GithubIssueNumber is not valid: %v", err)
+		}
+		if identity.Member.LogtoId == "" {
+			return fmt.Errorf("identity.Member.LogtoId is not set")
+		}
+		logtoUser, err := LogtoServiceApp.FetchUserById(identity.Member.LogtoId)
+		if err != nil {
+			return fmt.Errorf("fetch logto user failed: %v", err)
+		}
+
+		m.SetHeader("To", logtoUser.PrimaryEmail)
+		m.SetHeader("Subject", fmt.Sprintf("维修状态更新(#%v)", event.EventId))
+		m.SetBody("text/html", fmt.Sprintf(
+			`
+					<h3>新的状态为: %v</h3>
+		<div>
+  		<span style="padding-right:10px;">问题描述:</span>
+  		<span>%s</span>
+		</div>
+		<div>
+  		<span style="padding-right:10px;">型号:</span>
+  		<span>%s</span>
+		</div>
+		<div>
+  		<span style="padding-right:10px;">创建时间:</span>
+  		<span>%s</span>
+		</div>
+		<div>
+  		<span style="padding-right:10px;">手机:</span>
+  		<span>%s</span>
+		</div>
+		<div>
+  		<span style="padding-right:10px;">QQ:</span>
+  		<span>%s</span>
+		</div>
+		<div style="padding-top:10px;">
+  		<a href="http://github.com/nbtca/repair-tickets/issues/%v">在 nbtca/repair-tickets 中处理</a>
+		</div>
+			`, event.Status, event.Problem, event.Model, event.Phone, event.QQ, event.GmtCreate, issueNumber))
+
+		if err := util.SendMail(m); err != nil {
+			return util.MakeInternalServerError().SetMessage("fail on mail")
+		}
+		util.Logger.Trace("event accepted, send mail to ", logtoUser.PrimaryEmail)
+		return nil
 	}
 	return nil
 }
@@ -289,6 +354,7 @@ func (service EventService) Act(event *model.Event, identity model.Identity, act
 	// append log
 	event.Logs = append(event.Logs, log)
 
+	service.SendActionNotify(event, log, identity)
 	util.Logger.Tracef("event log: %v", log)
 
 	return nil

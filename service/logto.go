@@ -246,7 +246,7 @@ func (l LogtoService) FetchUserByToken(token string) (*FetchLogtoUsersResponse, 
 		AddDetailError("member", "logto token", "invalid token")
 	_, claims, error := util.ParseTokenWithJWKS(jwksURL, token)
 	if error != nil {
-		return nil, invalidTokenError.SetMessage("Invalid token" + error.Error())
+		return nil, invalidTokenError.SetMessage("Invalid token " + error.Error())
 	}
 	// check issuer
 	expectedIssuer, _ := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc")

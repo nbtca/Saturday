@@ -149,23 +149,50 @@ func TestSendMail(t *testing.T) {
 		t.Error("MAIL_RECEIVER_ADDRESS is not set")
 	}
 	m.SetHeader("To", receiverAddress)
-	m.SetHeader("Subject", "test")
+	m.SetHeader("Subject", "维修状态更新(#12): ")
 	m.SetBody("text/html", fmt.Sprintf(
-		`<div>
-  <span style="padding-right:10px;">型号:</span>
-  <span>%s</span>
-</div>
-<div>
-  <span style="padding-right:10px;">问题描述:</span>
-  <span>%s</span>
-</div>
-<div>
-  <span style="padding-right:10px;">创建时间:</span>
-  <span>%s</span>
-</div>
-<div style="padding-top:10px;">
-  <a href="https://repair.nbtca.space">在 Sunday 中处理</a>
-</div>`, "MacBook", "clean", "2021-10-10"))
+		`
+		<h3>新的状态为：accepted</h3>
+		<div>
+  		<span style="padding-right:10px;">问题描述:</span>
+  		<span>%s</span>
+		</div>
+		<div>
+  		<span style="padding-right:10px;">型号:</span>
+  		<span>%s</span>
+		</div>
+		<div>
+  		<span style="padding-right:10px;">创建时间:</span>
+  		<span>%s</span>
+		</div>
+		<div>
+  		<span style="padding-right:10px;">手机:</span>
+  		<span>13488888888</span>
+		</div>
+		<div>
+  		<span style="padding-right:10px;">QQ:</span>
+  		<span>2359845989</span>
+		</div>
+		<div style="padding-top:10px;">
+  		<a href="http://github.com/nbtca/repair-tickets/issues/%v">在 nbtca/repair-tickets 中处理</a>
+		</div>
+`, "MacBook", "clean", "2021-10-10", 10))
+	// 	m.SetBody("text/html", fmt.Sprintf(
+	// 		`<div>
+	//   <span style="padding-right:10px;">型号:</span>
+	//   <span>%s</span>
+	// </div>
+	// <div>
+	//   <span style="padding-right:10px;">问题描述:</span>
+	//   <span>%s</span>
+	// </div>
+	// <div>
+	//   <span style="padding-right:10px;">创建时间:</span>
+	//   <span>%s</span>
+	// </div>
+	// <div style="padding-top:10px;">
+	//   <a href="https://repair.nbtca.space">在 Sunday 中处理</a>
+	// </div>`, "MacBook", "clean", "2021-10-10"))
 
 	if err := util.SendMail(m); err != nil {
 		t.Error(err)
