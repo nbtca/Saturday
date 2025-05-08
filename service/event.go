@@ -400,4 +400,12 @@ func (service EventService) Act(event *model.Event, identity model.Identity, act
 	return nil
 }
 
+func ValidateEventSize(size string) error {
+	// size can be one of xs,s,m,l,xl
+	if size != "xs" && size != "s" && size != "m" && size != "l" && size != "xl" {
+		return fmt.Errorf("size %s is not valid", size)
+	}
+	return nil
+}
+
 var EventServiceApp = EventService{}

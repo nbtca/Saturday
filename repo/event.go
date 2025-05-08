@@ -145,6 +145,15 @@ func GetClientEvents(f EventFilter, clientId int64) ([]model.Event, error) {
 	return getEvents(f, squirrel.Eq{"e.client_id": clientId})
 }
 
+func UpdateEventSize(eventId int64, size string) error {
+	builder := sq.Update("event").
+		Set("size", size).
+		Where(squirrel.Eq{"event_id": eventId})
+	sql, args, _ := builder.ToSql()
+	_, err := db.Exec(sql, args...)
+	return err
+}
+
 func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 	builder := sq.Update("event").
 		Set("model", event.Model).

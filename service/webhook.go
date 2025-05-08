@@ -28,8 +28,25 @@ func MakeGithubWebHook(secret string) (*GithubWebHook, error) {
 	return &GithubWebHook{hook: hook}, nil
 }
 
-// - accept repair event when some one is assigned to the issue
-// - close repair whe issue when rep
+func ExtractCommand(comment string) (string, error) {
+	re := regexp.MustCompile(`@nbtca-bot\s+(\w+)`)
+	match := re.FindStringSubmatch(comment)
+	if len(match) < 2 {
+		return "", fmt.Errorf("command not found")
+	}
+	return match[1], nil
+}
+
+func ExtractSizeLabel(label string) (string, error) {
+	re := regexp.MustCompile(`size:\s*(\w+)`)
+	match := re.FindStringSubmatch(label)
+	if len(match) < 2 {
+		return "", fmt.Errorf("size label not found")
+	}
+	err := ValidateEventSize(match[1])
+	return match[1], err
+}
+
 func (gh *GithubWebHook) Handle(request *http.Request) error {
 	payload, err := gh.hook.Parse(
 		request,
@@ -41,111 +58,166 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 	if err != nil {
 		return err
 	}
-	switch payload.(type) {
+
+	switch payload := payload.(type) {
+	case github.IssuesPayload:
+		return gh.handleIssuesPayload(payload)
 	case github.IssueCommentPayload:
-		comment := payload.(github.IssueCommentPayload)
-
-		match := regexp.MustCompile(`@nbtca-bot\s+(\w+)`).FindStringSubmatch(comment.Comment.Body)
-		if len(match) < 2 {
-			return nil
-		}
-		action := match[1]
-		util.Logger.Debugf("event action from webhook: %s", action)
-
-		event, err := repo.GetEventByIssueId(comment.Issue.ID)
-		if err != nil {
-			return err
-		}
-		if event.EventId == 0 {
-			return nil
-		}
-		member, err := MemberServiceApp.GetMemberByGithubId(strconv.FormatInt(comment.Sender.ID, 10))
-		if err != nil {
-			return err
-		}
-		if member.MemberId == "" {
-			return util.MakeValidationError("member not found", nil)
-		}
-		util.Logger.Tracef("member found: %v", member)
-		logtoUserRoleResponse, err := LogtoServiceApp.FetchUserRole(member.LogtoId)
-		if err != nil {
-			return fmt.Errorf("logto user role error %v", err)
-		}
-		identity := model.Identity{
-			Id:     member.MemberId,
-			Member: member,
-			Role:   MemberServiceApp.MapLogtoUserRole(logtoUserRoleResponse),
-		}
-		util.Logger.Tracef("using identity %v", identity)
-
-		var readyForReviewLabel = "ready for review"
-		var acceptedLabel = "accepted"
-
-		if comment.Action == "created" && action == "accept" {
-			err := EventServiceApp.Act(&event, identity, util.Accept)
-			if err != nil {
-				return err
-			}
-			user, _, err := util.GetUserById(comment.Sender.ID)
-			if err != nil {
-				return err
-			}
-			_, _, err = util.AddIssueAssignee(int(comment.Issue.Number), []string{*user.Login})
-			if err != nil {
-				return err
-			}
-
-			_, _, err = util.AddIssueLabels(int(comment.Issue.Number), []string{acceptedLabel})
-			if err != nil {
-				return err
-			}
-		}
-		if action == "commit" {
-			re := regexp.MustCompile(`@nbtca-bot\s+\w+`)
-			text := comment.Comment.Body
-			cleaned := re.ReplaceAllString(text, "")
-			cleaned = strings.TrimSpace(cleaned)
-			if event.Status == util.Accepted {
-				if err := EventServiceApp.Act(&event, identity, util.Commit, cleaned); err != nil {
-					return err
-				}
-
-				_, _, err := util.AddIssueLabels(int(comment.Issue.Number), []string{readyForReviewLabel})
-				if err != nil {
-					return err
-				}
-				return nil
-			}
-
-			if event.Status == util.Committed {
-				return EventServiceApp.Act(&event, identity, util.AlterCommit, cleaned)
-			}
-
-		}
-
-		if comment.Action == "created" && action == "reject" {
-			err := EventServiceApp.Act(&event, identity, util.Reject)
-			if err != nil {
-				return err
-			}
-			_, err = util.RemoveIssueLabel(int(comment.Issue.Number), readyForReviewLabel)
-			return err
-		}
-
-		if comment.Action == "created" && action == "close" {
-			return EventServiceApp.Act(&event, identity, util.Close)
-		}
-
-		if comment.Action == "created" && action == "drop" {
-			err := EventServiceApp.Act(&event, identity, util.Drop)
-			if err != nil {
-				return err
-			}
-			_, err = util.RemoveIssueLabel(int(comment.Issue.Number), acceptedLabel)
-			return err
-		}
+		return gh.handleIssueCommentPayload(payload)
 	}
 	return nil
+}
+
+func (gh *GithubWebHook) handleIssuesPayload(issue github.IssuesPayload) error {
+	if issue.Action != "labeled" {
+		return gh.handleIssueWithoutLabel(issue)
+	}
+	return gh.handleIssueWithLabel(issue)
+}
+
+func (gh *GithubWebHook) handleIssueWithoutLabel(issue github.IssuesPayload) error {
+	size := ""
+	for _, label := range issue.Issue.Labels {
+		size, _ = ExtractSizeLabel(label.Name)
+	}
+	if size != "" {
+		return nil
+	}
+	event, err := repo.GetEventByIssueId(issue.Issue.ID)
+	if err != nil || event.EventId == 0 {
+		return nil
+	}
+	return repo.UpdateEventSize(event.EventId, "")
+}
+
+func (gh *GithubWebHook) handleIssueWithLabel(issue github.IssuesPayload) error {
+	if issue.Label.ID == 0 {
+		util.Logger.Debugf("issue label not found")
+		return nil
+	}
+	size, err := ExtractSizeLabel(issue.Label.Name)
+	if err != nil {
+		util.Logger.Debugf(err.Error())
+		return err
+	}
+	util.Logger.Debugf("size label found: %s", size)
+	event, err := repo.GetEventByIssueId(issue.Issue.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get event by issue id: %v", err)
+	}
+	if err := repo.UpdateEventSize(event.EventId, size); err != nil {
+		return fmt.Errorf("failed to update event size: %v", err)
+	}
+	return nil
+}
+
+func (gh *GithubWebHook) handleIssueCommentPayload(comment github.IssueCommentPayload) error {
+	command, err := ExtractCommand(comment.Comment.Body)
+	if err != nil {
+		return err
+	}
+	util.Logger.Debugf("command from github webhook: %s", command)
+
+	event, err := repo.GetEventByIssueId(comment.Issue.ID)
+	if err != nil {
+		return err
+	}
+	if event.EventId == 0 {
+		return nil
+	}
+	member, err := MemberServiceApp.GetMemberByGithubId(strconv.FormatInt(comment.Sender.ID, 10))
+	if err != nil {
+		return err
+	}
+	if member.MemberId == "" {
+		return util.MakeValidationError("member not found", nil)
+	}
+	util.Logger.Tracef("member found: %v", member)
+	logtoUserRoleResponse, err := LogtoServiceApp.FetchUserRole(member.LogtoId)
+	if err != nil {
+		return fmt.Errorf("logto user role error %v", err)
+	}
+	identity := model.Identity{
+		Id:     member.MemberId,
+		Member: member,
+		Role:   MemberServiceApp.MapLogtoUserRole(logtoUserRoleResponse),
+	}
+	util.Logger.Tracef("using identity %v", identity)
+
+	return gh.processCommand(comment, command, event, identity)
+}
+
+func (gh *GithubWebHook) processCommand(comment github.IssueCommentPayload, command string, event model.Event, identity model.Identity) error {
+	var readyForReviewLabel = "ready for review"
+	var acceptedLabel = "accepted"
+
+	switch {
+	case comment.Action == "created" && command == "accept":
+		return gh.handleAcceptCommand(comment, event, identity, acceptedLabel)
+	case command == "commit":
+		return gh.handleCommitCommand(comment, event, identity, readyForReviewLabel)
+	case comment.Action == "created" && command == "reject":
+		return gh.handleRejectCommand(comment, event, identity, readyForReviewLabel)
+	case comment.Action == "created" && command == "close":
+		return EventServiceApp.Act(&event, identity, util.Close)
+	case comment.Action == "created" && command == "drop":
+		return gh.handleDropCommand(comment, event, identity, acceptedLabel)
+	}
+	return nil
+}
+
+func (gh *GithubWebHook) handleAcceptCommand(comment github.IssueCommentPayload, event model.Event, identity model.Identity, acceptedLabel string) error {
+	err := EventServiceApp.Act(&event, identity, util.Accept)
+	if err != nil {
+		return err
+	}
+	user, _, err := util.GetUserById(comment.Sender.ID)
+	if err != nil {
+		return err
+	}
+	_, _, err = util.AddIssueAssignee(int(comment.Issue.Number), []string{*user.Login})
+	if err != nil {
+		return err
+	}
+	_, _, err = util.AddIssueLabels(int(comment.Issue.Number), []string{acceptedLabel})
+	return err
+}
+
+func (gh *GithubWebHook) handleCommitCommand(comment github.IssueCommentPayload, event model.Event, identity model.Identity, readyForReviewLabel string) error {
+	re := regexp.MustCompile(`@nbtca-bot\s+\w+`)
+	text := comment.Comment.Body
+	cleaned := re.ReplaceAllString(text, "")
+	cleaned = strings.TrimSpace(cleaned)
+
+	switch event.Status {
+	case util.Accepted:
+		if err := EventServiceApp.Act(&event, identity, util.Commit, cleaned); err != nil {
+			return err
+		}
+		_, _, err := util.AddIssueLabels(int(comment.Issue.Number), []string{readyForReviewLabel})
+		return err
+	case util.Committed:
+		return EventServiceApp.Act(&event, identity, util.AlterCommit, cleaned)
+	}
+	return nil
+}
+
+func (gh *GithubWebHook) handleRejectCommand(comment github.IssueCommentPayload, event model.Event, identity model.Identity, readyForReviewLabel string) error {
+	err := EventServiceApp.Act(&event, identity, util.Reject)
+	if err != nil {
+		return err
+	}
+	_, err = util.RemoveIssueLabel(int(comment.Issue.Number), readyForReviewLabel)
+	return err
+}
+
+func (gh *GithubWebHook) handleDropCommand(comment github.IssueCommentPayload, event model.Event, identity model.Identity, acceptedLabel string) error {
+	err := EventServiceApp.Act(&event, identity, util.Drop)
+	if err != nil {
+		return err
+	}
+	_, err = util.RemoveIssueLabel(int(comment.Issue.Number), acceptedLabel)
+	return err
 }
 
 type LogtoWebHook struct {
