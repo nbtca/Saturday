@@ -26,6 +26,22 @@ func CreateIssueComment(number int, issueComment *github.IssueComment) (*github.
 	return ghClient.Issues.CreateComment(context.Background(), owner, repo, number, issueComment)
 }
 
+func GetIssue(number int) (*github.Issue, *github.Response, error) {
+	return ghClient.Issues.Get(context.Background(), owner, repo, number)
+}
+
+func EditIssue(number int, issue *github.IssueRequest) (*github.Issue, *github.Response, error) {
+	return ghClient.Issues.Edit(context.Background(), owner, repo, number, issue)
+}
+
+func ReactToIssueComment(commentId int64, reaction string) (*github.Reaction, *github.Response, error) {
+	return ghClient.Reactions.CreateIssueCommentReaction(context.Background(), owner, repo, commentId, reaction)
+}
+
+func EditIssueComment(issueComment *github.IssueComment) (*github.IssueComment, *github.Response, error) {
+	return ghClient.Issues.EditComment(context.Background(), owner, repo, issueComment.GetID(), issueComment)
+}
+
 func CloseIssue(number int, stateReason string) (*github.Issue, *github.Response, error) {
 	state := "closed"
 	return ghClient.Issues.Edit(context.Background(), owner, repo, number, &github.IssueRequest{

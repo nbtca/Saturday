@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -220,26 +221,31 @@ func (service EventService) Analyze(event *model.Event) (EventAnalyzeResult, err
 	return result, nil
 }
 
-func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
-	if util.Action(eventLog.Action) == util.Create {
-		body := event.ToMarkdown()
-		body.HorizontalRule()
-		body.Table(md.TableSet{
-			Header: []string{"Field", "Value", "Description"},
-			Rows: [][]string{
-				{"Current Status", event.Status, ""},
-				{"Size", "", ""},
-				{"Accepted By", event.Member.Alias, ""},
-				{"Closed By", event.ClosedByMember.Alias, ""},
-			},
-		})
-		// body.LF()
-		// body.LF()
-		// body.Table(md.TableSet{
-		// 	Header: []string{"Action", "Timestamp", "Description"},
-		// 	Rows: event.Logs,
-		// })
-		mermaidDiagram := `flowchart LR
+func RenderEventToMarkdownString(event *model.Event) string {
+	body := event.ToMarkdown()
+	log.Println("member", event.Member)
+	log.Println("closedBy", event.ClosedByMember)
+	memberAlias := ""
+	if event.Member != nil {
+		memberAlias = event.Member.Alias
+	}
+	closedByAlias := ""
+	if event.ClosedByMember != nil {
+		closedByAlias = event.ClosedByMember.Alias
+	}
+	body.HorizontalRule()
+	body.Table(md.TableSet{
+		Header: []string{"Field", "Value", "Description"},
+		Rows: [][]string{
+			{"Current Status", event.Status, ""},
+			{"Size", event.Size, ""},
+			{"Accepted By", memberAlias, ""},
+			{"Closed By", closedByAlias, ""},
+		},
+	})
+	body.HorizontalRule()
+
+	mermaidDiagram := `flowchart LR
 	A[Open] --> |Drop| B[Canceled]
 	A --> |Accept| C[Accepted]
 	C --> |Commit| D[Committed]
@@ -247,24 +253,50 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 	D --> |Approve| E[Closed]
 	D --> |Reject| C`
 
-		buf := new(bytes.Buffer)
-		m := md.NewMarkdown(buf)
-		m.LF()
-		m.LF()
-		m.PlainText("You can update event status by commenting on this Issue:")
-		m.BulletList(
-			"`@nbtca-bot accept` will accept this ticket",
-			"`@nbtca-bot drop` will drop your previous accept",
-			"`@nbtca-bot commit` will submit this ticket for admin approval",
-			"`@nbtca-bot reject` will send this ticket back to assignee",
-			"`@nbtca-bot close` will close this ticket as completed",
-		)
-		m.CodeBlocks(md.SyntaxHighlightMermaid, mermaidDiagram)
-		m.Blockquote("Get more detailed documentation at [docs.nbtca.space/repair/weekend](http://docs.nbtca.space/repair/weekend.html)")
+	buf := new(bytes.Buffer)
+	m := md.NewMarkdown(buf)
+	m.LF()
+	m.LF()
+	m.PlainText("You can update event status by commenting on this Issue:")
+	m.BulletList(
+		"`@nbtca-bot accept` will accept this ticket",
+		"`@nbtca-bot drop` will drop your previous accept",
+		"`@nbtca-bot commit` will submit this ticket for admin approval",
+		"`@nbtca-bot reject` will send this ticket back to assignee",
+		"`@nbtca-bot close` will close this ticket as completed",
+	)
+	m.CodeBlocks(md.SyntaxHighlightMermaid, mermaidDiagram)
+	m.Blockquote("Get more detailed documentation at [docs.nbtca.space/repair/weekend](http://docs.nbtca.space/repair/weekend.html)")
 
-		body.Details("nbtca-bot commands", m.String())
-		bodyString := body.String()
+	body.Details("nbtca-bot commands", m.String())
+	return body.String()
+}
 
+func RenderEventToGithubIssue(event *model.Event, issueNumber int, issueRequest *github.IssueRequest) (*github.Issue, *github.Response, error) {
+	bodyString := RenderEventToMarkdownString(event)
+	issueRequest.Body = &bodyString
+	title := fmt.Sprintf("%s(#%v)", event.Problem, event.EventId)
+	issueRequest.Title = &title
+	return util.EditIssue(issueNumber, issueRequest)
+}
+
+func CreateEventAnalyzeComment(event *model.Event, issue *github.Issue) error {
+	analyzeResult, err := EventServiceApp.Analyze(event)
+	if err != nil {
+		return fmt.Errorf("analyze event failed: %v", err)
+	}
+	_, _, err = util.CreateIssueComment(int(issue.GetNumber()), &github.IssueComment{
+		Body: &analyzeResult.Suggestion,
+	})
+	if err != nil {
+		return fmt.Errorf("create issue comment for event analyze failed: %v", err)
+	}
+	return nil
+}
+
+func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
+	if util.Action(eventLog.Action) == util.Create {
+		bodyString := RenderEventToMarkdownString(event)
 		title := fmt.Sprintf("%s(#%v)", event.Problem, event.EventId)
 		issue, _, err := util.CreateIssue(&github.IssueRequest{
 			Title:  &title,
@@ -284,25 +316,20 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 		}
 
 		go func(event *model.Event, issue *github.Issue) {
-			analyzeResult, err := EventServiceApp.Analyze(event)
+			err := CreateEventAnalyzeComment(event, issue)
 			if err != nil {
-				util.Logger.Error("analyze event failed: ", err)
-				return
-			}
-			_, _, err = util.CreateIssueComment(int(issue.GetNumber()), &github.IssueComment{
-				Body: &analyzeResult.Suggestion,
-			})
-			if err != nil {
-				util.Logger.Error("create issue comment for event analyze failed: ", err)
-				return
+				util.Logger.Error("create event analyze comment failed: ", err)
 			}
 		}(event, issue)
 
 		return nil
 	}
+
 	if !event.GithubIssueId.Valid {
 		return fmt.Errorf("event.GithubIssueId is not valid")
 	}
+
+	RenderEventToGithubIssue(event, int(event.GithubIssueNumber.Int64), &github.IssueRequest{})
 
 	buf := new(bytes.Buffer)
 	memberName := identity.Member.Alias

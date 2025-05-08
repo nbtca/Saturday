@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/webhooks/v6/github"
+	githubapi "github.com/google/go-github/v69/github"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/util"
@@ -70,12 +71,12 @@ func (gh *GithubWebHook) Handle(request *http.Request) error {
 
 func (gh *GithubWebHook) handleIssuesPayload(issue github.IssuesPayload) error {
 	if issue.Action != "labeled" {
-		return gh.handleIssueWithoutLabel(issue)
+		return gh.handleIssueUnLabel(issue)
 	}
 	return gh.handleIssueWithLabel(issue)
 }
 
-func (gh *GithubWebHook) handleIssueWithoutLabel(issue github.IssuesPayload) error {
+func (gh *GithubWebHook) handleIssueUnLabel(issue github.IssuesPayload) error {
 	size := ""
 	for _, label := range issue.Issue.Labels {
 		size, _ = ExtractSizeLabel(label.Name)
@@ -84,21 +85,28 @@ func (gh *GithubWebHook) handleIssueWithoutLabel(issue github.IssuesPayload) err
 		return nil
 	}
 	event, err := repo.GetEventByIssueId(issue.Issue.ID)
-	if err != nil || event.EventId == 0 {
+	if err != nil || event.EventId == 0 || event.Size == "" {
 		return nil
 	}
-	return repo.UpdateEventSize(event.EventId, "")
+	event.Size = ""
+	err = repo.UpdateEventSize(event.EventId, "")
+	if err != nil {
+		return fmt.Errorf("failed to update event size: %v", err)
+	}
+	_, _, err = RenderEventToGithubIssue(&event, int(issue.Issue.Number), &githubapi.IssueRequest{})
+	util.Logger.Errorf("failed to render event to github issue: %v", err)
+	return nil
 }
 
 func (gh *GithubWebHook) handleIssueWithLabel(issue github.IssuesPayload) error {
-	if issue.Label.ID == 0 {
+	if issue.Label == nil || issue.Label.ID == 0 {
 		util.Logger.Debugf("issue label not found")
 		return nil
 	}
 	size, err := ExtractSizeLabel(issue.Label.Name)
 	if err != nil {
 		util.Logger.Debugf(err.Error())
-		return err
+		return nil
 	}
 	util.Logger.Debugf("size label found: %s", size)
 	event, err := repo.GetEventByIssueId(issue.Issue.ID)
@@ -108,6 +116,9 @@ func (gh *GithubWebHook) handleIssueWithLabel(issue github.IssuesPayload) error 
 	if err := repo.UpdateEventSize(event.EventId, size); err != nil {
 		return fmt.Errorf("failed to update event size: %v", err)
 	}
+	event.Size = size
+	_, _, err = RenderEventToGithubIssue(&event, int(issue.Issue.Number), &githubapi.IssueRequest{})
+	util.Logger.Errorf("failed to render event to github issue: %v", err)
 	return nil
 }
 
@@ -151,19 +162,25 @@ func (gh *GithubWebHook) processCommand(comment github.IssueCommentPayload, comm
 	var readyForReviewLabel = "ready for review"
 	var acceptedLabel = "accepted"
 
+	var err error
 	switch {
 	case comment.Action == "created" && command == "accept":
-		return gh.handleAcceptCommand(comment, event, identity, acceptedLabel)
+		err = gh.handleAcceptCommand(comment, event, identity, acceptedLabel)
 	case command == "commit":
-		return gh.handleCommitCommand(comment, event, identity, readyForReviewLabel)
+		err = gh.handleCommitCommand(comment, event, identity, readyForReviewLabel)
 	case comment.Action == "created" && command == "reject":
-		return gh.handleRejectCommand(comment, event, identity, readyForReviewLabel)
+		err = gh.handleRejectCommand(comment, event, identity, readyForReviewLabel)
 	case comment.Action == "created" && command == "close":
-		return EventServiceApp.Act(&event, identity, util.Close)
+		err = EventServiceApp.Act(&event, identity, util.Close)
 	case comment.Action == "created" && command == "drop":
-		return gh.handleDropCommand(comment, event, identity, acceptedLabel)
+		err = gh.handleDropCommand(comment, event, identity, acceptedLabel)
 	}
-	return nil
+	if err != nil {
+		util.ReactToIssueComment(comment.Comment.ID, "confused")
+	} else {
+		util.ReactToIssueComment(comment.Comment.ID, "+1")
+	}
+	return err
 }
 
 func (gh *GithubWebHook) handleAcceptCommand(comment github.IssueCommentPayload, event model.Event, identity model.Identity, acceptedLabel string) error {
@@ -207,7 +224,7 @@ func (gh *GithubWebHook) handleRejectCommand(comment github.IssueCommentPayload,
 	if err != nil {
 		return err
 	}
-	_, err = util.RemoveIssueLabel(int(comment.Issue.Number), readyForReviewLabel)
+	// _, err = util.RemoveIssueLabel(int(comment.Issue.Number), readyForReviewLabel)
 	return err
 }
 
@@ -216,7 +233,7 @@ func (gh *GithubWebHook) handleDropCommand(comment github.IssueCommentPayload, e
 	if err != nil {
 		return err
 	}
-	_, err = util.RemoveIssueLabel(int(comment.Issue.Number), acceptedLabel)
+	// _, err = util.RemoveIssueLabel(int(comment.Issue.Number), acceptedLabel)
 	return err
 }
 
