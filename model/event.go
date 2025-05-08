@@ -23,6 +23,7 @@ type Event struct {
 	ClosedBy          string        `json:"closedById" db:"closed_by"`
 	ClosedByMember    *PublicMember `json:"closedBy" db:"-"`
 	Status            string        `json:"status"`
+	Size              string        `json:"size"`
 	Logs              []EventLog    `json:"logs"`
 	GmtCreate         string        `json:"gmtCreate" db:"gmt_create"`
 	GmtModified       string        `json:"gmtModified" db:"gmt_modified"`
@@ -77,6 +78,7 @@ type PublicEvent struct {
 	ClosedByMember *PublicMember `json:"closedBy"`
 	Status         string        `json:"status"`
 	Logs           []EventLog    `json:"logs"`
+	Size           string        `json:"size"`
 	GmtCreate      string        `json:"gmtCreate" db:"gmt_create"`
 	GmtModified    string        `json:"gmtModified" db:"gmt_modified"`
 }
@@ -93,6 +95,7 @@ func CreatePublicEvent(e Event) PublicEvent {
 		ClosedByMember: e.ClosedByMember,
 		Status:         e.Status,
 		Logs:           e.Logs,
+		Size:           e.Size,
 		GmtCreate:      e.GmtCreate,
 		GmtModified:    e.GmtModified,
 	}

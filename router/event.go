@@ -249,6 +249,9 @@ func (er EventRouter) Update(c *gin.Context) {
 	if req.ContactPreference != "" {
 		event.ContactPreference = req.ContactPreference
 	}
+	if req.Size != "" {
+		event.Size = req.Size
+	}
 	if err := service.EventServiceApp.Act(&event, identity, util.Update); util.CheckError(c, err) {
 		return
 	}

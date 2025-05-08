@@ -23,7 +23,9 @@ type EventService struct{}
 func (service EventService) GetEventById(id int64) (model.Event, error) {
 	event, err := repo.GetEventById(id)
 	if err != nil {
-		return model.Event{}, util.MakeInternalServerError()
+		return model.Event{}, util.
+			MakeServiceError(http.StatusInternalServerError).
+			SetMessage(err.Error())
 	}
 	if event.EventId == 0 {
 		return model.Event{}, util.
@@ -222,6 +224,21 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 	if util.Action(eventLog.Action) == util.Create {
 		body := event.ToMarkdown()
 		body.HorizontalRule()
+		body.Table(md.TableSet{
+			Header: []string{"Field", "Value", "Description"},
+			Rows: [][]string{
+				{"Current Status", event.Status, ""},
+				{"Size", "", ""},
+				{"Accepted By", event.Member.Alias, ""},
+				{"Closed By", event.ClosedByMember.Alias, ""},
+			},
+		})
+		// body.LF()
+		// body.LF()
+		// body.Table(md.TableSet{
+		// 	Header: []string{"Action", "Timestamp", "Description"},
+		// 	Rows: event.Logs,
+		// })
 		mermaidDiagram := `flowchart LR
 	A[Open] --> |Drop| B[Canceled]
 	A --> |Accept| C[Accepted]
@@ -314,6 +331,9 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 		return err
 	}
 
+	var readyForReviewLabel = "ready for review"
+	var acceptedLabel = "accepted"
+
 	if util.Action(eventLog.Action) == util.Close {
 		if _, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64), "completed"); err != nil {
 			return err
@@ -321,6 +341,26 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 	} else if util.Action(eventLog.Action) == util.Cancel {
 		if _, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64), "not_planned"); err != nil {
 			return err
+		}
+	} else if util.Action(eventLog.Action) == util.Accept {
+		_, _, err = util.AddIssueLabels(int(event.GithubIssueId.Int64), []string{acceptedLabel})
+		if err != nil {
+			util.Logger.Error("add issue labels failed: ", err)
+		}
+	} else if util.Action(eventLog.Action) == util.Commit {
+		_, _, err = util.AddIssueLabels(int(event.GithubIssueId.Int64), []string{readyForReviewLabel})
+		if err != nil {
+			util.Logger.Error("add issue labels failed: ", err)
+		}
+	} else if util.Action(eventLog.Action) == util.Drop {
+		_, err = util.RemoveIssueLabel(int(event.GithubIssueId.Int64), acceptedLabel)
+		if err != nil {
+			util.Logger.Error("remove issue labels failed: ", err)
+		}
+	} else if util.Action(eventLog.Action) == util.Reject {
+		_, err = util.RemoveIssueLabel(int(event.GithubIssueId.Int64), readyForReviewLabel)
+		if err != nil {
+			util.Logger.Error("remove issue labels failed: ", err)
 		}
 	}
 	return nil
@@ -342,17 +382,17 @@ func (service EventService) Act(event *model.Event, identity model.Identity, act
 
 	log := handler.Handle()
 
-	err := syncEventActionToGithubIssue(event, log, identity)
-	if err != nil {
-		util.Logger.Error(err)
-	}
-
 	// persist event
 	if err := repo.UpdateEvent(event, &log); err != nil {
 		return err
 	}
 	// append log
 	event.Logs = append(event.Logs, log)
+
+	err := syncEventActionToGithubIssue(event, log, identity)
+	if err != nil {
+		util.Logger.Error(err)
+	}
 
 	service.SendActionNotify(event, log, identity)
 	util.Logger.Tracef("event log: %v", log)
