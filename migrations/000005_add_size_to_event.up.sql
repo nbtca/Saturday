@@ -3,7 +3,8 @@ ADD COLUMN size character varying(50) DEFAULT ''::character varying NOT NULL;
 
 COMMENT ON COLUMN public.event.size IS '工作量';
 
-CREATE OR REPLACE VIEW public.event_view AS
+DROP VIEW public.event_view;
+CREATE VIEW public.event_view AS
  SELECT event.event_id,
     event.client_id,
     event.model,

@@ -1,6 +1,4 @@
-ALTER TABLE public.event
-DROP COLUMN size;
-
+DROP VIEW public.event_view;
 CREATE OR REPLACE VIEW public.event_view AS
  SELECT event.event_id,
     event.client_id,
@@ -19,3 +17,6 @@ CREATE OR REPLACE VIEW public.event_view AS
    FROM ((public.event
      LEFT JOIN public.event_event_status_relation ON ((event.event_id = event_event_status_relation.event_id)))
      LEFT JOIN public.event_status ON ((event_event_status_relation.event_status_id = event_status.event_status_id)));
+
+ALTER TABLE public.event
+DROP COLUMN size;
