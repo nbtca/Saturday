@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -23,7 +24,9 @@ type EventService struct{}
 func (service EventService) GetEventById(id int64) (model.Event, error) {
 	event, err := repo.GetEventById(id)
 	if err != nil {
-		return model.Event{}, util.MakeInternalServerError()
+		return model.Event{}, util.
+			MakeServiceError(http.StatusInternalServerError).
+			SetMessage(err.Error())
 	}
 	if event.EventId == 0 {
 		return model.Event{}, util.
@@ -218,11 +221,31 @@ func (service EventService) Analyze(event *model.Event) (EventAnalyzeResult, err
 	return result, nil
 }
 
-func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
-	if util.Action(eventLog.Action) == util.Create {
-		body := event.ToMarkdown()
-		body.HorizontalRule()
-		mermaidDiagram := `flowchart LR
+func RenderEventToMarkdownString(event *model.Event) string {
+	body := event.ToMarkdown()
+	log.Println("member", event.Member)
+	log.Println("closedBy", event.ClosedByMember)
+	memberAlias := ""
+	if event.Member != nil {
+		memberAlias = event.Member.Alias
+	}
+	closedByAlias := ""
+	if event.ClosedByMember != nil {
+		closedByAlias = event.ClosedByMember.Alias
+	}
+	body.HorizontalRule()
+	body.Table(md.TableSet{
+		Header: []string{"Field", "Value", "Description"},
+		Rows: [][]string{
+			{"Current Status", event.Status, ""},
+			{"Size", event.Size, ""},
+			{"Accepted By", memberAlias, ""},
+			{"Closed By", closedByAlias, ""},
+		},
+	})
+	body.HorizontalRule()
+
+	mermaidDiagram := `flowchart LR
 	A[Open] --> |Drop| B[Canceled]
 	A --> |Accept| C[Accepted]
 	C --> |Commit| D[Committed]
@@ -230,24 +253,50 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 	D --> |Approve| E[Closed]
 	D --> |Reject| C`
 
-		buf := new(bytes.Buffer)
-		m := md.NewMarkdown(buf)
-		m.LF()
-		m.LF()
-		m.PlainText("You can update event status by commenting on this Issue:")
-		m.BulletList(
-			"`@nbtca-bot accept` will accept this ticket",
-			"`@nbtca-bot drop` will drop your previous accept",
-			"`@nbtca-bot commit` will submit this ticket for admin approval",
-			"`@nbtca-bot reject` will send this ticket back to assignee",
-			"`@nbtca-bot close` will close this ticket as completed",
-		)
-		m.CodeBlocks(md.SyntaxHighlightMermaid, mermaidDiagram)
-		m.Blockquote("Get more detailed documentation at [docs.nbtca.space/repair/weekend](http://docs.nbtca.space/repair/weekend.html)")
+	buf := new(bytes.Buffer)
+	m := md.NewMarkdown(buf)
+	m.LF()
+	m.LF()
+	m.PlainText("You can update event status by commenting on this Issue:")
+	m.BulletList(
+		"`@nbtca-bot accept` will accept this ticket",
+		"`@nbtca-bot drop` will drop your previous accept",
+		"`@nbtca-bot commit` will submit this ticket for admin approval",
+		"`@nbtca-bot reject` will send this ticket back to assignee",
+		"`@nbtca-bot close` will close this ticket as completed",
+	)
+	m.CodeBlocks(md.SyntaxHighlightMermaid, mermaidDiagram)
+	m.Blockquote("Get more detailed documentation at [docs.nbtca.space/repair/weekend](http://docs.nbtca.space/repair/weekend.html)")
 
-		body.Details("nbtca-bot commands", m.String())
-		bodyString := body.String()
+	body.Details("nbtca-bot commands", m.String())
+	return body.String()
+}
 
+func RenderEventToGithubIssue(event *model.Event, issueNumber int, issueRequest *github.IssueRequest) (*github.Issue, *github.Response, error) {
+	bodyString := RenderEventToMarkdownString(event)
+	issueRequest.Body = &bodyString
+	title := fmt.Sprintf("%s(#%v)", event.Problem, event.EventId)
+	issueRequest.Title = &title
+	return util.EditIssue(issueNumber, issueRequest)
+}
+
+func CreateEventAnalyzeComment(event *model.Event, issue *github.Issue) error {
+	analyzeResult, err := EventServiceApp.Analyze(event)
+	if err != nil {
+		return fmt.Errorf("analyze event failed: %v", err)
+	}
+	_, _, err = util.CreateIssueComment(int(issue.GetNumber()), &github.IssueComment{
+		Body: &analyzeResult.Suggestion,
+	})
+	if err != nil {
+		return fmt.Errorf("create issue comment for event analyze failed: %v", err)
+	}
+	return nil
+}
+
+func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
+	if util.Action(eventLog.Action) == util.Create {
+		bodyString := RenderEventToMarkdownString(event)
 		title := fmt.Sprintf("%s(#%v)", event.Problem, event.EventId)
 		issue, _, err := util.CreateIssue(&github.IssueRequest{
 			Title:  &title,
@@ -267,25 +316,20 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 		}
 
 		go func(event *model.Event, issue *github.Issue) {
-			analyzeResult, err := EventServiceApp.Analyze(event)
+			err := CreateEventAnalyzeComment(event, issue)
 			if err != nil {
-				util.Logger.Error("analyze event failed: ", err)
-				return
-			}
-			_, _, err = util.CreateIssueComment(int(issue.GetNumber()), &github.IssueComment{
-				Body: &analyzeResult.Suggestion,
-			})
-			if err != nil {
-				util.Logger.Error("create issue comment for event analyze failed: ", err)
-				return
+				util.Logger.Error("create event analyze comment failed: ", err)
 			}
 		}(event, issue)
 
 		return nil
 	}
+
 	if !event.GithubIssueId.Valid {
 		return fmt.Errorf("event.GithubIssueId is not valid")
 	}
+
+	RenderEventToGithubIssue(event, int(event.GithubIssueNumber.Int64), &github.IssueRequest{})
 
 	buf := new(bytes.Buffer)
 	memberName := identity.Member.Alias
@@ -314,6 +358,9 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 		return err
 	}
 
+	var readyForReviewLabel = "ready for review"
+	var acceptedLabel = "accepted"
+
 	if util.Action(eventLog.Action) == util.Close {
 		if _, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64), "completed"); err != nil {
 			return err
@@ -321,6 +368,26 @@ func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, i
 	} else if util.Action(eventLog.Action) == util.Cancel {
 		if _, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64), "not_planned"); err != nil {
 			return err
+		}
+	} else if util.Action(eventLog.Action) == util.Accept {
+		_, _, err = util.AddIssueLabels(int(event.GithubIssueId.Int64), []string{acceptedLabel})
+		if err != nil {
+			util.Logger.Error("add issue labels failed: ", err)
+		}
+	} else if util.Action(eventLog.Action) == util.Commit {
+		_, _, err = util.AddIssueLabels(int(event.GithubIssueId.Int64), []string{readyForReviewLabel})
+		if err != nil {
+			util.Logger.Error("add issue labels failed: ", err)
+		}
+	} else if util.Action(eventLog.Action) == util.Drop {
+		_, err = util.RemoveIssueLabel(int(event.GithubIssueId.Int64), acceptedLabel)
+		if err != nil {
+			util.Logger.Error("remove issue labels failed: ", err)
+		}
+	} else if util.Action(eventLog.Action) == util.Reject {
+		_, err = util.RemoveIssueLabel(int(event.GithubIssueId.Int64), readyForReviewLabel)
+		if err != nil {
+			util.Logger.Error("remove issue labels failed: ", err)
 		}
 	}
 	return nil
@@ -342,11 +409,6 @@ func (service EventService) Act(event *model.Event, identity model.Identity, act
 
 	log := handler.Handle()
 
-	err := syncEventActionToGithubIssue(event, log, identity)
-	if err != nil {
-		util.Logger.Error(err)
-	}
-
 	// persist event
 	if err := repo.UpdateEvent(event, &log); err != nil {
 		return err
@@ -354,9 +416,22 @@ func (service EventService) Act(event *model.Event, identity model.Identity, act
 	// append log
 	event.Logs = append(event.Logs, log)
 
+	err := syncEventActionToGithubIssue(event, log, identity)
+	if err != nil {
+		util.Logger.Error(err)
+	}
+
 	service.SendActionNotify(event, log, identity)
 	util.Logger.Tracef("event log: %v", log)
 
+	return nil
+}
+
+func ValidateEventSize(size string) error {
+	// size can be one of xs,s,m,l,xl
+	if size != "xs" && size != "s" && size != "m" && size != "l" && size != "xl" {
+		return fmt.Errorf("size %s is not valid", size)
+	}
 	return nil
 }
 

@@ -11,7 +11,7 @@ import (
 )
 
 var eventFields = []string{"event_id", "client_id", "model", "phone", "qq", "contact_preference",
-	"problem", "member_id", "closed_by", "status", "gmt_create", "gmt_modified", "status", "github_issue_id", "github_issue_number"}
+	"problem", "member_id", "closed_by", "status", "size", "gmt_create", "gmt_modified", "status", "github_issue_id", "github_issue_number"}
 
 var EventLogFields = []string{"event_log_id", "description", "gmt_create", "member_id", "action"}
 
@@ -63,7 +63,7 @@ func GetEventById(id int64) (model.Event, error) {
 	joinEvent := JoinEvent{}
 	if err := conn.Get(&joinEvent, getEventSql, getEventArgs...); err != nil {
 		if err == sql.ErrNoRows {
-			return model.Event{}, nil
+			return model.Event{}, err
 		}
 		conn.Rollback()
 		return model.Event{}, err
@@ -145,6 +145,15 @@ func GetClientEvents(f EventFilter, clientId int64) ([]model.Event, error) {
 	return getEvents(f, squirrel.Eq{"e.client_id": clientId})
 }
 
+func UpdateEventSize(eventId int64, size string) error {
+	builder := sq.Update("event").
+		Set("size", size).
+		Where(squirrel.Eq{"event_id": eventId})
+	sql, args, _ := builder.ToSql()
+	_, err := db.Exec(sql, args...)
+	return err
+}
+
 func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 	builder := sq.Update("event").
 		Set("model", event.Model).
@@ -152,6 +161,7 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 		Set("qq", event.QQ).
 		Set("contact_preference", event.ContactPreference).
 		Set("problem", event.Problem).
+		Set("size", event.Size).
 		Set("member_id", event.MemberId).
 		Set("closed_by", event.ClosedBy)
 	if event.GithubIssueId.Valid {
