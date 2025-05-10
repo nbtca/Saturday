@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/go-github/v69/github"
 	md "github.com/nao1215/markdown"
+	"github.com/xuri/excelize/v2"
 
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/repo"
@@ -34,6 +35,120 @@ func (service EventService) GetEventById(id int64) (model.Event, error) {
 			SetMessage("Validation Failed")
 	}
 	return event, nil
+}
+
+func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, endTime string) (*excelize.File, error) {
+	events, err := repo.GetClosedEventsByTimeRange(f, startTime, endTime)
+	if err != nil {
+		return nil, err
+	}
+	eventsExported := make([]model.EventExported, len(events))
+	for i, v := range events {
+		eventsExported[i] = model.EventExported{
+			EventId:          v.Event.EventId,
+			MemberId:         v.Member.MemberId.String,
+			EventDescription: v.Event.Problem,
+			MemberName:       v.Member.Name.String,
+			MemberSection:    v.Member.Section.String,
+			MemberPhone:      v.Member.Phone.String,
+			EventSize:        v.Event.Size,
+			EventStatus:      v.Event.Status,
+			CreatedAt:        v.Event.GmtCreate,
+			ClosedAt:         v.Event.GmtModified,
+		}
+		log.Println("event", v.Event)
+		log.Println("closed_by", v.Admin)
+		if v.Admin.Member().MemberId != "" {
+			eventsExported[i].ClosedByMemberId = v.Admin.MemberId.String
+		}
+	}
+	const MaxHour = 8
+	groupedByMember := make(map[string]model.EventExportedGroupedByMember)
+	for _, event := range eventsExported {
+		memberId := event.MemberId
+		if _, exists := groupedByMember[memberId]; !exists {
+			groupedByMember[memberId] = model.EventExportedGroupedByMember{
+				MemberId:      event.MemberId,
+				MemberName:    event.MemberName,
+				MemberSection: event.MemberSection,
+				MemberPhone:   event.MemberPhone,
+				Hour:          0,
+			}
+		}
+		group := groupedByMember[memberId]
+		group.Hour += EventSizeToHour(event.EventSize) // Increment hour count for each event
+		if group.Hour > MaxHour {
+			group.Hour = MaxHour // Cap the hour count at MaxHour
+		}
+		groupedByMember[memberId] = group
+	}
+
+	result := make([]model.EventExportedGroupedByMember, 0, len(groupedByMember))
+	for _, grouped := range groupedByMember {
+		result = append(result, grouped)
+	}
+
+	excelFile := excelize.NewFile()
+	defer func() {
+		if err := excelFile.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+	// Create a new sheet.
+	groupedByMemberSheet := "Sheet1"
+	index, err := excelFile.NewSheet(groupedByMemberSheet)
+	if err != nil {
+		util.Logger.Error(err)
+		return nil, err
+	}
+	excelFile.SetCellValue(groupedByMemberSheet, "A1", "学号")
+	excelFile.SetCellValue(groupedByMemberSheet, "B1", "姓名")
+	excelFile.SetCellValue(groupedByMemberSheet, "C1", "班级")
+	excelFile.SetCellValue(groupedByMemberSheet, "D1", "联系方式")
+	excelFile.SetCellValue(groupedByMemberSheet, "E1", "时长")
+	for i, event := range result {
+		excelFile.SetCellValue(groupedByMemberSheet, fmt.Sprintf("A%v", i+2), event.MemberId)
+		excelFile.SetCellValue(groupedByMemberSheet, fmt.Sprintf("B%v", i+2), event.MemberName)
+		excelFile.SetCellValue(groupedByMemberSheet, fmt.Sprintf("C%v", i+2), event.MemberSection)
+		excelFile.SetCellValue(groupedByMemberSheet, fmt.Sprintf("D%v", i+2), event.MemberPhone)
+		excelFile.SetCellValue(groupedByMemberSheet, fmt.Sprintf("E%v", i+2), event.Hour)
+	}
+	overAllSheet := "Sheet2"
+	_, err = excelFile.NewSheet(overAllSheet)
+	if err != nil {
+		util.Logger.Error(err)
+		return nil, err
+	}
+	excelFile.SetCellValue(overAllSheet, "A1", "学号")
+	excelFile.SetCellValue(overAllSheet, "B1", "姓名")
+	excelFile.SetCellValue(overAllSheet, "C1", "班级")
+	excelFile.SetCellValue(overAllSheet, "D1", "事件编号")
+	excelFile.SetCellValue(overAllSheet, "E1", "事件描述")
+	excelFile.SetCellValue(overAllSheet, "F1", "工作量")
+	excelFile.SetCellValue(overAllSheet, "G1", "事件状态")
+	excelFile.SetCellValue(overAllSheet, "H1", "创建时间")
+	excelFile.SetCellValue(overAllSheet, "I1", "关闭时间")
+	excelFile.SetCellValue(overAllSheet, "J1", "审核人")
+	excelFile.SetCellValue(overAllSheet, "K1", "GithubIssue")
+	githubIssueBaseUrl := fmt.Sprintf("https://github.com/%v/%v/issues", os.Getenv("GITHUB_OWNER"), os.Getenv("GITHUB_REPO"))
+	for i, event := range eventsExported {
+		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("A%v", i+2), event.MemberId)
+		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("B%v", i+2), event.MemberName)
+		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("C%v", i+2), event.MemberSection)
+		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("D%v", i+2), event.EventId)
+		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("E%v", i+2), event.EventDescription)
+		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("F%v", i+2), event.EventSize)
+		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("G%v", i+2), event.EventStatus)
+		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("H%v", i+2), event.CreatedAt)
+		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("I%v", i+2), event.ClosedAt)
+		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("J%v", i+2), event.ClosedByMemberId)
+		if event.EventGithubIssueNumber != 0 {
+			excelFile.SetCellValue(overAllSheet, fmt.Sprintf("K%v", i+2), fmt.Sprintf("%v/%v", githubIssueBaseUrl, event.EventGithubIssueNumber))
+		}
+	}
+
+	excelFile.SetActiveSheet(index)
+	return excelFile, nil
 }
 
 func (service EventService) GetMemberEvents(f repo.EventFilter, memberId string) ([]model.Event, error) {
@@ -433,6 +548,24 @@ func ValidateEventSize(size string) error {
 		return fmt.Errorf("size %s is not valid", size)
 	}
 	return nil
+}
+
+func EventSizeToHour(size string) float64 {
+	// size can be one of xs,s,m,l,xl
+	switch size {
+	case "xs":
+		return 0.5
+	case "s":
+		return 1
+	case "m":
+		return 2
+	case "l":
+		return 4
+	case "xl":
+		return 8
+	default:
+		return 0
+	}
 }
 
 var EventServiceApp = EventService{}
