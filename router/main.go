@@ -187,11 +187,11 @@ func SetupRouter() *gin.Engine {
 		// TODO change this path
 		AdminGroup.GET("/members/full", MemberRouterApp.GetMemberByPage)
 		// AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
+		AdminGroup.GET("/events/xlsx", EventRouterApp.ExportEventsToXlsx)
 
 		AdminGroup.Use(middleware.EventActionPreProcess)
 		AdminGroup.DELETE("/events/:EventId/commit", EventRouterApp.RejectCommit)
 		AdminGroup.POST("/events/:EventId/close", EventRouterApp.Close)
-
 	}
 
 	ClientGroup := Router.Group("/")

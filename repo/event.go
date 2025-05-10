@@ -112,7 +112,7 @@ type EventFilter struct {
 	Order  string
 }
 
-func getEvents(f EventFilter, conditions ...squirrel.Eq) ([]model.Event, error) {
+func getJoinEvents(f EventFilter, conditions ...squirrel.Eq) ([]JoinEvent, error) {
 	stat := getEventStatement()
 	if f.Status != "" {
 		stat = stat.Where(squirrel.Eq{"e.status": f.Status})
@@ -123,6 +123,11 @@ func getEvents(f EventFilter, conditions ...squirrel.Eq) ([]model.Event, error) 
 	getEventSql, getEventArgs, _ := stat.OrderBy("e.event_id " + f.Order).Offset(f.Offset).Limit(f.Limit).ToSql()
 	joinEvent := []JoinEvent{}
 	err := db.Select(&joinEvent, getEventSql, getEventArgs...)
+	return joinEvent, err
+}
+
+func getEvents(f EventFilter, conditions ...squirrel.Eq) ([]model.Event, error) {
+	joinEvent, err := getJoinEvents(f, conditions...)
 	if err != nil {
 		return []model.Event{}, err
 	}
@@ -143,6 +148,17 @@ func GetMemberEvents(f EventFilter, memberId string) ([]model.Event, error) {
 
 func GetClientEvents(f EventFilter, clientId int64) ([]model.Event, error) {
 	return getEvents(f, squirrel.Eq{"e.client_id": clientId})
+}
+
+func GetClosedEventsByTimeRange(f EventFilter, startTime, endTime string) ([]JoinEvent, error) {
+	stat := getEventStatement().
+		Where("e.gmt_create BETWEEN ? AND ?", startTime, endTime).
+		Where("e.status = ?", util.Closed).
+		Where("e.closed_by != ''")
+	getEventSql, getEventArgs, _ := stat.Offset(f.Offset).Limit(f.Limit).ToSql()
+	joinEvent := []JoinEvent{}
+	err := db.Select(&joinEvent, getEventSql, getEventArgs...)
+	return joinEvent, err
 }
 
 func UpdateEventSize(eventId int64, size string) error {

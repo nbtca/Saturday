@@ -2,7 +2,9 @@ package router
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/nbtca/saturday/middleware"
@@ -96,6 +98,49 @@ func (EventRouter) GetMemberEventByPage(c *gin.Context) {
 		return
 	}
 	c.JSON(200, events)
+}
+
+// return events that is accepted by current member
+func (EventRouter) ExportEventsToXlsx(c *gin.Context) {
+	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	startTime := c.Query("start_time")
+	endTime := c.Query("end_time")
+	if startTime == "" || endTime == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "start_time and end_time are required"})
+		return
+	}
+	status := c.DefaultQuery("status", "")
+	order := c.DefaultQuery("order", "ASC")
+	f, err := service.EventServiceApp.ExportEventToXlsx(repo.EventFilter{
+		Offset: offset,
+		Limit:  limit,
+		Status: status,
+		Order:  order,
+	}, startTime, endTime)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	formatDate := func(date string) string {
+		t, err := time.Parse("2006-01-02T15:04:05Z", date)
+		if err != nil {
+			return date
+		}
+		return t.Format("2006-01-02")
+	}
+
+	filename := fmt.Sprintf("events_%s_to_%s.xlsx", formatDate(startTime), formatDate(endTime))
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	c.Header("Content-Transfer-Encoding", "binary")
+	if err := f.Write(c.Writer); err != nil {
+		c.Error(err)
+		return
+	}
 }
 
 func (EventRouter) Accept(c *gin.Context) {

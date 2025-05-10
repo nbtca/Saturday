@@ -113,3 +113,26 @@ type EventActionNotifyRequest struct {
 type EventActionNotifyResponse struct {
 	Success bool
 }
+
+type EventExported struct {
+	EventId                int64
+	MemberId               string
+	MemberName             string
+	MemberSection          string
+	MemberPhone            string
+	EventSize              string
+	EventDescription       string
+	EventGithubIssueNumber int
+	EventStatus            string
+	ClosedByMemberId       string
+	CreatedAt              string
+	ClosedAt               string
+}
+
+type EventExportedGroupedByMember struct {
+	MemberId      string
+	MemberName    string
+	MemberSection string
+	MemberPhone   string
+	Hour          float64
+}
