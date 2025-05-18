@@ -31,7 +31,7 @@ func (l LogtoService) getToken() (string, error) {
 			return false
 		}
 		parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-			return []byte(viper.GetString("LOGTO_APP_SECRET")), nil
+			return []byte(viper.GetString("logto.app_secret")), nil
 		}, jwt.WithoutClaimsValidation())
 		if err != nil {
 			return false
@@ -74,7 +74,7 @@ func (l LogtoService) FetchLogtoToken(resource string, scope string) (map[string
 	req, _ := http.NewRequest("POST", tokenURL, payload)
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	authString := util.CreateBasicAuth(viper.GetString("logto.appid"), viper.GetString("LOGTO_APP_SECRET"))
+	authString := util.CreateBasicAuth(viper.GetString("logto.appid"), viper.GetString("logto.app_secret"))
 	req.Header.Add("Authorization", "Basic "+authString)
 
 	res, err := http.DefaultClient.Do(req)
@@ -236,7 +236,7 @@ func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserReques
 }
 
 func (l LogtoService) FetchUserByToken(token string) (*FetchLogtoUsersResponse, error) {
-	jwksURL, err := url.JoinPath(viper.GetString("LOGTO_ENDPOINT"), "/oidc/jwks")
+	jwksURL, err := url.JoinPath(viper.GetString("logto.endpoint"), "/oidc/jwks")
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func (l LogtoService) FetchUserByToken(token string) (*FetchLogtoUsersResponse, 
 		return nil, invalidTokenError.SetMessage("Invalid token " + error.Error())
 	}
 	// check issuer
-	expectedIssuer, _ := url.JoinPath(viper.GetString("LOGTO_ENDPOINT"), "/oidc")
+	expectedIssuer, _ := url.JoinPath(viper.GetString("logto.endpoint"), "/oidc")
 	if claims.Issuer != expectedIssuer {
 		return nil, invalidTokenError.SetMessage("Invalid token, invalid issuer")
 	}
@@ -288,7 +288,7 @@ type LogtoUserRole struct {
 type FetchUserRoleResponse []LogtoUserRole
 
 func (l LogtoService) FetchUserRole(userId string) (FetchUserRoleResponse, error) {
-	userRoleURL, err := url.JoinPath(viper.GetString("LOGTO_ENDPOINT"), "/api/users/", userId, "/roles")
+	userRoleURL, err := url.JoinPath(viper.GetString("logto.endpoint"), "/api/users/", userId, "/roles")
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +334,7 @@ type FetchUserInfoResponse struct {
 }
 
 func (l LogtoService) FetchUserInfo(accessToken string) (FetchUserInfoResponse, error) {
-	userInfoEndpointURL, err := url.JoinPath(viper.GetString("LOGTO_ENDPOINT"), "/oidc/me")
+	userInfoEndpointURL, err := url.JoinPath(viper.GetString("logto.endpoint"), "/oidc/me")
 	if err != nil {
 		return FetchUserInfoResponse{}, err
 	}
@@ -368,5 +368,5 @@ func (l LogtoService) FetchUserInfo(accessToken string) (FetchUserInfoResponse, 
 var LogtoServiceApp LogtoService
 
 func init() {
-	LogtoServiceApp = MakeLogtoService(viper.GetString("LOGTO_ENDPOINT"))
+	LogtoServiceApp = MakeLogtoService(viper.GetString("logto.endpoint"))
 }

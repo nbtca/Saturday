@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestFetchLogtoToken(t *testing.T) {
-	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("LOGTO_ENDPOINT"))
+	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("logto.endpoint"))
 	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
 	if err != nil {
 		t.Fatal(err)
@@ -29,7 +29,7 @@ func TestFetchLogtoToken(t *testing.T) {
 }
 
 func TestFetchLogtoUser(t *testing.T) {
-	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("LOGTO_ENDPOINT"))
+	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("logto.endpoint"))
 	userId := viper.GetString("TESTING_LOGTO_USER_ID")
 	user, err := service.LogtoServiceApp.FetchUserById(userId)
 	if err != nil {
@@ -39,7 +39,7 @@ func TestFetchLogtoUser(t *testing.T) {
 }
 
 func TestFetchLogtoUsers(t *testing.T) {
-	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("LOGTO_ENDPOINT"))
+	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("logto.endpoint"))
 	// userId := viper.GetString("TESTING_LOGTO_USER_ID")
 	user, err := service.LogtoServiceApp.FetchUsers(service.FetchLogtoUsersRequest{
 		Page:         1,
