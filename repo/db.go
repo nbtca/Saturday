@@ -3,12 +3,12 @@ package repo
 import (
 	"context"
 	"database/sql"
-	"os"
 	"time"
 
 	"github.com/Masterminds/squirrel"
 	pq "github.com/lib/pq"
 	"github.com/qustavo/sqlhooks/v2"
+	"github.com/spf13/viper"
 
 	"github.com/nbtca/saturday/util"
 	"github.com/sirupsen/logrus"
@@ -49,7 +49,7 @@ func InitDB() {
 	var err error
 	sql.Register("pqHooked", sqlhooks.Wrap(&pq.Driver{}, &Hooks{}))
 	sqlx.BindDriver("pqHooked", sqlx.DOLLAR)
-	db, err = sqlx.Connect("pqHooked", os.Getenv("DB_URL"))
+	db, err = sqlx.Connect("pqHooked", viper.GetString("db.dataSource"))
 	if err != nil {
 		util.Logger.Fatal(err)
 	}

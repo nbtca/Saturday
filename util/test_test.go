@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
 	"testing"
 
 	"github.com/joho/godotenv"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/util"
+	"github.com/spf13/viper"
 	"gopkg.in/gomail.v2"
 )
 
@@ -127,7 +127,7 @@ func TestParseToken(t *testing.T) {
 
 func TestParseTokenWithJWKS(t *testing.T) {
 	token := "Bearer eyJhbGciOiJFUzM4NCIsInR5cCI6ImF0K2p3dCIsImtpZCI6Im9VU0hpdWNoNkpGUS1yaGRiTnFvLVRrVy1VRmpudmtSako3aWw1dFdOYU0ifQ.eyJqdGkiOiI4VW10UWVlMjVvZzRlSGc4cl9NUHMiLCJzdWIiOiJjaG16MWl0ejgzcXEiLCJpYXQiOjE2OTg3NTcxMDUsImV4cCI6MTY5ODc2MDcwNSwic2NvcGUiOiIiLCJjbGllbnRfaWQiOiJoMmVqa2tmd2R0ampwZW1iMDIxcm8iLCJpc3MiOiJodHRwczovL2F1dGguYXBwLm5idGNhLnNwYWNlL29pZGMiLCJhdWQiOiJodHRwczovL2FwaS5uYnRjYS5zcGFjZS92MiJ9.uUzXk8zERRhWtWFMnLcLGDF8ZQl-PoSWVWv6MnCjHb1q5P1aHlKVRx2RmSjDr2Nm7n0JZIXsSVQrDXhsB0J64qi2gI4Xuvu3pe11FIpeVxHLY7ObpDzyaeRBHc26P2Lo"
-	jwksURL, err := url.JoinPath(os.Getenv("LOGTO_ENDPOINT"), "/oidc/jwks")
+	jwksURL, err := url.JoinPath(viper.GetString("LOGTO_ENDPOINT"), "/oidc/jwks")
 	if err != nil {
 		t.Error(err)
 		return
@@ -144,9 +144,9 @@ func TestSendMail(t *testing.T) {
 
 	m := gomail.NewMessage()
 	util.InitDialer()
-	receiverAddress := os.Getenv("MAIL_RECEIVER_ADDRESS")
+	receiverAddress := viper.GetString("testing.mail.receiver_address")
 	if receiverAddress == "" {
-		t.Error("MAIL_RECEIVER_ADDRESS is not set")
+		t.Error("receiver_address is not set")
 	}
 	m.SetHeader("To", receiverAddress)
 	m.SetHeader("Subject", "维修状态更新(#12): ")

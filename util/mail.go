@@ -1,22 +1,22 @@
 package util
 
 import (
-	"os"
 	"strconv"
 
+	"github.com/spf13/viper"
 	"gopkg.in/gomail.v2"
 )
 
 var dialer *gomail.Dialer
 
 func InitDialer() {
-	host := os.Getenv("MAIL_HOST")
-	port, err := strconv.Atoi(os.Getenv("MAIL_PORT"))
+	host := viper.GetString("mail.host")
+	port, err := strconv.Atoi(viper.GetString("mail.port"))
 	if err != nil {
 		Logger.Error(err)
 	}
-	userName := os.Getenv("MAIL_USERNAME")
-	password := os.Getenv("MAIL_PASSWORD")
+	userName := viper.GetString("mail.username")
+	password := viper.GetString("mail.password")
 	dialer = gomail.NewDialer(host, port, userName, password)
 }
 

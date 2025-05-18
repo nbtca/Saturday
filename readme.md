@@ -26,34 +26,33 @@
 
    在项目根目录下新建`.env`文件，添加配置
 
-   ```
-   DB_URL=<USER>:<PASSWORD>@(<ADDRESS>:<PORT>)/<DATABASE>
-
-   ACCESS_KEY_ID=<YOUR_ACCESS_KEY_ID>
-   ACCESS_KEY_SECRET=<YOUR_ACCESS_KEY_SECRET>
-  
-   MAIL_HOST=<YOUR_MAIL_HOST>
-   MAIL_PORT=<YOUR_MAIL_PORT>
-   MAIL_USERNAME=<YOUR_MAIL_USERNAME>
-   MAIL_PASSWORD=<YOUR_MAIL_PASSWORD>
-
-   PORT=<PORT_TO_LISTEN>
-   # 以下为可选配置
-   NSQ_HOST=<YOUR_NSQD_HOST>:<YOUR_NSQD_TCP_PORT (4150 IN COMMON)>
-   NSQ_SECRET=<YOUR_NSQ_SECRET>
-   EVENT_TOPIC=<YOUR_NSQ_EVENT_TOPIC_NAME>
-   LOG_TOPIC=<YOUR_NSQ_LOG_TOPIC_NAME>
-
-   RPC_PORT=<YOUR_RPC_PORT>
-
-   LOGTO_APPID=<LOGTO_APPID>
-   LOGTO_APP_SECRET=<LOGTO_APP_SECRET>
-   LOGTO_ENDPOINT=<LOGTO_ENDPOINT>
-
-   GITHUB_OWNER=<Github_Repo_Owner>
-   GITHUB_REPO=<Github_Repo_Name>
-   GITHUB_TOKEN=<Github_Token>
-   ```
+   | Key                        | Description                   |
+   | -------------------------- | ----------------------------- |
+   | `DB_DATASOURCE`            | PostgreSQL connection string  |
+   | `ALIYUN_ACCESS_KEY_ID`     | Aliyun access key ID          |
+   | `ALIYUN_ACCESS_KEY_SECRET` | Aliyun access key secret      |
+   | `WECHAT_APPID`             | WeChat app ID                 |
+   | `WECHAT_SECRET`            | WeChat secret                 |
+   | `MAIL_HOST`                | SMTP server host              |
+   | `MAIL_PORT`                | SMTP port (e.g., 465)         |
+   | `MAIL_USERNAME`            | SMTP username                 |
+   | `MAIL_PASSWORD`            | SMTP password                 |
+   | `TESTING_MAIL_RECEIVER_ADDRESS`    | Mail receiver used for testing (optional)         |
+   | `LOGTO_APPID`              | Logto app ID                  |
+   | `LOGTO_APP_SECRET`         | Logto app secret              |
+   | `LOGTO_ENDPOINT`           | Logto endpoint URL            |
+   | `TESTING_LOGTO_USER_ID`       | Logto test user ID (optional) |
+   | `GITHUB_OWNER`             | GitHub repo owner             |
+   | `GITHUB_REPO`              | GitHub repository name        |
+   | `GITHUB_TOKEN`             | GitHub personal access token  |
+   | `GITHUB_WEBHOOK_SECRET`    | GitHub webhook signing secret |
+   | `DIFY_API_ENDPOINT`        | Dify API base URL             |
+   | `DIFY_API_KEY`             | Dify API key                  |
+   | `NSQ_HOST`                 | NSQ daemon host and port      |
+   | `NSQ_SECRET`               | NSQ secret (optional)         |
+   | `NSQ_EVENT_TOPIC`          | NSQ event topic name          |
+   | `NSQ_LOG_TOPIC`            | NSQ log topic name            |
+   | `SERVER_PORT`              | API server listen port        |
 
    在项目根目录下运行
 
