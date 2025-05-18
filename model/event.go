@@ -68,36 +68,40 @@ type EventAction struct {
 }
 
 type PublicEvent struct {
-	EventId        int64         `json:"eventId" db:"event_id"`
-	ClientId       int64         `json:"clientId" db:"client_id"`
-	Model          string        `json:"model"`
-	Problem        string        `json:"problem" db:"event_description"`
-	MemberId       string        `json:"-" db:"member_id"`
-	Member         *PublicMember `json:"member"`
-	ClosedBy       string        `json:"-" db:"closed_by"`
-	ClosedByMember *PublicMember `json:"closedBy"`
-	Status         string        `json:"status"`
-	Logs           []EventLog    `json:"logs"`
-	Size           string        `json:"size"`
-	GmtCreate      string        `json:"gmtCreate" db:"gmt_create"`
-	GmtModified    string        `json:"gmtModified" db:"gmt_modified"`
+	EventId           int64         `json:"eventId" db:"event_id"`
+	ClientId          int64         `json:"clientId" db:"client_id"`
+	Model             string        `json:"model"`
+	Problem           string        `json:"problem" db:"event_description"`
+	MemberId          string        `json:"-" db:"member_id"`
+	Member            *PublicMember `json:"member"`
+	ClosedBy          string        `json:"-" db:"closed_by"`
+	ClosedByMember    *PublicMember `json:"closedBy"`
+	Status            string        `json:"status"`
+	Logs              []EventLog    `json:"logs"`
+	Size              string        `json:"size"`
+	GithubIssueId     int64         `json:"githubIssueId" db:"github_issue_id"`
+	GithubIssueNumber int64         `json:"githubIssueNumber" db:"github_issue_number"`
+	GmtCreate         string        `json:"gmtCreate" db:"gmt_create"`
+	GmtModified       string        `json:"gmtModified" db:"gmt_modified"`
 }
 
 func CreatePublicEvent(e Event) PublicEvent {
 	return PublicEvent{
-		EventId:        e.EventId,
-		ClientId:       e.ClientId,
-		Model:          e.Model,
-		Problem:        e.Problem,
-		MemberId:       e.MemberId,
-		Member:         e.Member,
-		ClosedBy:       e.ClosedBy,
-		ClosedByMember: e.ClosedByMember,
-		Status:         e.Status,
-		Logs:           e.Logs,
-		Size:           e.Size,
-		GmtCreate:      e.GmtCreate,
-		GmtModified:    e.GmtModified,
+		EventId:           e.EventId,
+		ClientId:          e.ClientId,
+		Model:             e.Model,
+		Problem:           e.Problem,
+		MemberId:          e.MemberId,
+		Member:            e.Member,
+		ClosedBy:          e.ClosedBy,
+		ClosedByMember:    e.ClosedByMember,
+		Status:            e.Status,
+		Logs:              e.Logs,
+		Size:              e.Size,
+		GithubIssueId:     e.GithubIssueId.Int64,
+		GithubIssueNumber: e.GithubIssueNumber.Int64,
+		GmtCreate:         e.GmtCreate,
+		GmtModified:       e.GmtModified,
 	}
 }
 
