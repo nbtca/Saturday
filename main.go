@@ -14,29 +14,54 @@ import (
 	_ "github.com/spf13/viper/remote"
 )
 
-func main() {
-
+func initConfig() error {
 	if err := godotenv.Load(); err != nil {
-		util.Logger.Warning("Error loading .env file")
-		log.Println(err)
+		return fmt.Errorf("error loading .env file: %w", err)
 	}
 
 	viper.AutomaticEnv()
-	viper.SetDefault("port", 4000)
-	// https://github.com/bketelsen/crypt/blob/5cbc8cc4026c0c1d3bf9c5d4e5a30398f99c99a9/vendor/github.com/hashicorp/consul/api/api.go#L31
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
 	consulAddr := viper.GetString("CONSUL_HTTP_ADDR")
 	consulKey := viper.GetString("CONSUL_KEY")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	if consulAddr != "" {
 		util.Logger.Debug("Using consul config", consulAddr)
 		viper.AddRemoteProvider("consul", consulAddr, consulKey)
 		viper.SetConfigType("json") // Need to explicitly set this to json
 		err := viper.ReadRemoteConfig()
 		if err != nil {
-			util.Logger.Error("failed at reading config: ", err)
+			return fmt.Errorf("failed at reading config: %w", err)
 		}
-		// log.Print(viper.GetString("hostname"))
-		// log.Print(viper.GetString("port"))
+		// open a goroutine to watch remote changes forever
+		// runtimeViper := viper.New()
+		// runtimeViper.SetConfigType("json")
+		// runtimeViper.AddRemoteProvider("consul", consulAddr, consulKey)
+		// go func() {
+		// 	for {
+		// 		time.Sleep(time.Second * 5) // delay after each request
+
+		// 		// currently, only tested with etcd support
+		// 		err := runtimeViper.WatchRemoteConfig()
+		// 		if err != nil {
+		// 			util.Logger.Errorf("unable to read remote config: %v", err)
+		// 			continue
+		// 		}
+		// 		// print old and new config
+		// 		util.Logger.Debug("remote config changed from ", viper.AllSettings(), " to ", runtimeViper.AllSettings())
+		// 		// update viper with new config
+		// 		viper.ReadRemoteConfig()
+		// 		// util.Logger.Debug("remote config changed from ")
+		// 		log.Println(viper.GetString("testing"))
+		// 	}
+		// }()
+	}
+	return nil
+}
+
+func main() {
+
+	if err := initConfig(); err != nil {
+		log.Fatalf("Error initializing config: %v", err)
 	}
 
 	util.InitValidator()
@@ -47,11 +72,10 @@ func main() {
 
 	r := router.SetupRouter()
 
-	port := viper.GetInt("port") // Will read from env var MYAPP_PORT if present
-	if port == 0 {
-		log.Fatal("$PORT must be set")
-	}
-	r.Run(fmt.Sprintf(":%d", port)) // listen and serve on
+	viper.SetDefault("port", 4000)
+	port := viper.GetInt("port")
+
+	r.Run(fmt.Sprintf(":%d", port))
 
 	util.Logger.Infof("Starting server at %d...", port)
 }
