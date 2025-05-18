@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/router"
@@ -32,28 +33,18 @@ func initConfig() error {
 		if err != nil {
 			return fmt.Errorf("failed at reading config: %w", err)
 		}
-		// open a goroutine to watch remote changes forever
-		// runtimeViper := viper.New()
-		// runtimeViper.SetConfigType("json")
-		// runtimeViper.AddRemoteProvider("consul", consulAddr, consulKey)
-		// go func() {
-		// 	for {
-		// 		time.Sleep(time.Second * 5) // delay after each request
+		go func() {
+			for {
+				time.Sleep(time.Second * 5) // delay after each request
 
-		// 		// currently, only tested with etcd support
-		// 		err := runtimeViper.WatchRemoteConfig()
-		// 		if err != nil {
-		// 			util.Logger.Errorf("unable to read remote config: %v", err)
-		// 			continue
-		// 		}
-		// 		// print old and new config
-		// 		util.Logger.Debug("remote config changed from ", viper.AllSettings(), " to ", runtimeViper.AllSettings())
-		// 		// update viper with new config
-		// 		viper.ReadRemoteConfig()
-		// 		// util.Logger.Debug("remote config changed from ")
-		// 		log.Println(viper.GetString("testing"))
-		// 	}
-		// }()
+				// currently, only tested with etcd support
+				err := viper.WatchRemoteConfig()
+				if err != nil {
+					util.Logger.Errorf("unable to read remote config: %v", err)
+					continue
+				}
+			}
+		}()
 	}
 	return nil
 }
