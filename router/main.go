@@ -186,7 +186,7 @@ func SetupRouter() *gin.Engine {
 		AdminGroup.POST("/members/:MemberId", MemberRouterApp.Create)
 		// TODO change this path
 		AdminGroup.GET("/members/full", MemberRouterApp.GetMemberByPage)
-		// AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
+		AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
 		AdminGroup.GET("/events/xlsx", EventRouterApp.ExportEventsToXlsx)
 
 		AdminGroup.Use(middleware.EventActionPreProcess)
