@@ -171,6 +171,9 @@ func (EventRouter) Commit(c *gin.Context) {
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
 	}
+	if req.Size != "" {
+		event.Size = req.Size
+	}
 	if err := service.EventServiceApp.Act(&event, identity, util.Commit, req.Content); util.CheckError(c, err) {
 		return
 	}
@@ -184,6 +187,9 @@ func (EventRouter) AlterCommit(c *gin.Context) {
 	req := &dto.AlterCommitRequest{}
 	if err := util.BindAll(c, req); util.CheckError(c, err) {
 		return
+	}
+	if req.Size != "" {
+		event.Size = req.Size
 	}
 	if err := service.EventServiceApp.Act(&event, identity, util.AlterCommit, req.Content); util.CheckError(c, err) {
 		return

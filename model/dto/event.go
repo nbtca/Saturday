@@ -6,10 +6,12 @@ type EventID struct {
 
 type CommitRequest struct {
 	Content string `json:"content"`
+	Size  string `json:"size"`
 }
 
 type AlterCommitRequest struct {
 	Content string `json:"content"`
+	Size  string `json:"size"`
 }
 
 type UpdateRequest struct {
