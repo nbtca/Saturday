@@ -72,11 +72,16 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 				MemberName:    event.MemberName,
 				MemberSection: event.MemberSection,
 				MemberPhone:   event.MemberPhone,
-				Hour:          0,
+				Hour:          2, // Base hour for each member
 			}
 		}
 		group := groupedByMember[memberId]
-		group.Hour += EventSizeToHour(event.EventSize) // Increment hour count for each event
+		sizeHour := EventSizeToHour(event.EventSize) // Increment hour count for each event
+		if sizeHour > 0 {
+			group.Hour += sizeHour
+		} else {
+			group.Hour += 0.5 // Default increment for unknown sizes	
+		}
 		if group.Hour > MaxHour {
 			group.Hour = MaxHour // Cap the hour count at MaxHour
 		}
