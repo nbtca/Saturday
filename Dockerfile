@@ -1,10 +1,10 @@
-FROM golang as builder
+FROM golang AS builder
 COPY . /app
 WORKDIR /app
 RUN go env -w CGO_ENABLED=0 &&\
   go build -v -o saturday .
 
-FROM alpine:latest as deploy
+FROM alpine:latest AS deploy
 ENV TZ=Asia/Shanghai
 RUN apk add --no-cache tzdata  &&\
   mkdir /app

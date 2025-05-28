@@ -28,7 +28,7 @@ func SetupRouter() *gin.Engine {
 	Router.Use(middleware.Logger)
 	Router.Use(gin.Recovery())
 	Router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://repair.nbtca.space", "http://localhost:5173"},
+		AllowOrigins:     []string{"https://repair.nbtca.space", "https://nbtca.space", "http://localhost:5173"},
 		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "DELETE"},
 		AllowHeaders:     []string{"Origin"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -186,7 +186,7 @@ func SetupRouter() *gin.Engine {
 		AdminGroup.POST("/members/:MemberId", MemberRouterApp.Create)
 		// TODO change this path
 		AdminGroup.GET("/members/full", MemberRouterApp.GetMemberByPage)
-		// AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
+		AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
 		AdminGroup.GET("/events/xlsx", EventRouterApp.ExportEventsToXlsx)
 
 		AdminGroup.Use(middleware.EventActionPreProcess)
