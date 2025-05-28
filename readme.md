@@ -1,98 +1,48 @@
 # Saturday
 
-## 简介
+A restful API for nbtca repair service.
 
-+ 使用 Golang，gin 搭建的维修队后端
-+ [API文档](https://nbtca.github.io/Saturday/api)
-+ 使用此后端服务的项目
-  + [Sunday](https://github.com/nbtca/Sunday) (管理系统)
-  + [Hawaii](https://github.com/nbtca/Hawaii) (维修小程序)
+Related projects:
 
-## 如何运行
+- [Sunday](https://github.com/nbtca/Sunday) (Web frontend)
+- [Hawaii](https://github.com/nbtca/Hawaii) (WeChat mini program)
 
-1. 安装 `Golang` , `Mysql`
-2. 安装项目依赖
+## Configuration
 
-   在项目根目录下运行
+| Key                        | Description                   |
+| -------------------------- | ----------------------------- |
+| `DB_DATASOURCE`            | PostgreSQL connection string  |
+| `ALIYUN_ACCESS_KEY_ID`     | Aliyun access key ID          |
+| `ALIYUN_ACCESS_KEY_SECRET` | Aliyun access key secret      |
+| `WECHAT_APPID`             | WeChat app ID                 |
+| `WECHAT_SECRET`            | WeChat secret                 |
+| `MAIL_HOST`                | SMTP server host              |
+| `MAIL_PORT`                | SMTP port (e.g., 465)         |
+| `MAIL_USERNAME`            | SMTP username                 |
+| `MAIL_PASSWORD`            | SMTP password                 |
+| `TESTING_MAIL_RECEIVER_ADDRESS`    | Mail receiver used for testing (optional)         |
+| `LOGTO_APPID`              | Logto app ID                  |
+| `LOGTO_APP_SECRET`         | Logto app secret              |
+| `LOGTO_ENDPOINT`           | Logto endpoint URL            |
+| `TESTING_LOGTO_USER_ID`       | Logto test user ID (optional) |
+| `GITHUB_OWNER`             | GitHub repo owner             |
+| `GITHUB_REPO`              | GitHub repository name        |
+| `GITHUB_TOKEN`             | GitHub personal access token  |
+| `GITHUB_WEBHOOK_SECRET`    | GitHub webhook signing secret |
+| `DIFY_API_ENDPOINT`        | Dify API base URL             |
+| `DIFY_API_KEY`             | Dify API key                  |
+| `NSQ_HOST`                 | NSQ daemon host and port      |
+| `NSQ_SECRET`               | NSQ secret (optional)         |
+| `NSQ_EVENT_TOPIC`          | NSQ event topic name          |
+| `NSQ_LOG_TOPIC`            | NSQ log topic name            |
+| `SERVER_PORT`              | API server listen port        |
 
-   ``` sh
-   go get
-   ```
+### Consul
 
-3. 导入数据库
+You can also use consul to manage the configuration. The configuration will be loaded from Consul if the `CONSUL_HTTP_ADDR` and `CONSUL_HTTP_TOKEN` are set. The key will be used as the prefix for the configuration keys.
 
-   在`Mysql`中新建数据库，并将`assets/saturday.sql`导入
-4. 添加配置文件
-
-   在项目根目录下新建`.env`文件，添加配置
-
-   ```
-   DB_URL=<USER>:<PASSWORD>@(<ADDRESS>:<PORT>)/<DATABASE>
-
-   ACCESS_KEY_ID=<YOUR_ACCESS_KEY_ID>
-   ACCESS_KEY_SECRET=<YOUR_ACCESS_KEY_SECRET>
-  
-   MAIL_HOST=<YOUR_MAIL_HOST>
-   MAIL_PORT=<YOUR_MAIL_PORT>
-   MAIL_USERNAME=<YOUR_MAIL_USERNAME>
-   MAIL_PASSWORD=<YOUR_MAIL_PASSWORD>
-
-   PORT=<PORT_TO_LISTEN>
-   # 以下为可选配置
-   NSQ_HOST=<YOUR_NSQD_HOST>:<YOUR_NSQD_TCP_PORT (4150 IN COMMON)>
-   NSQ_SECRET=<YOUR_NSQ_SECRET>
-   EVENT_TOPIC=<YOUR_NSQ_EVENT_TOPIC_NAME>
-   LOG_TOPIC=<YOUR_NSQ_LOG_TOPIC_NAME>
-
-   RPC_PORT=<YOUR_RPC_PORT>
-
-   LOGTO_APPID=<LOGTO_APPID>
-   LOGTO_APP_SECRET=<LOGTO_APP_SECRET>
-   LOGTO_ENDPOINT=<LOGTO_ENDPOINT>
-
-   GITHUB_OWNER=<Github_Repo_Owner>
-   GITHUB_REPO=<Github_Repo_Name>
-   GITHUB_TOKEN=<Github_Token>
-   ```
-
-   在项目根目录下运行
-
-   ``` sh
-   go run main.go
-   ```
-
-5. 服务运行在`8080`端口
-
-## 测试
-
-1. 安装 `Docker`
-2. 运行测试
-
-   ```sh
-   go test <floder>
-   ```
-
-## Syncing with Github Issue
-
-The aim is to achieve a two-way sync between Saturday and Github Issues. The following table outlines the actions taken in Saturday and their corresponding actions in Github.
-
-### From Saturday to Github
-
-| Event Action | Github Action | Comment |
-| --- | --- | ---|
-| Create | Create Github Issue | |
-| Cancel | Close Github Issue as not planned  | |
-| Commit | Add comment in github issue  | |
-| Drop | Add comment in github issue  | |
-| close | Add comment in github issue and close issue | |
-
-### From Github to Saturday
-
-| Event Action | Github Action | Description |
-| --- | --- | ---|
-| accept | @nbtca-bot accept | |
-| drop | @nbtca-bot drop | |
-| commit | @nbtca-bot commit | |
-| alterAccept |  | edit previous comment |
-| reject | @nbtca-bot reject | |
-| close | @nbtca-bot close | |
+| Key                        | Description                   |
+| -------------------------- | ----------------------------- |
+| `CONSUL_HTTP_ADDR`         | Consul address                |
+| `CONSUL_HTTP_TOKEN`        | Consul token                  |
+| `CONSUL_KEY`               | Consul key                    |

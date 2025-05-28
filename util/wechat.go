@@ -2,9 +2,11 @@ package util
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
-	"os"
+
+	"github.com/spf13/viper"
 )
 
 type jscode2sessionBody struct {
@@ -16,7 +18,9 @@ type jscode2sessionBody struct {
 }
 
 func CodeToSession(code string) (string, error) {
-	url := "https://api.weixin.qq.com/sns/jscode2session?appid=" + os.Getenv("APPID") + "&secret=" + os.Getenv("SECRET") + "&js_code=" + code + "&grant_type=authorization_code"
+	appid := viper.GetString("wechat.appid")
+	secret := viper.GetString("wechat.secret")
+	url := fmt.Sprintf("https://api.weixin.qq.com/sns/jscode2session?appid=%v&secret=%v&js_code=%v&grant_type=authorization_code", appid, secret, code)
 	response, err := http.Get(url)
 	if err != nil {
 		return "", err

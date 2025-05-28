@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/nbtca/saturday/model"
@@ -177,7 +176,6 @@ func (MemberRouter) CreateWithLogto(c context.Context, input *struct {
 	QQ       string `json:"qq" minLength:"5" maxLength:"20"`
 	Auth     string `header:"Authorization"`
 }) (*util.CommonResponse[model.Member], error) {
-	service.LogtoServiceApp = service.MakeLogtoService(os.Getenv("LOGTO_ENDPOINT"))
 	user, err := service.LogtoServiceApp.FetchUserByToken(input.Auth)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())

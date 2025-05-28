@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
+
+	"github.com/spf13/viper"
 )
 
 // Response represents the complete block mode response structure
@@ -34,7 +35,7 @@ type WorkflowRunRequest struct {
 }
 
 func RunDifyWorkflow(request WorkflowRunRequest) (Response, error) {
-	url := os.Getenv("DIFY_API_ENDPOINT") + "/workflows/run"
+	url := viper.GetString("dify.api_endpoint") + "/workflows/run"
 
 	payload, _ := json.Marshal(request)
 
@@ -43,7 +44,7 @@ func RunDifyWorkflow(request WorkflowRunRequest) (Response, error) {
 		panic(fmt.Errorf("failed to create request: %w", err))
 	}
 
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("DIFY_API_KEY"))
+	req.Header.Set("Authorization", "Bearer "+viper.GetString("dify.api_key"))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}

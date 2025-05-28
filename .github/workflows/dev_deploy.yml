@@ -40,18 +40,6 @@ jobs:
 
       - name: ssh pipelines
         uses: cross-the-world/ssh-pipeline@master
-        env:
-          DB_URL: ${{ secrets.DB_URL }}
-          ACCESS_KEY_ID: ${{ env.ACCESS_KEY_ID }}
-          ACCESS_KEY_SECRET: ${{ secrets.ACCESS_KEY_SECRET }}
-          APPID: ${{ env.APPID }}
-          SECRET: ${{ secrets.SECRET }}
-          MAIL_HOST: ${{ secrets.MAIL_HOST }}
-          MAIL_PORT: ${{ secrets.MAIL_PORT }}
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          PORT: ${{ env.PORT }}
-          RPC_ADDRESS: ${{ env.RPC_ADDRESS }}
         with:
           host: ${{ secrets.REMOTE_HOST }}
           user: ${{ secrets.REMOTE_USER }}

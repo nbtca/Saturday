@@ -1,20 +1,19 @@
 package util
 
 import (
-	"os"
-
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/nsqio/go-nsq"
+	"github.com/spf13/viper"
 )
 
 var NSQProducer *nsq.Producer
-var LogTopic = os.Getenv("LOG_TOPIC")
-var EventTopic = os.Getenv("EVENT_TOPIC")
+var LogTopic = viper.GetString("nsq.log_topic")
+var EventTopic = viper.GetString("nsq.event_topic")
 
 func GetNSQProducer() *nsq.Producer {
-	nsqHost := os.Getenv("NSQ_HOST")
+	nsqHost := viper.GetString("nsq.host")
 	nsqConfig := nsq.NewConfig()
-	nsqConfig.AuthSecret = os.Getenv("NSQ_SECRET")
+	nsqConfig.AuthSecret = viper.GetString("nsq.secret")
 
 	if nsqHost != "" {
 		var err error

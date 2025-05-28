@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/google/go-github/v69/github"
 	md "github.com/nao1215/markdown"
+	"github.com/spf13/viper"
 	"github.com/xuri/excelize/v2"
 
 	"github.com/nbtca/saturday/model"
@@ -135,7 +135,7 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 	excelFile.SetCellValue(overAllSheet, "I1", "关闭时间")
 	excelFile.SetCellValue(overAllSheet, "J1", "审核人")
 	excelFile.SetCellValue(overAllSheet, "K1", "GithubIssue")
-	githubIssueBaseUrl := fmt.Sprintf("https://github.com/%v/%v/issues", os.Getenv("GITHUB_OWNER"), os.Getenv("GITHUB_REPO"))
+	githubIssueBaseUrl := fmt.Sprintf("https://github.com/%v/%v/issues", viper.GetString("github.owner"), viper.GetString("GITHUB_REPO"))
 	for i, event := range eventsExported {
 		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("A%v", i+2), event.MemberId)
 		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("B%v", i+2), event.MemberName)
@@ -233,7 +233,6 @@ func (service EventService) SendActionNotifyViaNSQ(event *model.Event, eventLog 
 	if producer == nil {
 		return nil
 	}
-	var EventTopic = os.Getenv("EVENT_TOPIC")
 	mapEventLog := map[string]interface{}{
 		"event_id":    eventLog.EventId,
 		"member_id":   eventLog.MemberId,
@@ -249,17 +248,13 @@ func (service EventService) SendActionNotifyViaNSQ(event *model.Event, eventLog 
 		mapEventLog["member_alias"] = ""
 	}
 	jsonMap, _ := json.Marshal(mapEventLog)
-	return producer.PublishAsync(EventTopic, jsonMap, nil)
+	return producer.PublishAsync(util.EventTopic, jsonMap, nil)
 }
 
 func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
 	switch eventLog.Action {
 	case string(util.Accept):
 		m := gomail.NewMessage()
-		receiverAddress := os.Getenv("MAIL_RECEIVER_ADDRESS")
-		if receiverAddress == "" {
-			return fmt.Errorf("MAIL_RECEIVER_ADDRESS is not set")
-		}
 		issueNumber, err := event.GithubIssueNumber.Value()
 		if err != nil {
 			return fmt.Errorf("event.GithubIssueNumber is not valid: %v", err)

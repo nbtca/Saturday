@@ -3,7 +3,6 @@ package router
 import (
 	"context"
 	"net/http"
-	"os"
 	"regexp"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/nbtca/saturday/middleware"
 	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
+	"github.com/spf13/viper"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,7 +40,7 @@ func SetupRouter() *gin.Engine {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	hook, _ := service.MakeGithubWebHook(os.Getenv("GITHUB_WEBHOOK_SECRET"))
+	hook, _ := service.MakeGithubWebHook(viper.GetString("github.webhook_secret"))
 	Router.Handle("POST", "/webhook", func(ctx *gin.Context) {
 		err := hook.Handle(ctx.Request)
 		if err != nil {
