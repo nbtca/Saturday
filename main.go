@@ -17,7 +17,7 @@ import (
 
 func initConfig() error {
 	if err := godotenv.Load(); err != nil {
-		return fmt.Errorf("error loading .env file: %w", err)
+		util.Logger.Warnf("Error loading .env file: %v", err)
 	}
 
 	viper.AutomaticEnv()
@@ -31,7 +31,7 @@ func initConfig() error {
 		viper.SetConfigType("json") // Need to explicitly set this to json
 		err := viper.ReadRemoteConfig()
 		if err != nil {
-			return fmt.Errorf("failed at reading config: %w", err)
+			return fmt.Errorf("failed at reading config from consul: %w", err)
 		}
 		go func() {
 			for {
