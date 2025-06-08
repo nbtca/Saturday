@@ -48,5 +48,4 @@ jobs:
           connect_timeout: 10s
           script: |
             cd /home/nbtca/stacks/weekend
-            docker compose pull
-            docker compose up -d --force-recreate
+            docker stack deploy -c ./compose.yaml weekend
