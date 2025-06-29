@@ -10,6 +10,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	"github.com/nbtca/saturday/container"
 	"github.com/nbtca/saturday/middleware"
 	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
@@ -20,7 +21,7 @@ type PingResponse struct {
 	Pong string `json:"message" example:"ping" doc:"Ping message"`
 }
 
-func SetupRouter() *chi.Mux {
+func SetupRouter(container *container.Container) *chi.Mux {
 	// Create Chi router
 	router := chi.NewRouter()
 
@@ -50,6 +51,15 @@ func SetupRouter() *chi.Mux {
 	// Add Huma middleware
 	api.UseMiddleware(middleware.HumaLogger())
 	api.UseMiddleware(middleware.HumaAuthMiddleware)
+
+	// Initialize routers with dependency injection
+	memberRouter := NewMemberRouter(container.MemberService())
+	
+	// TODO: Initialize other routers with container dependencies
+	// For now, use global router instances to maintain compatibility
+	// These will be converted to DI in future iterations
+	// eventRouter := NewEventRouter(container.EventService())
+	// clientRouter := NewClientRouter(container.ClientService())
 
 	// Keep webhooks as raw endpoints since they don't need OpenAPI documentation
 	hook, _ := service.MakeGithubWebHook(viper.GetString("github.webhook_secret"))
@@ -92,7 +102,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/members/{MemberId}",
 		Summary:     "Get a public member by id",
 		Tags:        []string{"Member", "Public"},
-	}, MemberRouterApp.GetPublicMemberById)
+	}, memberRouter.GetPublicMemberById)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "get-public-member-by-page",
@@ -100,7 +110,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/members",
 		Summary:     "Get a public member by page",
 		Tags:        []string{"Member", "Public"},
-	}, MemberRouterApp.GetPublicMemberByPage)
+	}, memberRouter.GetPublicMemberByPage)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "create-token",
@@ -108,7 +118,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/members/{MemberId}/token",
 		Summary:     "Create token",
 		Tags:        []string{"Member", "Public"},
-	}, MemberRouterApp.CreateToken)
+	}, memberRouter.CreateToken)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "create-token-via-logto-token",
@@ -116,7 +126,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/member/token/logto",
 		Summary:     "Create token via logto token",
 		Tags:        []string{"Member", "Public"},
-	}, MemberRouterApp.CreateTokenViaLogtoToken)
+	}, memberRouter.CreateTokenViaLogtoToken)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "bind-member-logto-id",
@@ -124,7 +134,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/members/{MemberId}/logto_id",
 		Summary:     "Bind member logto id",
 		Tags:        []string{"Member", "Public"},
-	}, MemberRouterApp.BindMemberLogtoId)
+	}, memberRouter.BindMemberLogtoId)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "create-token-via-wechat",
@@ -206,7 +216,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/member/activate",
 		Summary:     "Activate member",
 		Tags:        []string{"Member", "Private"},
-	}, MemberRouterApp.Activate)
+	}, memberRouter.Activate)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "get-member",
@@ -214,7 +224,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/member",
 		Summary:     "Get current member",
 		Tags:        []string{"Member", "Private"},
-	}, MemberRouterApp.GetMemberById)
+	}, memberRouter.GetMemberById)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "update-member",
@@ -222,7 +232,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/member",
 		Summary:     "Update member",
 		Tags:        []string{"Member", "Private"},
-	}, MemberRouterApp.Update)
+	}, memberRouter.Update)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "update-member-avatar",
@@ -230,7 +240,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/member/avatar",
 		Summary:     "Update member avatar",
 		Tags:        []string{"Member", "Private"},
-	}, MemberRouterApp.UpdateAvatar)
+	}, memberRouter.UpdateAvatar)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "get-member-events",
@@ -287,7 +297,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/members",
 		Summary:     "Create multiple members",
 		Tags:        []string{"Member", "Admin"},
-	}, MemberRouterApp.CreateMany)
+	}, memberRouter.CreateMany)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "create-member",
@@ -295,7 +305,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/members/{MemberId}",
 		Summary:     "Create member",
 		Tags:        []string{"Member", "Admin"},
-	}, MemberRouterApp.Create)
+	}, memberRouter.Create)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "get-members-full",
@@ -303,7 +313,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/members/full",
 		Summary:     "Get members with full details",
 		Tags:        []string{"Member", "Admin"},
-	}, MemberRouterApp.GetMemberByPage)
+	}, memberRouter.GetMemberByPage)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "update-member-basic",
@@ -311,7 +321,7 @@ func SetupRouter() *chi.Mux {
 		Path:        "/members/{MemberId}",
 		Summary:     "Update member basic info",
 		Tags:        []string{"Member", "Admin"},
-	}, MemberRouterApp.UpdateBasic)
+	}, memberRouter.UpdateBasic)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "export-events-xlsx",
