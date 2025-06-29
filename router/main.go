@@ -7,63 +7,71 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/danielgtaylor/huma/v2/adapters/humagin"
-	"github.com/gin-contrib/cors"
+	"github.com/danielgtaylor/huma/v2/adapters/humachi"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/nbtca/saturday/middleware"
 	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
 	"github.com/spf13/viper"
-
-	"github.com/gin-gonic/gin"
 )
 
 type PingResponse struct {
 	Pong string `json:"message" example:"ping" doc:"Ping message"`
 }
 
-func SetupRouter() *gin.Engine {
-	Router := gin.Default()
+func SetupRouter() *chi.Mux {
+	// Create Chi router
+	router := chi.NewRouter()
 
-	Router.Use(middleware.ErrorHandler)
-	Router.Use(middleware.Logger)
-	Router.Use(gin.Recovery())
-	Router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://repair.nbtca.space", "https://nbtca.space", "http://localhost:5173"},
-		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "DELETE"},
-		AllowHeaders:     []string{"Origin"},
-		ExposeHeaders:    []string{"Content-Length"},
+	// Add CORS middleware
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://repair.nbtca.space", "https://nbtca.space", "http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   []string{"Content-Length"},
 		AllowCredentials: true,
-		AllowOriginFunc: func(origin string) bool {
+		AllowOriginFunc: func(r *http.Request, origin string) bool {
 			match, _ := regexp.MatchString(`https:\/\/.*\.nbtca\.space`, origin)
 			return match
 		},
-		MaxAge: 12 * time.Hour,
+		MaxAge: int((12 * time.Hour).Seconds()),
 	}))
 
+	// Create Huma API
+	config := huma.DefaultConfig("Saturday API", "1.0.0")
+	config.Servers = []*huma.Server{
+		{URL: "https://api.nbtca.space", Description: "Production server"},
+		{URL: "http://localhost:4000", Description: "Development server"},
+	}
+	
+	api := humachi.New(router, config)
+
+	// Add Huma middleware
+	api.UseMiddleware(middleware.HumaLogger())
+
+	// Keep webhooks as raw endpoints since they don't need OpenAPI documentation
 	hook, _ := service.MakeGithubWebHook(viper.GetString("github.webhook_secret"))
-	Router.Handle("POST", "/webhook", func(ctx *gin.Context) {
-		err := hook.Handle(ctx.Request)
+	router.Post("/webhook", func(w http.ResponseWriter, r *http.Request) {
+		err := hook.Handle(r)
 		if err != nil {
 			util.Logger.Errorf("Error handling github webhook: %v", err)
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
 		}
 	})
 
 	logtoHook := service.LogtoWebHook{}
-	Router.Handle("POST", "/webhook/logto", func(ctx *gin.Context) {
-		err := logtoHook.Handle(ctx.Request)
+	router.Post("/webhook/logto", func(w http.ResponseWriter, r *http.Request) {
+		err := logtoHook.Handle(r)
 		if err != nil {
 			util.Logger.Errorf("Error handling logto webhook: %v", err)
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
 		}
 	})
 
-	api := humagin.New(Router, huma.DefaultConfig("Saturday API", "1.0.0"))
-
+	// Public endpoints (no authentication required)
 	huma.Register(api, huma.Operation{
 		OperationID: "ping",
 		Method:      http.MethodGet,
@@ -125,8 +133,6 @@ func SetupRouter() *gin.Engine {
 		Tags:        []string{"Client", "Public"},
 	}, ClientRouterApp.CreateTokenViaWeChat)
 
-	Router.POST("/clients/token/logto", middleware.Auth("client"), ClientRouterApp.CreateTokenViaLogto)
-
 	huma.Register(api, huma.Operation{
 		OperationID: "get-public-event-by-id",
 		Method:      http.MethodGet,
@@ -143,70 +149,205 @@ func SetupRouter() *gin.Engine {
 		Tags:        []string{"Event", "Public"},
 	}, EventRouterApp.GetPublicEventByPage)
 
+	// Client authenticated endpoints
 	huma.Register(api, huma.Operation{
-		OperationID: "create-member-with-logto",
+		OperationID: "create-token-via-logto",
 		Method:      http.MethodPost,
-		Path:        "/members/:MemberId/logto",
-		Summary:     "Create member with logto",
+		Path:        "/clients/token/logto",
+		Summary:     "Create token via logto",
+		Tags:        []string{"Client", "Private"},
+	}, ClientRouterApp.CreateTokenViaLogto)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-client-event-by-id",
+		Method:      http.MethodGet,
+		Path:        "/client/events/{EventId}",
+		Summary:     "Get client event by id",
+		Tags:        []string{"Event", "Client"},
+	}, EventRouterApp.GetEventById)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-client-events",
+		Method:      http.MethodGet,
+		Path:        "/client/events",
+		Summary:     "Get client events by page",
+		Tags:        []string{"Event", "Client"},
+	}, EventRouterApp.GetClientEventByPage)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "create-client-event",
+		Method:      http.MethodPost,
+		Path:        "/client/event",
+		Summary:     "Create client event",
+		Tags:        []string{"Event", "Client"},
+	}, EventRouterApp.Create)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "update-client-event",
+		Method:      http.MethodPatch,
+		Path:        "/client/events/{EventId}",
+		Summary:     "Update client event",
+		Tags:        []string{"Event", "Client"},
+	}, EventRouterApp.Update)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "cancel-client-event",
+		Method:      http.MethodDelete,
+		Path:        "/client/events/{EventId}",
+		Summary:     "Cancel client event",
+		Tags:        []string{"Event", "Client"},
+	}, EventRouterApp.Cancel)
+
+	// Member authenticated endpoints
+	huma.Register(api, huma.Operation{
+		OperationID: "activate-member",
+		Method:      http.MethodPatch,
+		Path:        "/member/activate",
+		Summary:     "Activate member",
 		Tags:        []string{"Member", "Private"},
-	}, MemberRouterApp.CreateWithLogto)
+	}, MemberRouterApp.Activate)
 
-	Router.PATCH("member/activate",
-		middleware.Auth("member_inactive", "admin_inactive"),
-		MemberRouterApp.Activate)
+	huma.Register(api, huma.Operation{
+		OperationID: "get-member",
+		Method:      http.MethodGet,
+		Path:        "/member",
+		Summary:     "Get current member",
+		Tags:        []string{"Member", "Private"},
+	}, MemberRouterApp.GetMemberById)
 
-	MemberGroup := Router.Group("/")
-	MemberGroup.Use(middleware.Auth("member", "admin"))
-	{
-		MemberGroup.GET("/member", MemberRouterApp.GetMemberById)
-		MemberGroup.PUT("/member", MemberRouterApp.Update)
-		MemberGroup.PATCH("/member/avatar", MemberRouterApp.UpdateAvatar)
+	huma.Register(api, huma.Operation{
+		OperationID: "update-member",
+		Method:      http.MethodPut,
+		Path:        "/member",
+		Summary:     "Update member",
+		Tags:        []string{"Member", "Private"},
+	}, MemberRouterApp.Update)
 
-		MemberGroup.GET("member/events", EventRouterApp.GetMemberEventByPage)
-		MemberGroup.GET("member/events/:EventId", EventRouterApp.GetEventById)
-		/*
-			!!! IMPORTANT !!!
-			this middleware is REQUIRED before all handlers that uses event action (except create)
-			or there will be panic
-		*/
-		MemberGroup.Use(middleware.EventActionPreProcess)
-		MemberGroup.POST("member/events/:EventId/accept", EventRouterApp.Accept)
-		MemberGroup.DELETE("member/events/:EventId/accept", EventRouterApp.Drop)
-		MemberGroup.POST("member/events/:EventId/commit", EventRouterApp.Commit)
-		MemberGroup.PATCH("member/events/:EventId/commit", EventRouterApp.AlterCommit)
+	huma.Register(api, huma.Operation{
+		OperationID: "update-member-avatar",
+		Method:      http.MethodPatch,
+		Path:        "/member/avatar",
+		Summary:     "Update member avatar",
+		Tags:        []string{"Member", "Private"},
+	}, MemberRouterApp.UpdateAvatar)
 
-		// MemberGroup.GET("client/:ClientId/events", EventRouterApp.GetEventByClientAndPage)
+	huma.Register(api, huma.Operation{
+		OperationID: "get-member-events",
+		Method:      http.MethodGet,
+		Path:        "/member/events",
+		Summary:     "Get member events",
+		Tags:        []string{"Event", "Member"},
+	}, EventRouterApp.GetMemberEventByPage)
 
-	}
+	huma.Register(api, huma.Operation{
+		OperationID: "get-member-event-by-id",
+		Method:      http.MethodGet,
+		Path:        "/member/events/{EventId}",
+		Summary:     "Get member event by id",
+		Tags:        []string{"Event", "Member"},
+	}, EventRouterApp.GetEventById)
 
-	AdminGroup := Router.Group("/")
-	AdminGroup.Use(middleware.Auth("admin"))
-	{
-		AdminGroup.POST("/members", MemberRouterApp.CreateMany)
-		AdminGroup.POST("/members/:MemberId", MemberRouterApp.Create)
-		// TODO change this path
-		AdminGroup.GET("/members/full", MemberRouterApp.GetMemberByPage)
-		AdminGroup.PATCH("/members/:MemberId", MemberRouterApp.UpdateBasic)
-		AdminGroup.GET("/events/xlsx", EventRouterApp.ExportEventsToXlsx)
+	huma.Register(api, huma.Operation{
+		OperationID: "accept-event",
+		Method:      http.MethodPost,
+		Path:        "/member/events/{EventId}/accept",
+		Summary:     "Accept event",
+		Tags:        []string{"Event", "Member"},
+	}, EventRouterApp.Accept)
 
-		AdminGroup.Use(middleware.EventActionPreProcess)
-		AdminGroup.DELETE("/events/:EventId/commit", EventRouterApp.RejectCommit)
-		AdminGroup.POST("/events/:EventId/close", EventRouterApp.Close)
-	}
+	huma.Register(api, huma.Operation{
+		OperationID: "drop-event",
+		Method:      http.MethodDelete,
+		Path:        "/member/events/{EventId}/accept",
+		Summary:     "Drop event",
+		Tags:        []string{"Event", "Member"},
+	}, EventRouterApp.Drop)
 
-	ClientGroup := Router.Group("/")
-	ClientGroup.Use(middleware.Auth("client"))
-	{
-		ClientGroup.GET("/client/events/:EventId", EventRouterApp.GetEventById)
-		ClientGroup.GET("/client/events", EventRouterApp.GetClientEventByPage)
-		ClientGroup.POST("/client/event", EventRouterApp.Create)
+	huma.Register(api, huma.Operation{
+		OperationID: "commit-event",
+		Method:      http.MethodPost,
+		Path:        "/member/events/{EventId}/commit",
+		Summary:     "Commit event",
+		Tags:        []string{"Event", "Member"},
+	}, EventRouterApp.Commit)
 
-		ClientGroup.Use(middleware.EventActionPreProcess)
-		ClientGroup.PATCH("/client/events/:EventId", EventRouterApp.Update)
-		ClientGroup.DELETE("/client/events/:EventId", EventRouterApp.Cancel)
-	}
+	huma.Register(api, huma.Operation{
+		OperationID: "alter-commit-event",
+		Method:      http.MethodPatch,
+		Path:        "/member/events/{EventId}/commit",
+		Summary:     "Alter commit event",
+		Tags:        []string{"Event", "Member"},
+	}, EventRouterApp.AlterCommit)
 
-	Router.POST("/upload", middleware.Auth("member", "admin", "client"), CommonRouterApp.Upload)
+	// Admin authenticated endpoints
+	huma.Register(api, huma.Operation{
+		OperationID: "create-members",
+		Method:      http.MethodPost,
+		Path:        "/members",
+		Summary:     "Create multiple members",
+		Tags:        []string{"Member", "Admin"},
+	}, MemberRouterApp.CreateMany)
 
-	return Router
+	huma.Register(api, huma.Operation{
+		OperationID: "create-member",
+		Method:      http.MethodPost,
+		Path:        "/members/{MemberId}",
+		Summary:     "Create member",
+		Tags:        []string{"Member", "Admin"},
+	}, MemberRouterApp.Create)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-members-full",
+		Method:      http.MethodGet,
+		Path:        "/members/full",
+		Summary:     "Get members with full details",
+		Tags:        []string{"Member", "Admin"},
+	}, MemberRouterApp.GetMemberByPage)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "update-member-basic",
+		Method:      http.MethodPatch,
+		Path:        "/members/{MemberId}",
+		Summary:     "Update member basic info",
+		Tags:        []string{"Member", "Admin"},
+	}, MemberRouterApp.UpdateBasic)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "export-events-xlsx",
+		Method:      http.MethodGet,
+		Path:        "/events/xlsx",
+		Summary:     "Export events to XLSX",
+		Tags:        []string{"Event", "Admin"},
+	}, EventRouterApp.ExportEventsToXlsx)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "reject-commit-event",
+		Method:      http.MethodDelete,
+		Path:        "/events/{EventId}/commit",
+		Summary:     "Reject commit event",
+		Tags:        []string{"Event", "Admin"},
+	}, EventRouterApp.RejectCommit)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "close-event",
+		Method:      http.MethodPost,
+		Path:        "/events/{EventId}/close",
+		Summary:     "Close event",
+		Tags:        []string{"Event", "Admin"},
+	}, EventRouterApp.Close)
+
+	// TODO: Upload endpoint - needs special multipart handling
+	// For now, keep as commented until Huma multipart is implemented
+	/*
+	huma.Register(api, huma.Operation{
+		OperationID: "upload-file",
+		Method:      http.MethodPost,
+		Path:        "/upload",
+		Summary:     "Upload file",
+		Tags:        []string{"Common", "Private"},
+		Middlewares: huma.Middlewares{middleware.HumaAuth("member", "admin", "client")},
+	}, CommonRouterApp.Upload)
+	*/
+
+	return router
 }

@@ -1,9 +1,9 @@
 package router
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -13,8 +13,6 @@ import (
 	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 type EventRouter struct {
@@ -48,83 +46,65 @@ func (EventRouter) GetPublicEventByPage(c context.Context, input *struct {
 	return util.MakeCommonResponse(events), nil
 }
 
-func (er EventRouter) GetEventById(c *gin.Context) {
-	eventId := &dto.EventID{}
-	if err := util.BindAll(c, eventId); util.CheckError(c, err) {
-		return
-	}
-	event, err := service.EventServiceApp.GetEventById(eventId.EventID)
-	identity := util.GetIdentity(c)
+func (er EventRouter) GetEventById(ctx context.Context, input *GetEventByIdInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin", "client")
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
-		return
+		return nil, err
 	}
-	clientId, err := middleware.GetClientFromContext(c)
+	
+	event, err := service.EventServiceApp.GetEventById(input.EventId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
-		return
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	
+	clientId, err := middleware.GetClientIdFromAuth(auth)
+	if err != nil {
+		return nil, err
 	}
 
-	if event.MemberId != identity.Member.MemberId && event.ClientId != clientId {
-		c.AbortWithStatusJSON(util.MakeServiceError(http.StatusUnauthorized).
-			SetMessage("not authorized").
-			Build())
-		return
+	if event.MemberId != auth.ID && event.ClientId != clientId {
+		return nil, huma.Error401Unauthorized("not authorized")
 	}
-	if util.CheckError(c, err) {
-		return
-	}
-	c.JSON(200, event)
+	
+	return util.MakeCommonResponse(event), nil
 }
 
 // return events that is accepted by current member
-func (EventRouter) GetMemberEventByPage(c *gin.Context) {
-	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
+func (EventRouter) GetMemberEventByPage(ctx context.Context, input *GetMemberEventByPageInput) (*util.CommonResponse[[]model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, err
 	}
-	identity := util.GetIdentity(c)
-	status := c.DefaultQuery("status", "")
-	order := c.DefaultQuery("order", "ASC")
 	events, err := service.EventServiceApp.GetMemberEvents(repo.EventFilter{
-		Offset: offset,
-		Limit:  limit,
-		Status: status,
-		Order:  order,
-	}, identity.Id)
+		Offset: input.Offset,
+		Limit:  input.Limit,
+		Status: input.Status,
+		Order:  input.Order,
+	}, auth.ID)
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, events)
+	return util.MakeCommonResponse(events), nil
 }
 
-// return events that is accepted by current member
-func (EventRouter) ExportEventsToXlsx(c *gin.Context) {
-	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
+// ExportEventsToXlsx exports events to XLSX format
+// Note: This endpoint returns raw file data instead of CommonResponse
+func (EventRouter) ExportEventsToXlsx(ctx context.Context, input *ExportEventsToXlsxInput) (*huma.StreamResponse, error) {
+	_, err := middleware.AuthenticateUser(input.Authorization, "admin")
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, err
 	}
-	startTime := c.Query("start_time")
-	endTime := c.Query("end_time")
-	if startTime == "" || endTime == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "start_time and end_time are required"})
-		return
-	}
-	status := c.DefaultQuery("status", "")
-	order := c.DefaultQuery("order", "ASC")
+	
 	f, err := service.EventServiceApp.ExportEventToXlsx(repo.EventFilter{
-		Offset: offset,
-		Limit:  limit,
-		Status: status,
-		Order:  order,
-	}, startTime, endTime)
+		Offset: input.Offset,
+		Limit:  input.Limit,
+		Status: input.Status,
+		Order:  input.Order,
+	}, input.StartTime, input.EndTime)
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
+	
 	formatDate := func(date string) string {
 		t, err := time.Parse("2006-01-02T15:04:05Z", date)
 		if err != nil {
@@ -133,202 +113,254 @@ func (EventRouter) ExportEventsToXlsx(c *gin.Context) {
 		return t.Format("2006-01-02")
 	}
 
-	filename := fmt.Sprintf("events_%s_to_%s.xlsx", formatDate(startTime), formatDate(endTime))
-	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
-	c.Header("Content-Transfer-Encoding", "binary")
-	if err := f.Write(c.Writer); err != nil {
-		c.Error(err)
-		return
+	filename := fmt.Sprintf("events_%s_to_%s.xlsx", formatDate(input.StartTime), formatDate(input.EndTime))
+	
+	// Create a buffer to write the Excel file
+	var buf bytes.Buffer
+	if err := f.Write(&buf); err != nil {
+		return nil, huma.Error500InternalServerError("Failed to generate Excel file")
 	}
+	
+	return &huma.StreamResponse{
+		Body: func(ctx huma.Context) {
+			w := ctx.BodyWriter()
+			ctx.SetHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+			ctx.SetHeader("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+			ctx.SetHeader("Content-Transfer-Encoding", "binary")
+			w.Write(buf.Bytes())
+		},
+	}, nil
 }
 
-func (EventRouter) Accept(c *gin.Context) {
-	rawEvent, _ := c.Get("event")
-	event := rawEvent.(model.Event)
-	identity := util.GetIdentity(c)
-	if err := service.EventServiceApp.Accept(&event, identity); util.CheckError(c, err) {
-		return
-	}
-	c.JSON(200, event)
-}
-
-func (EventRouter) Drop(c *gin.Context) {
-	rawEvent, _ := c.Get("event")
-	event := rawEvent.(model.Event)
-	identity := util.GetIdentity(c)
-	if err := service.EventServiceApp.Act(&event, identity, util.Drop); util.CheckError(c, err) {
-		return
-	}
-	c.JSON(200, event)
-}
-
-func (EventRouter) Commit(c *gin.Context) {
-	raw_Event, _ := c.Get("event")
-	event := raw_Event.(model.Event)
-	identity := util.GetIdentity(c)
-	req := &dto.CommitRequest{}
-	if err := util.BindAll(c, req); util.CheckError(c, err) {
-		return
-	}
-	if req.Size != "" {
-		event.Size = req.Size
-	}
-	if err := service.EventServiceApp.Act(&event, identity, util.Commit, req.Content); util.CheckError(c, err) {
-		return
-	}
-	c.JSON(200, event)
-}
-
-func (EventRouter) AlterCommit(c *gin.Context) {
-	raw_Event, _ := c.Get("event")
-	event := raw_Event.(model.Event)
-	identity := util.GetIdentity(c)
-	req := &dto.AlterCommitRequest{}
-	if err := util.BindAll(c, req); util.CheckError(c, err) {
-		return
-	}
-	if req.Size != "" {
-		event.Size = req.Size
-	}
-	if err := service.EventServiceApp.Act(&event, identity, util.AlterCommit, req.Content); util.CheckError(c, err) {
-		return
-	}
-	c.JSON(200, event)
-}
-
-func (EventRouter) RejectCommit(c *gin.Context) {
-	raw_Event, _ := c.Get("event")
-	event := raw_Event.(model.Event)
-	identity := util.GetIdentity(c)
-	if err := service.EventServiceApp.Act(&event, identity, util.Reject); util.CheckError(c, err) {
-		return
-	}
-	c.JSON(200, event)
-}
-
-func (EventRouter) Close(c *gin.Context) {
-	raw_Event, _ := c.Get("event")
-	event := raw_Event.(model.Event)
-	identity := util.GetIdentity(c)
-	if err := service.EventServiceApp.Act(&event, identity, util.Close); util.CheckError(c, err) {
-		return
-	}
-	c.JSON(200, event)
-}
-
-func (er EventRouter) GetClientEventByPage(c *gin.Context) {
-	offset, limit, err := util.GetPaginationQuery(c) // TODO use validator
+func (EventRouter) Accept(ctx context.Context, input *AcceptEventInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, err
 	}
-	clientId, err := middleware.GetClientFromContext(c)
+	
+	event, err := middleware.LoadEvent(input.EventId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return nil, err
 	}
-	status := c.DefaultQuery("status", "")
-	order := c.DefaultQuery("order", "ASC")
+	
+	identity := middleware.CreateIdentityFromAuth(auth)
+	if err := service.EventServiceApp.Accept(&event, identity); err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse(event), nil
+}
+
+func (EventRouter) Drop(ctx context.Context, input *DropEventInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
+	}
+	
+	event, err := middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	
+	identity := middleware.CreateIdentityFromAuth(auth)
+	if err := service.EventServiceApp.Act(&event, identity, util.Drop); err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse(event), nil
+}
+
+func (EventRouter) Commit(ctx context.Context, input *CommitEventInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
+	}
+	
+	event, err := middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	
+	identity := middleware.CreateIdentityFromAuth(auth)
+	if input.Body.Size != "" {
+		event.Size = input.Body.Size
+	}
+	if err := service.EventServiceApp.Act(&event, identity, util.Commit, input.Body.Content); err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse(event), nil
+}
+
+func (EventRouter) AlterCommit(ctx context.Context, input *AlterCommitEventInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
+	}
+	
+	event, err := middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	
+	identity := middleware.CreateIdentityFromAuth(auth)
+	if input.Body.Size != "" {
+		event.Size = input.Body.Size
+	}
+	if err := service.EventServiceApp.Act(&event, identity, util.AlterCommit, input.Body.Content); err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse(event), nil
+}
+
+func (EventRouter) RejectCommit(ctx context.Context, input *RejectCommitEventInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "admin")
+	if err != nil {
+		return nil, err
+	}
+	
+	event, err := middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	
+	identity := middleware.CreateIdentityFromAuth(auth)
+	if err := service.EventServiceApp.Act(&event, identity, util.Reject); err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse(event), nil
+}
+
+func (EventRouter) Close(ctx context.Context, input *CloseEventInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "admin")
+	if err != nil {
+		return nil, err
+	}
+	
+	event, err := middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	
+	identity := middleware.CreateIdentityFromAuth(auth)
+	if err := service.EventServiceApp.Act(&event, identity, util.Close); err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse(event), nil
+}
+
+func (er EventRouter) GetClientEventByPage(ctx context.Context, input *GetClientEventByPageInput) (*util.CommonResponse[[]model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "client")
+	if err != nil {
+		return nil, err
+	}
+	
+	clientId, err := middleware.GetClientIdFromAuth(auth)
+	if err != nil {
+		return nil, err
+	}
 	events, err := service.EventServiceApp.GetClientEvents(repo.EventFilter{
-		Offset: offset,
-		Limit:  limit,
-		Status: status,
-		Order:  order,
+		Offset: input.Offset,
+		Limit:  input.Limit,
+		Status: input.Status,
+		Order:  input.Order,
 	}, clientId)
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, events)
+	return util.MakeCommonResponse(events), nil
 }
 
-func (EventRouter) Create(c *gin.Context) {
-	req := &dto.CreateEventRequest{}
-
-	clientId, err := middleware.GetClientFromContext(c)
+func (EventRouter) Create(ctx context.Context, input *CreateClientEventInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "client")
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, err
 	}
-	req.ClientId = clientId
-
-	if err := util.BindAll(c, req); util.CheckError(c, err) {
-		return
+	
+	clientId, err := middleware.GetClientIdFromAuth(auth)
+	if err != nil {
+		return nil, err
 	}
+	
 	event := &model.Event{
-		ClientId:          req.ClientId,
-		Model:             req.Model,
-		Phone:             req.Phone,
-		QQ:                req.QQ,
-		ContactPreference: req.ContactPreference,
-		Problem:           req.Problem,
+		ClientId:          clientId,
+		Model:             input.Body.Model,
+		Phone:             input.Body.Phone,
+		QQ:                input.Body.QQ,
+		ContactPreference: input.Body.ContactPreference,
+		Problem:           input.Body.Problem,
 	}
 	err = service.EventServiceApp.CreateEvent(event)
-	if util.CheckError(c, err) {
-		return
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, event)
+	return util.MakeCommonResponse(*event), nil
 }
 
-func (er EventRouter) Update(c *gin.Context) {
-	rawEvent, _ := c.Get("event")
-	event := rawEvent.(model.Event)
-	identity := util.GetIdentity(c)
-	clientId, err := middleware.GetClientFromContext(c)
+func (er EventRouter) Update(ctx context.Context, input *UpdateClientEventInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "client")
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, err
 	}
+	
+	event, err := middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	
+	clientId, err := middleware.GetClientIdFromAuth(auth)
+	if err != nil {
+		return nil, err
+	}
+	
+	identity := middleware.CreateIdentityFromAuth(auth)
 	identity.ClientId = clientId
 
-	req := &dto.UpdateRequest{}
-	if err := util.BindAll(c, req); util.CheckError(c, err) {
-		return
+	if input.Body.Phone != "" {
+		event.Phone = input.Body.Phone
 	}
-	if req.Phone != "" {
-		event.Phone = req.Phone
+	if input.Body.QQ != "" {
+		event.QQ = input.Body.QQ
 	}
-	if req.QQ != "" {
-		event.QQ = req.QQ
+	if input.Body.Problem != "" {
+		event.Problem = input.Body.Problem
 	}
-	if req.Problem != "" {
-		event.Problem = req.Problem
+	if input.Body.Model != "" {
+		event.Model = input.Body.Model
 	}
-	if req.Model != "" {
-		event.Model = req.Model
+	if input.Body.ContactPreference != "" {
+		event.ContactPreference = input.Body.ContactPreference
 	}
-	if req.ContactPreference != "" {
-		event.ContactPreference = req.ContactPreference
+	if input.Body.Size != "" {
+		event.Size = input.Body.Size
 	}
-	if req.Size != "" {
-		event.Size = req.Size
+	if err := service.EventServiceApp.Act(&event, identity, util.Update); err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	if err := service.EventServiceApp.Act(&event, identity, util.Update); util.CheckError(c, err) {
-		return
-	}
-
-	c.JSON(200, event)
+	return util.MakeCommonResponse(event), nil
 }
 
-func (er EventRouter) Cancel(c *gin.Context) {
-	raw_Event, _ := c.Get("event")
-	event := raw_Event.(model.Event)
-	identity := util.GetIdentity(c)
-	clientId, err := middleware.GetClientFromContext(c)
+func (er EventRouter) Cancel(ctx context.Context, input *CancelClientEventInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "client")
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, err
 	}
+	
+	event, err := middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	
+	clientId, err := middleware.GetClientIdFromAuth(auth)
+	if err != nil {
+		return nil, err
+	}
+	
+	identity := middleware.CreateIdentityFromAuth(auth)
 	identity.ClientId = clientId
 
-	if err := service.EventServiceApp.Act(&event, identity, util.Cancel); util.CheckError(c, err) {
-		return
+	if err := service.EventServiceApp.Act(&event, identity, util.Cancel); err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, event)
+	return util.MakeCommonResponse(event), nil
 }
 
-func (EventRouter) GetEventByClientAndPage(c *gin.Context) {
-	// TODO not implemented
-}
 
 var EventRouterApp = EventRouter{}
