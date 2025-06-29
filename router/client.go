@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/gin-gonic/gin"
 	"github.com/nbtca/saturday/middleware"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
@@ -43,29 +42,32 @@ func (ClientRouter) CreateTokenViaWeChat(c context.Context, input *struct {
 	}), nil
 }
 
-func (ClientRouter) CreateTokenViaLogto(c *gin.Context) {
-	user := c.Value("user").(middleware.AuthContextUser)
-	logtoId := user.UserInfo.Sub
+func (ClientRouter) CreateTokenViaLogto(ctx context.Context, input *CreateTokenViaLogtoInput) (*util.CommonResponse[dto.ClientTokenResponse], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "client")
+	if err != nil {
+		return nil, err
+	}
+	
+	logtoId := auth.User.UserInfo.Sub
 	if logtoId == "" {
-		c.Error(huma.Error422UnprocessableEntity("user not found"))
-		// return nil, huma.Error422UnprocessableEntity("user not found")
+		return nil, huma.Error422UnprocessableEntity("user not found")
 	}
 
 	client, err := service.ClientServiceApp.CreateClientByLogtoIdIfNotExists(logtoId)
 	if err != nil {
-		c.Error(huma.Error422UnprocessableEntity(err.Error()))
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 
 	token, err := service.ClientServiceApp.CreateClientToken(client)
 	if err != nil {
-		// return nil, huma.Error422UnprocessableEntity(err.Error())
-		c.Error(huma.Error422UnprocessableEntity(err.Error()))
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
+	
 	response := dto.ClientTokenResponse{
 		Token:  token,
 		Client: client,
 	}
-	c.JSON(200, response)
+	return util.MakeCommonResponse(response), nil
 }
 
 var ClientRouterApp = ClientRouter{}

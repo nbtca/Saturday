@@ -1,0 +1,45 @@
+{
+  "db": {
+    "dataSource": "postgres://<username>:<password>@<host>:<port>/<db>?sslmode=disable"
+  },
+  "aliyun": {
+    "access_key_id": "<REDACTED>",
+    "access_key_secret": "<REDACTED>"
+  },
+  "wechat": {
+    "appid": "<REDACTED>",
+    "secret": "<REDACTED>"
+  },
+  "mail": {
+    "host": "smtp.larksuite.com",
+    "port": 465,
+    "username": "<REDACTED>",
+    "password": "<REDACTED>",
+    "receiver_address": "<REDACTED>"
+  },
+  "logto": {
+    "appid": "<REDACTED>",
+    "app_secret": "<REDACTED>",
+    "endpoint": "https://auth.app.nbtca.space",
+    "test_user_id": "<REDACTED>"
+  },
+  "github": {
+    "owner": "nbtca",
+    "repo": "github-api-playground",
+    "token": "<REDACTED>",
+    "webhook_secret": "<REDACTED>"
+  },
+  "dify": {
+    "api_endpoint": "http://dify-cloud.nbtca.space/v1",
+    "api_key": "<REDACTED>"
+  },
+  "nsq": {
+    "host": "nsqd.app.nbtca.space:4150",
+    "secret": "<REDACTED>",
+    "event_topic": "event_topic_dev",
+    "log_topic": "log_topic_dev"
+  },
+  "server": {
+    "port": 4000
+  }
+}
