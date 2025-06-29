@@ -2,78 +2,85 @@ package router
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/nbtca/saturday/middleware"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
-	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
-
-	"github.com/gin-gonic/gin"
 )
 
-type MemberRouter struct{}
+type MemberRouter struct {
+	memberService service.MemberServiceInterface
+}
 
-func (MemberRouter) GetPublicMemberById(ctx context.Context, input *struct {
+// NewMemberRouter creates a new MemberRouter with injected dependencies
+func NewMemberRouter(memberService service.MemberServiceInterface) *MemberRouter {
+	return &MemberRouter{
+		memberService: memberService,
+	}
+}
+
+func (r *MemberRouter) GetPublicMemberById(ctx context.Context, input *struct {
 	MemberId string `path:"MemberId" maxLength:"10" example:"2333333333" doc:"Name to greet"`
 }) (*util.CommonResponse[model.PublicMember], error) {
-	member, err := service.MemberServiceApp.GetPublicMemberById(input.MemberId)
+	member, err := r.memberService.GetPublicMemberById(input.MemberId)
 	if err != nil {
 		return nil, huma.NewError(http.StatusUnprocessableEntity, err.Error())
 	}
 	return util.MakeCommonResponse(member), nil
 }
 
-func (MemberRouter) GetPublicMemberByPage(ctx context.Context, input *struct {
+func (r *MemberRouter) GetPublicMemberByPage(ctx context.Context, input *struct {
 	dto.PageRequest
 }) (*util.CommonResponse[[]model.PublicMember], error) {
-	members, err := service.MemberServiceApp.GetPublicMembers(input.Offset, input.Limit)
+	members, err := r.memberService.GetPublicMembers(input.Offset, input.Limit)
 	if err != nil {
 		return nil, huma.NewError(http.StatusUnprocessableEntity, err.Error())
 	}
 	return util.MakeCommonResponse(members), nil
 }
 
-func (MemberRouter) GetMemberByPage(c *gin.Context) {
-	offset, limit, err := util.GetPaginationQuery(c)
+func (r *MemberRouter) GetMemberByPage(ctx context.Context, input *GetMemberByPageInput) (*util.CommonResponse[[]model.Member], error) {
+	_, err := middleware.AuthenticateUser(input.Authorization, "admin")
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, err
 	}
-	members, err := service.MemberServiceApp.GetMembers(offset, limit)
+	members, err := r.memberService.GetMembers(input.Offset, input.Limit)
 	if err != nil {
-		c.Error(err)
-		return
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, members)
+	return util.MakeCommonResponse(members), nil
 }
 
-func (MemberRouter) GetMemberById(c *gin.Context) {
-	memberId := c.GetString("id")
-	member, err := service.MemberServiceApp.GetMemberById(memberId)
-	if util.CheckError(c, err) {
-		return
+func (r *MemberRouter) GetMemberById(ctx context.Context, input *GetMemberInput) (*util.CommonResponse[model.Member], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
 	}
-	c.JSON(200, member)
+	member, err := r.memberService.GetMemberById(auth.ID)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse(member), nil
 }
 
-func (MemberRouter) CreateToken(ctx context.Context, input *struct {
+func (r *MemberRouter) CreateToken(ctx context.Context, input *struct {
 	MemberId string `path:"MemberId" maxLength:"10" example:"2333333333" doc:"Member Id"`
 	Body     struct {
 		Password string `json:"password"`
 	}
 }) (*util.CommonResponse[dto.CreateMemberTokenResponse], error) {
-	member, err := service.MemberServiceApp.GetMemberById(input.MemberId)
+	member, err := r.memberService.GetMemberById(input.MemberId)
 	if err != nil {
 		return nil, huma.NewError(http.StatusUnprocessableEntity, err.Error())
 	}
 	if member.Password != input.Body.Password {
 		return nil, huma.NewError(http.StatusUnprocessableEntity, "Invalid password")
 	}
-	token, err := service.MemberServiceApp.CreateToken(member)
+	token, err := r.memberService.CreateToken(member)
 	if err != nil {
 		return nil, huma.NewError(http.StatusUnprocessableEntity, err.Error())
 	}
@@ -83,88 +90,45 @@ func (MemberRouter) CreateToken(ctx context.Context, input *struct {
 	}), nil
 }
 
-func (MemberRouter) CreateTokenViaLogtoToken(c context.Context, input *struct {
+func (r *MemberRouter) CreateTokenViaLogtoToken(c context.Context, input *struct {
 	Authorization string `header:"Authorization"`
 }) (*util.CommonResponse[dto.CreateMemberTokenResponse], error) {
-	user, err := service.LogtoServiceApp.FetchUserByToken(input.Authorization)
+	member, token, err := r.memberService.AuthenticateAndSyncMember(input.Authorization)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	if user.Id == "" {
-		return nil, huma.Error422UnprocessableEntity("Invalid token: id missing")
-	}
-	memberId, err := repo.GetMemberIdByLogtoId(user.Id)
-	if err != nil || !memberId.Valid {
-		return nil, huma.Error422UnprocessableEntity("Invalid token: member not found")
-	}
-
-	member, err := service.MemberServiceApp.GetMemberById(memberId.String)
-	if err != nil {
-		return nil, huma.Error422UnprocessableEntity(err.Error())
-	}
-	logto_roles, err := service.LogtoServiceApp.FetchUserRole(user.Id)
-	if err != nil {
-		return nil, huma.Error422UnprocessableEntity(err.Error())
-	}
-
-	mappedRole := service.MemberServiceApp.MapLogtoUserRole(logto_roles)
-	if mappedRole != member.Role && mappedRole != "" {
-		member.Role = mappedRole
-		err = service.MemberServiceApp.UpdateMember(member)
-		if err != nil {
-			return nil, huma.Error422UnprocessableEntity("error at syncing member role" + err.Error())
-		}
-	}
-
-	t, err := service.MemberServiceApp.CreateToken(member)
-	if err != nil {
-		return nil, huma.Error422UnprocessableEntity(err.Error())
-	}
-
-	patchLogtoUserRequest := dto.PatchLogtoUserRequest{}
-
-	if member.Alias != "" && user.Name == "" {
-		patchLogtoUserRequest.Name = member.Alias
-	}
-	if member.Avatar != "" && user.Avatar == "" {
-		patchLogtoUserRequest.Avatar = member.Avatar
-	}
-
-	_, err = service.LogtoServiceApp.PatchUserById(user.Id, patchLogtoUserRequest)
-	if err != nil {
-		log.Println(err)
-	}
+	
 	return util.MakeCommonResponse(dto.CreateMemberTokenResponse{
 		Member: member,
-		Token:  t,
+		Token:  token,
 	}), nil
 }
 
-func (MemberRouter) Create(c *gin.Context) {
-	req := &dto.CreateMemberRequest{}
-	if err := util.BindAll(c, req); util.CheckError(c, err) {
-		return
+func (r *MemberRouter) Create(ctx context.Context, input *CreateMemberInput) (*util.CommonResponse[model.Member], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "admin")
+	if err != nil {
+		return nil, err
 	}
 	member := &model.Member{
-		MemberId:  req.MemberId,
-		Alias:     req.Alias,
-		Name:      req.Name,
-		Section:   req.Section,
-		Avatar:    req.Avatar,
-		Profile:   req.Profile,
-		QQ:        req.QQ,
-		Phone:     req.Phone,
-		Role:      req.Role,
-		CreatedBy: c.GetString("id"),
+		MemberId:  input.MemberId,
+		Alias:     input.Body.Alias,
+		Name:      input.Body.Name,
+		Section:   input.Body.Section,
+		Avatar:    input.Body.Avatar,
+		Profile:   input.Body.Profile,
+		QQ:        input.Body.QQ,
+		Phone:     input.Body.Phone,
+		Role:      input.Body.Role,
+		CreatedBy: auth.ID,
 	}
-	err := service.MemberServiceApp.CreateMember(member)
-	if util.CheckError(c, err) {
-		return
+	err = r.memberService.CreateMember(member)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, member)
+	return util.MakeCommonResponse(*member), nil
 }
 
-func (MemberRouter) CreateWithLogto(c context.Context, input *struct {
+func (r *MemberRouter) CreateWithLogto(c context.Context, input *struct {
 	MemberId string `path:"MemberId" maxLength:"10" example:"2333333333" doc:"Member Id"`
 	LogtoId  string `json:"logtoId" doc:"Logto Id"`
 	Name     string `json:"name" minLength:"2" maxLength:"4" doc:"Name"`
@@ -201,7 +165,7 @@ func (MemberRouter) CreateWithLogto(c context.Context, input *struct {
 		member.GithubId = gh.UserId
 	}
 
-	if err = service.MemberServiceApp.CreateMember(member); err != nil {
+	if err = r.memberService.CreateMember(member); err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 
@@ -209,84 +173,87 @@ func (MemberRouter) CreateWithLogto(c context.Context, input *struct {
 
 }
 
-func (MemberRouter) CreateMany(c *gin.Context) {
+func (r *MemberRouter) CreateMany(ctx context.Context, input *CreateManyMembersInput) (*util.CommonResponse[[]model.Member], error) {
+	_, err := middleware.AuthenticateUser(input.Authorization, "admin")
+	if err != nil {
+		return nil, err
+	}
 	//TODO not implemented
+	return nil, huma.Error501NotImplemented("CreateMany not implemented")
 }
 
-func (MemberRouter) Activate(c *gin.Context) {
-	req := &dto.ActivateMemberRequest{}
-	if err := util.BindAll(c, req); util.CheckError(c, err) {
-		return
+func (r *MemberRouter) Activate(ctx context.Context, input *ActivateMemberInput) (*util.CommonResponse[model.Member], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member_inactive", "admin_inactive")
+	if err != nil {
+		return nil, err
 	}
-	req.MemberId = c.GetString("id")
-	member, err := service.MemberServiceApp.GetMemberById(req.MemberId)
-	if util.CheckError(c, err) {
-		return
+	member, err := r.memberService.GetMemberById(auth.ID)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	member.Password = req.Password
-	if req.Alias != "" {
-		member.Alias = req.Alias
+	member.Password = input.Body.Password
+	if input.Body.Alias != "" {
+		member.Alias = input.Body.Alias
 	}
-	if req.Phone != "" {
-		member.Phone = req.Phone
+	if input.Body.Phone != "" {
+		member.Phone = input.Body.Phone
 	}
-	if req.QQ != "" {
-		member.QQ = req.QQ
+	if input.Body.QQ != "" {
+		member.QQ = input.Body.QQ
 	}
-	if req.Profile != "" {
-		member.Profile = req.Profile
+	if input.Body.Profile != "" {
+		member.Profile = input.Body.Profile
 	}
-	err = service.MemberServiceApp.ActivateMember(member)
-	if util.CheckError(c, err) {
-		return
+	err = r.memberService.ActivateMember(member)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, member)
+	return util.MakeCommonResponse(member), nil
 }
 
-func (MemberRouter) Update(c *gin.Context) {
-	req := &dto.UpdateMemberRequest{}
-	if err := util.BindAll(c, req); util.CheckError(c, err) {
-		return
+func (r *MemberRouter) Update(ctx context.Context, input *UpdateMemberInput) (*util.CommonResponse[model.Member], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
 	}
-	req.MemberId = c.GetString("id")
-	member, err := service.MemberServiceApp.GetMemberById(req.MemberId)
-	if util.CheckError(c, err) {
-		return
+	member, err := r.memberService.GetMemberById(auth.ID)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 	// TODO simplify
-	if req.Alias != "" {
-		member.Alias = req.Alias
+	if input.Body.Alias != "" {
+		member.Alias = input.Body.Alias
 	}
-	if req.Phone != "" {
-		member.Phone = req.Phone
+	if input.Body.Phone != "" {
+		member.Phone = input.Body.Phone
 	}
-	if req.QQ != "" {
-		member.QQ = req.QQ
+	if input.Body.QQ != "" {
+		member.QQ = input.Body.QQ
 	}
-	if req.Avatar != "" {
-		member.Avatar = req.Avatar
+	if input.Body.Avatar != "" {
+		member.Avatar = input.Body.Avatar
 	}
-	if req.Profile != "" {
-		member.Profile = req.Profile
+	if input.Body.Profile != "" {
+		member.Profile = input.Body.Profile
 	}
-	if req.Password != "" {
-		member.Password = req.Password
+	if input.Body.Password != "" {
+		member.Password = input.Body.Password
 	}
-	err = service.MemberServiceApp.UpdateMember(member)
-	if util.CheckError(c, err) {
-		return
+	err = r.memberService.UpdateMember(member)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, member)
+	return util.MakeCommonResponse(member), nil
 }
 
-func (MemberRouter) BindMemberLogtoId(c context.Context, input *struct {
+func (r *MemberRouter) BindMemberLogtoId(c context.Context, input *struct {
 	MemberId      string `path:"MemberId" maxLength:"10" example:"2333333333" doc:"Member Id"`
 	Authorization string `header:"Authorization"`
 	Body          struct {
 		Password string `json:"password"`
 	}
 }) (*util.CommonResponse[model.Member], error) {
-	member, err := service.MemberServiceApp.GetMemberById(input.MemberId)
+	member, err := r.memberService.GetMemberById(input.MemberId)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
@@ -306,55 +273,52 @@ func (MemberRouter) BindMemberLogtoId(c context.Context, input *struct {
 	}
 
 	member.LogtoId = user.Id
-	err = service.MemberServiceApp.UpdateMember(member)
+	err = r.memberService.UpdateMember(member)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 	return util.MakeCommonResponse(member), nil
 }
 
-func (MemberRouter) UpdateBasic(c *gin.Context) {
-	req := &dto.UpdateMemberBasicRequest{}
-	if err := util.BindAll(c, req); util.CheckError(c, err) {
-		return
+func (r *MemberRouter) UpdateBasic(ctx context.Context, input *UpdateMemberBasicInput) (*util.CommonResponse[model.Member], error) {
+	_, err := middleware.AuthenticateUser(input.Authorization, "admin")
+	if err != nil {
+		return nil, err
 	}
-	member, err := service.MemberServiceApp.GetMemberById(req.MemberId)
-	if util.CheckError(c, err) {
-		return
+	member, err := r.memberService.GetMemberById(input.MemberId)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	if req.Name != "" {
-		member.Name = req.Name
+	if input.Body.Name != "" {
+		member.Name = input.Body.Name
 	}
-	if req.Section != "" {
-		member.Section = req.Section
+	if input.Body.Section != "" {
+		member.Section = input.Body.Section
 	}
-	if req.Role != "" {
-		member.Role = req.Role
+	if input.Body.Role != "" {
+		member.Role = input.Body.Role
 	}
-	err = service.MemberServiceApp.UpdateMember(member)
-	if util.CheckError(c, err) {
-		return
+	err = r.memberService.UpdateMember(member)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, member)
+	return util.MakeCommonResponse(member), nil
 }
 
-func (MemberRouter) UpdateAvatar(c *gin.Context) {
-	memberId := c.GetString("id")
-	req := &dto.UpdateAvatarRequest{}
-	if err := util.BindAll(c, req); util.CheckError(c, err) {
-		return
+func (r *MemberRouter) UpdateAvatar(ctx context.Context, input *UpdateMemberAvatarInput) (*util.CommonResponse[model.Member], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
 	}
-	member, err := service.MemberServiceApp.GetMemberById(memberId)
-	if util.CheckError(c, err) {
-		return
+	member, err := r.memberService.GetMemberById(auth.ID)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	member.Avatar = req.Url
-	err = service.MemberServiceApp.UpdateMember(member)
-	if util.CheckError(c, err) {
-		return
+	member.Avatar = input.Body.Avatar
+	err = r.memberService.UpdateMember(member)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	c.JSON(200, member)
-
+	return util.MakeCommonResponse(member), nil
 }
 
-var MemberRouterApp = new(MemberRouter)

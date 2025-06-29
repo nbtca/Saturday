@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/nbtca/saturday/container"
 	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/router"
 	"github.com/nbtca/saturday/util"
@@ -61,12 +63,18 @@ func main() {
 	repo.InitDB()
 	defer repo.CloseDB()
 
-	r := router.SetupRouter()
+	// Initialize dependency injection container
+	container := container.NewContainer()
+	util.Logger.Debug("Dependency injection container initialized")
+
+	r := router.SetupRouter(container)
 
 	viper.SetDefault("port", 4000)
 	port := viper.GetInt("port")
 
-	r.Run(fmt.Sprintf(":%d", port))
-
 	util.Logger.Infof("Starting server at %d...", port)
+
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), r); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
 }
