@@ -49,6 +49,7 @@ func SetupRouter() *chi.Mux {
 
 	// Add Huma middleware
 	api.UseMiddleware(middleware.HumaLogger())
+	api.UseMiddleware(middleware.HumaAuthMiddleware)
 
 	// Keep webhooks as raw endpoints since they don't need OpenAPI documentation
 	hook, _ := service.MakeGithubWebHook(viper.GetString("github.webhook_secret"))

@@ -21,11 +21,9 @@ type AuthContext struct {
 	IsLegacyJWT bool
 }
 
-// GetAuthContext extracts auth context from context (stub for logger compatibility)
+// GetAuthContext extracts auth context from context
 func GetAuthContext(ctx context.Context) *AuthContext {
-	// For now, return nil since we're not using context-based auth in operations
-	// Auth is handled per-operation via the AuthenticateUser helper
-	return nil
+	return GetAuthContextFromContext(ctx)
 }
 
 // AuthenticateUser handles authentication for Huma operations
@@ -147,17 +145,22 @@ func CreateIdentityFromAuth(auth *AuthContext) model.Identity {
 	return identity
 }
 
-// MustGetAuthContext placeholder - not used in new Huma operations approach
+// MustGetAuthContext extracts auth context from context, panics if not found
 func MustGetAuthContext(ctx context.Context) *AuthContext {
-	// This function is not used in the new approach where authentication
-	// is handled per-operation via AuthenticateUser helper
-	panic("MustGetAuthContext should not be called in new Huma operations")
+	authCtx := GetAuthContextFromContext(ctx)
+	if authCtx == nil {
+		panic("MustGetAuthContext called but no auth context found")
+	}
+	return authCtx
 }
 
-// GetClientIdFromAuthContext placeholder - not used in new approach
+// GetClientIdFromAuthContext extracts client ID from auth context in context
 func GetClientIdFromAuthContext(ctx context.Context) (int64, error) {
-	// This function is not used in the new approach
-	panic("GetClientIdFromAuthContext should not be called in new Huma operations")
+	authCtx := GetAuthContextFromContext(ctx)
+	if authCtx == nil {
+		return 0, huma.Error401Unauthorized("no authentication context found")
+	}
+	return GetClientIdFromAuth(authCtx)
 }
 
 // MustGetEventContext placeholder - not used in new approach

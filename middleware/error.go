@@ -20,7 +20,7 @@ func ErrorHandler(c *gin.Context) {
 		if !ok {
 			util.LogErrorWithStackTrace("Internal server error occurred", err.Err)
 		} else {
-			util.Logger.Debug("Service error occurred: %s", err.Error())
+			util.Logger.Debugf("Service error occurred: %s", err.Error())
 		}
 	}
 	c.JSON(util.MakeServiceError(http.StatusInternalServerError).
