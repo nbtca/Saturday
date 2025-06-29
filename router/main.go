@@ -32,7 +32,12 @@ func SetupRouter() *chi.Mux {
 		ExposedHeaders:   []string{"Content-Length"},
 		AllowCredentials: true,
 		AllowOriginFunc: func(r *http.Request, origin string) bool {
-			match, _ := regexp.MatchString(`https:\/\/.*\.nbtca\.space`, origin)
+			match, err := regexp.MatchString(`https:\/\/.*\.nbtca\.space`, origin)
+			if err != nil {
+				// Log the error and disallow the origin
+				util.LogError("Error matching origin with regex: %v", err)
+				return false
+			}
 			return match
 		},
 		MaxAge: int((12 * time.Hour).Seconds()),
