@@ -366,8 +366,3 @@ func (l LogtoService) FetchUserInfo(accessToken string) (FetchUserInfoResponse, 
 }
 
 var LogtoServiceApp LogtoService
-
-// func init() {
-// 	LogtoServiceApp = MakeLogtoService(viper.GetString("logto.endpoint"))
-// 	util.Logger.Debug("LogtoService initialized with endpoint: " + viper.GetString("logto.endpoint"))
-// }
