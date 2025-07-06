@@ -3,6 +3,7 @@ package util
 import (
 	"io"
 	"os"
+	"runtime"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
@@ -62,3 +63,34 @@ func getLogger() *logrus.Logger {
 }
 
 var Logger = getLogger()
+
+// GetStackTrace returns the current stack trace as a string
+func GetStackTrace(skip int) string {
+	buf := make([]byte, 1024*8)
+	for {
+		n := runtime.Stack(buf, false)
+		if n < len(buf) {
+			return string(buf[:n])
+		}
+		buf = make([]byte, len(buf)*2)
+	}
+}
+
+// LogWithStackTrace logs an error with stack trace
+func LogWithStackTrace(level logrus.Level, msg string, err error) {
+	entry := Logger.WithField("stacktrace", GetStackTrace(2))
+	if err != nil {
+		entry = entry.WithError(err)
+	}
+	entry.Log(level, msg)
+}
+
+// LogErrorWithStackTrace logs an error with stack trace
+func LogErrorWithStackTrace(msg string, err error) {
+	LogWithStackTrace(logrus.ErrorLevel, msg, err)
+}
+
+// LogFatalWithStackTrace logs a fatal error with stack trace
+func LogFatalWithStackTrace(msg string, err error) {
+	LogWithStackTrace(logrus.FatalLevel, msg, err)
+}

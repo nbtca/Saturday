@@ -243,7 +243,7 @@ func (l LogtoService) FetchUserByToken(token string) (*FetchLogtoUsersResponse, 
 
 	invalidTokenError := util.
 		MakeServiceError(http.StatusUnprocessableEntity).
-		AddDetailError("member", "logto token", "invalid token")
+		AddDetailError("member", "logto token", "invalid logto token")
 	_, claims, error := util.ParseTokenWithJWKS(jwksURL, token)
 	if error != nil {
 		return nil, invalidTokenError.SetMessage("Invalid token " + error.Error())
@@ -266,7 +266,7 @@ func (l LogtoService) FetchUserByToken(token string) (*FetchLogtoUsersResponse, 
 
 	user, err := l.FetchUserById(userId)
 	if err != nil {
-		return nil, invalidTokenError.SetMessage("Invalid token")
+		return nil, invalidTokenError.SetMessage("Invalid token, error fetching user: " + err.Error())
 	}
 	return user, nil
 }
@@ -366,7 +366,3 @@ func (l LogtoService) FetchUserInfo(accessToken string) (FetchUserInfoResponse, 
 }
 
 var LogtoServiceApp LogtoService
-
-func init() {
-	LogtoServiceApp = MakeLogtoService(viper.GetString("logto.endpoint"))
-}

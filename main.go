@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/router"
+	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
 
 	"github.com/joho/godotenv"
@@ -61,12 +63,17 @@ func main() {
 	repo.InitDB()
 	defer repo.CloseDB()
 
+	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("logto.endpoint"))
+	util.Logger.Debug("LogtoService initialized with endpoint: " + viper.GetString("logto.endpoint"))
+
 	r := router.SetupRouter()
 
 	viper.SetDefault("port", 4000)
 	port := viper.GetInt("port")
 
-	r.Run(fmt.Sprintf(":%d", port))
-
 	util.Logger.Infof("Starting server at %d...", port)
+
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), r); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
 }
