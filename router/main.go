@@ -35,7 +35,7 @@ func SetupRouter() *chi.Mux {
 			match, err := regexp.MatchString(`https:\/\/.*\.nbtca\.space`, origin)
 			if err != nil {
 				// Log the error and disallow the origin
-				util.LogError("Error matching origin with regex: %v", err)
+				util.Logger.Errorf("Error matching origin with regex: %v", err)
 				return false
 			}
 			return match
@@ -49,7 +49,7 @@ func SetupRouter() *chi.Mux {
 		{URL: "https://api.nbtca.space", Description: "Production server"},
 		{URL: "http://localhost:4000", Description: "Development server"},
 	}
-	
+
 	api := humachi.New(router, config)
 
 	// Add Huma middleware
@@ -345,14 +345,14 @@ func SetupRouter() *chi.Mux {
 	// TODO: Upload endpoint - needs special multipart handling
 	// For now, keep as commented until Huma multipart is implemented
 	/*
-	huma.Register(api, huma.Operation{
-		OperationID: "upload-file",
-		Method:      http.MethodPost,
-		Path:        "/upload",
-		Summary:     "Upload file",
-		Tags:        []string{"Common", "Private"},
-		Middlewares: huma.Middlewares{middleware.HumaAuth("member", "admin", "client")},
-	}, CommonRouterApp.Upload)
+		huma.Register(api, huma.Operation{
+			OperationID: "upload-file",
+			Method:      http.MethodPost,
+			Path:        "/upload",
+			Summary:     "Upload file",
+			Tags:        []string{"Common", "Private"},
+			Middlewares: huma.Middlewares{middleware.HumaAuth("member", "admin", "client")},
+		}, CommonRouterApp.Upload)
 	*/
 
 	return router
