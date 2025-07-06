@@ -33,7 +33,12 @@ func SetupRouter(container *container.Container) *chi.Mux {
 		ExposedHeaders:   []string{"Content-Length"},
 		AllowCredentials: true,
 		AllowOriginFunc: func(r *http.Request, origin string) bool {
-			match, _ := regexp.MatchString(`https:\/\/.*\.nbtca\.space`, origin)
+			match, err := regexp.MatchString(`https:\/\/.*\.nbtca\.space`, origin)
+			if err != nil {
+				// Log the error and disallow the origin
+				util.Logger.Errorf("Error matching origin with regex: %v", err)
+				return false
+			}
 			return match
 		},
 		MaxAge: int((12 * time.Hour).Seconds()),
@@ -45,7 +50,7 @@ func SetupRouter(container *container.Container) *chi.Mux {
 		{URL: "https://api.nbtca.space", Description: "Production server"},
 		{URL: "http://localhost:4000", Description: "Development server"},
 	}
-	
+
 	api := humachi.New(router, config)
 
 	// Add Huma middleware
@@ -350,14 +355,14 @@ func SetupRouter(container *container.Container) *chi.Mux {
 	// TODO: Upload endpoint - needs special multipart handling
 	// For now, keep as commented until Huma multipart is implemented
 	/*
-	huma.Register(api, huma.Operation{
-		OperationID: "upload-file",
-		Method:      http.MethodPost,
-		Path:        "/upload",
-		Summary:     "Upload file",
-		Tags:        []string{"Common", "Private"},
-		Middlewares: huma.Middlewares{middleware.HumaAuth("member", "admin", "client")},
-	}, CommonRouterApp.Upload)
+		huma.Register(api, huma.Operation{
+			OperationID: "upload-file",
+			Method:      http.MethodPost,
+			Path:        "/upload",
+			Summary:     "Upload file",
+			Tags:        []string{"Common", "Private"},
+			Middlewares: huma.Middlewares{middleware.HumaAuth("member", "admin", "client")},
+		}, CommonRouterApp.Upload)
 	*/
 
 	return router
