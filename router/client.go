@@ -47,7 +47,7 @@ func (ClientRouter) CreateTokenViaLogto(ctx context.Context, input *CreateTokenV
 	if err != nil {
 		return nil, err
 	}
-	
+
 	logtoId := auth.User.UserInfo.Sub
 	if logtoId == "" {
 		return nil, huma.Error422UnprocessableEntity("user not found")
@@ -62,7 +62,7 @@ func (ClientRouter) CreateTokenViaLogto(ctx context.Context, input *CreateTokenV
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	
+
 	response := dto.ClientTokenResponse{
 		Token:  token,
 		Client: client,
