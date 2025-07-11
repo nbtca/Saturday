@@ -10,7 +10,7 @@ import (
 
 type Event struct {
 	EventId           int64         `json:"eventId" db:"event_id"`
-	ClientId          int64         `json:"clientId" db:"client_id"`
+	ClientId          sql.NullInt64 `json:"clientId,omitempty" db:"client_id"`
 	GithubIssueId     sql.NullInt64 `json:"githubIssueId" db:"github_issue_id"`
 	GithubIssueNumber sql.NullInt64 `json:"githubIssueNumber" db:"github_issue_number"`
 	Model             string        `json:"model"`
@@ -69,7 +69,7 @@ type EventAction struct {
 
 type PublicEvent struct {
 	EventId           int64         `json:"eventId" db:"event_id"`
-	ClientId          int64         `json:"clientId" db:"client_id"`
+	ClientId          sql.NullInt64 `json:"clientId,omitempty" db:"client_id"`
 	Model             string        `json:"model"`
 	Problem           string        `json:"problem" db:"event_description"`
 	MemberId          string        `json:"-" db:"member_id"`
@@ -139,4 +139,12 @@ type EventExportedGroupedByMember struct {
 	MemberSection string
 	MemberPhone   string
 	Hour          float64
+}
+
+type CreateAnonymousEventRequest struct {
+	Model             string `json:"model" validate:"omitempty,max=40"`
+	Phone             string `json:"phone" validate:"required,len=11,numeric"`
+	QQ                string `json:"qq" validate:"omitempty,min=5,max=20,numeric"`
+	ContactPreference string `json:"contactPreference" validate:"required,oneof=phone qq"`
+	Problem           string `json:"problem" validate:"required,max=1000"`
 }
