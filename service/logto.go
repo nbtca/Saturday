@@ -24,6 +24,13 @@ type LogtoService struct {
 	token   string
 }
 
+// NewLogtoService creates a new LogtoService instance
+func NewLogtoService(baseURL string) LogtoServiceInterface {
+	return &LogtoService{
+		BaseURL: baseURL,
+	}
+}
+
 func (l LogtoService) getToken() (string, error) {
 
 	validate := func(token string) bool {
