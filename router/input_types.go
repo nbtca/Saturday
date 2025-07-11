@@ -185,6 +185,17 @@ type CancelClientEventInput struct {
 	EventPathInput
 }
 
+// Anonymous event creation (no authentication required)
+type CreateAnonymousEventInput struct {
+	Body struct {
+		Model             string `json:"model" validate:"omitempty,max=40" doc:"Device model"`
+		Phone             string `json:"phone" validate:"required,len=11,numeric" doc:"Phone number (11 digits)"`
+		QQ                string `json:"qq" validate:"omitempty,min=5,max=20,numeric" doc:"QQ number"`
+		ContactPreference string `json:"contactPreference" validate:"required,oneof=phone qq" doc:"Preferred contact method"`
+		Problem           string `json:"problem" validate:"required,max=1000" doc:"Problem description"`
+	}
+}
+
 // Client auth endpoint inputs
 
 type CreateTokenViaLogtoInput struct {
