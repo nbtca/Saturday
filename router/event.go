@@ -3,6 +3,7 @@ package router
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -51,21 +52,23 @@ func (er EventRouter) GetEventById(ctx context.Context, input *GetEventByIdInput
 	if err != nil {
 		return nil, err
 	}
-	
+
 	event, err := service.EventServiceApp.GetEventById(input.EventId)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	
+
 	clientId, err := middleware.GetClientIdFromAuth(auth)
 	if err != nil {
 		return nil, err
 	}
 
-	if event.MemberId != auth.ID && event.ClientId != clientId {
+	// Check authorization: either member owns the event or client owns it (if event has a client)
+	clientOwnsEvent := event.ClientId.Valid && event.ClientId.Int64 == clientId
+	if event.MemberId != auth.ID && !clientOwnsEvent {
 		return nil, huma.Error401Unauthorized("not authorized")
 	}
-	
+
 	return util.MakeCommonResponse(event), nil
 }
 
@@ -94,7 +97,7 @@ func (EventRouter) ExportEventsToXlsx(ctx context.Context, input *ExportEventsTo
 	if err != nil {
 		return nil, err
 	}
-	
+
 	f, err := service.EventServiceApp.ExportEventToXlsx(repo.EventFilter{
 		Offset: input.Offset,
 		Limit:  input.Limit,
@@ -104,7 +107,7 @@ func (EventRouter) ExportEventsToXlsx(ctx context.Context, input *ExportEventsTo
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
-	
+
 	formatDate := func(date string) string {
 		t, err := time.Parse("2006-01-02T15:04:05Z", date)
 		if err != nil {
@@ -114,13 +117,13 @@ func (EventRouter) ExportEventsToXlsx(ctx context.Context, input *ExportEventsTo
 	}
 
 	filename := fmt.Sprintf("events_%s_to_%s.xlsx", formatDate(input.StartTime), formatDate(input.EndTime))
-	
+
 	// Create a buffer to write the Excel file
 	var buf bytes.Buffer
 	if err := f.Write(&buf); err != nil {
 		return nil, huma.Error500InternalServerError("Failed to generate Excel file")
 	}
-	
+
 	return &huma.StreamResponse{
 		Body: func(ctx huma.Context) {
 			w := ctx.BodyWriter()
@@ -137,12 +140,12 @@ func (EventRouter) Accept(ctx context.Context, input *AcceptEventInput) (*util.C
 	if err != nil {
 		return nil, err
 	}
-	
+
 	event, err := middleware.LoadEvent(input.EventId)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	identity := middleware.CreateIdentityFromAuth(auth)
 	if err := service.EventServiceApp.Accept(&event, identity); err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
@@ -155,12 +158,12 @@ func (EventRouter) Drop(ctx context.Context, input *DropEventInput) (*util.Commo
 	if err != nil {
 		return nil, err
 	}
-	
+
 	event, err := middleware.LoadEvent(input.EventId)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	identity := middleware.CreateIdentityFromAuth(auth)
 	if err := service.EventServiceApp.Act(&event, identity, util.Drop); err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
@@ -173,12 +176,12 @@ func (EventRouter) Commit(ctx context.Context, input *CommitEventInput) (*util.C
 	if err != nil {
 		return nil, err
 	}
-	
+
 	event, err := middleware.LoadEvent(input.EventId)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	identity := middleware.CreateIdentityFromAuth(auth)
 	if input.Body.Size != "" {
 		event.Size = input.Body.Size
@@ -194,12 +197,12 @@ func (EventRouter) AlterCommit(ctx context.Context, input *AlterCommitEventInput
 	if err != nil {
 		return nil, err
 	}
-	
+
 	event, err := middleware.LoadEvent(input.EventId)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	identity := middleware.CreateIdentityFromAuth(auth)
 	if input.Body.Size != "" {
 		event.Size = input.Body.Size
@@ -215,12 +218,12 @@ func (EventRouter) RejectCommit(ctx context.Context, input *RejectCommitEventInp
 	if err != nil {
 		return nil, err
 	}
-	
+
 	event, err := middleware.LoadEvent(input.EventId)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	identity := middleware.CreateIdentityFromAuth(auth)
 	if err := service.EventServiceApp.Act(&event, identity, util.Reject); err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
@@ -233,12 +236,12 @@ func (EventRouter) Close(ctx context.Context, input *CloseEventInput) (*util.Com
 	if err != nil {
 		return nil, err
 	}
-	
+
 	event, err := middleware.LoadEvent(input.EventId)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	identity := middleware.CreateIdentityFromAuth(auth)
 	if err := service.EventServiceApp.Act(&event, identity, util.Close); err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
@@ -251,7 +254,7 @@ func (er EventRouter) GetClientEventByPage(ctx context.Context, input *GetClient
 	if err != nil {
 		return nil, err
 	}
-	
+
 	clientId, err := middleware.GetClientIdFromAuth(auth)
 	if err != nil {
 		return nil, err
@@ -273,14 +276,14 @@ func (EventRouter) Create(ctx context.Context, input *CreateClientEventInput) (*
 	if err != nil {
 		return nil, err
 	}
-	
+
 	clientId, err := middleware.GetClientIdFromAuth(auth)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	event := &model.Event{
-		ClientId:          clientId,
+		ClientId:          sql.NullInt64{Valid: true, Int64: clientId},
 		Model:             input.Body.Model,
 		Phone:             input.Body.Phone,
 		QQ:                input.Body.QQ,
@@ -299,17 +302,17 @@ func (er EventRouter) Update(ctx context.Context, input *UpdateClientEventInput)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	event, err := middleware.LoadEvent(input.EventId)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	clientId, err := middleware.GetClientIdFromAuth(auth)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	identity := middleware.CreateIdentityFromAuth(auth)
 	identity.ClientId = clientId
 
@@ -342,17 +345,17 @@ func (er EventRouter) Cancel(ctx context.Context, input *CancelClientEventInput)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	event, err := middleware.LoadEvent(input.EventId)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	clientId, err := middleware.GetClientIdFromAuth(auth)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	identity := middleware.CreateIdentityFromAuth(auth)
 	identity.ClientId = clientId
 
@@ -362,5 +365,21 @@ func (er EventRouter) Cancel(ctx context.Context, input *CancelClientEventInput)
 	return util.MakeCommonResponse(event), nil
 }
 
+func (EventRouter) CreateAnonymous(ctx context.Context, input *CreateAnonymousEventInput) (*util.CommonResponse[model.Event], error) {
+	event := &model.Event{
+		ClientId:          sql.NullInt64{Valid: false},
+		Model:             input.Body.Model,
+		Phone:             input.Body.Phone,
+		QQ:                input.Body.QQ,
+		ContactPreference: input.Body.ContactPreference,
+		Problem:           input.Body.Problem,
+	}
+
+	err := service.EventServiceApp.CreateAnonymousEvent(event)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse(*event), nil
+}
 
 var EventRouterApp = EventRouter{}

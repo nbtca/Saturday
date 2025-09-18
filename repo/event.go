@@ -307,12 +307,12 @@ func SetEventStatus(eventId int64, status string, conn *sqlx.Tx) (sql.Result, er
 	return conn.Exec(db.Rebind(sql), eventId, status, status)
 }
 
-func GetEventClientId(eventId int64) (int64, error) {
-	var clientId int64
-	sql, args, _ := sq.Select("client_id").From("event").Where(squirrel.Eq{"event_id": eventId}).ToSql()
-	err := db.Get(&clientId, sql, args...)
+func GetEventClientId(eventId int64) (sql.NullInt64, error) {
+	var clientId sql.NullInt64
+	sqlStr, args, _ := sq.Select("client_id").From("event").Where(squirrel.Eq{"event_id": eventId}).ToSql()
+	err := db.Get(&clientId, sqlStr, args...)
 	if err != nil {
-		return 0, err
+		return sql.NullInt64{}, err
 	}
 	return clientId, nil
 }
