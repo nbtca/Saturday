@@ -110,7 +110,7 @@ type CommitEventInput struct {
 	EventPathInput
 	Body struct {
 		Content string `json:"content"`
-		Size    string `json:"size"`
+		Size    string `json:"size" required:"false"`
 	}
 }
 
@@ -119,7 +119,7 @@ type AlterCommitEventInput struct {
 	EventPathInput
 	Body struct {
 		Content string `json:"content"`
-		Size    string `json:"size"`
+		Size    string `json:"size" required:"false"`
 	}
 }
 
@@ -162,7 +162,7 @@ type CreateClientEventInput struct {
 		Model             string `json:"model"`
 		Phone             string `json:"phone"`
 		QQ                string `json:"qq"`
-		ContactPreference string `json:"contact_preference"`
+		ContactPreference string `json:"contactPreference" required:"false"`
 		Problem           string `json:"problem"`
 	}
 }
@@ -174,9 +174,9 @@ type UpdateClientEventInput struct {
 		Model             string `json:"model"`
 		Phone             string `json:"phone"`
 		QQ                string `json:"qq"`
-		ContactPreference string `json:"contact_preference"`
+		ContactPreference string `json:"contactPreference" required:"false"`
 		Problem           string `json:"problem"`
-		Size              string `json:"size"`
+		Size              string `json:"size" required:"false"`
 	}
 }
 
