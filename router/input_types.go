@@ -159,9 +159,9 @@ type GetClientEventByPageInput struct {
 type CreateClientEventInput struct {
 	ClientAuthInput
 	Body struct {
-		Model             string `json:"model"`
+		Model             string `json:"model" required:"false"`
 		Phone             string `json:"phone"`
-		QQ                string `json:"qq"`
+		QQ                string `json:"qq" required:"false"`
 		ContactPreference string `json:"contactPreference" required:"false"`
 		Problem           string `json:"problem"`
 	}
@@ -171,9 +171,9 @@ type UpdateClientEventInput struct {
 	ClientAuthInput
 	EventPathInput
 	Body struct {
-		Model             string `json:"model"`
+		Model             string `json:"model" required:"false"`
 		Phone             string `json:"phone"`
-		QQ                string `json:"qq"`
+		QQ                string `json:"qq" required:"false"`
 		ContactPreference string `json:"contactPreference" required:"false"`
 		Problem           string `json:"problem"`
 		Size              string `json:"size" required:"false"`
