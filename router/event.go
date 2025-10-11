@@ -96,8 +96,8 @@ func (EventRouter) ExportEventsToXlsx(ctx context.Context, input *ExportEventsTo
 	}
 	
 	f, err := service.EventServiceApp.ExportEventToXlsx(repo.EventFilter{
-		Offset: input.Offset,
-		Limit:  input.Limit,
+		Offset: 0,
+		Limit:  1000000,
 		Status: input.Status,
 		Order:  input.Order,
 	}, input.StartTime, input.EndTime)

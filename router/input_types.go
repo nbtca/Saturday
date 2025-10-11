@@ -135,7 +135,6 @@ type CloseEventInput struct {
 
 type ExportEventsToXlsxInput struct {
 	AdminAuthInput
-	dto.PageRequest
 	Status    string `query:"status"`
 	Order     string `query:"order" default:"ASC"`
 	StartTime string `query:"start_time" required:"true"`
