@@ -80,7 +80,7 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 		if sizeHour > 0 {
 			group.Hour += sizeHour
 		} else {
-			group.Hour += 0.5 // Default increment for unknown sizes	
+			group.Hour += 0.5 // Default increment for unknown sizes
 		}
 		if group.Hour > MaxHour {
 			group.Hour = MaxHour // Cap the hour count at MaxHour
@@ -190,9 +190,27 @@ func (service EventService) CreateEvent(event *model.Event) error {
 		return err
 	}
 	identity := model.Identity{
-		Id:       fmt.Sprint(event.ClientId),
-		ClientId: event.ClientId,
+		Id:       fmt.Sprint(event.ClientId.Int64),
+		ClientId: event.ClientId.Int64,
 		Role:     "client",
+	}
+	// insert event status and event log
+	if err := service.Act(event, identity, util.Create); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service EventService) CreateAnonymousEvent(event *model.Event) error {
+	// insert event
+	if err := repo.CreateEvent(event); err != nil {
+		return err
+	}
+	// Create anonymous identity using contact info
+	identity := model.Identity{
+		Id:       fmt.Sprintf("anonymous-%s", event.Phone), // Use phone as unique identifier
+		ClientId: 0,                                        // No client association
+		Role:     "anonymous",
 	}
 	// insert event status and event log
 	if err := service.Act(event, identity, util.Create); err != nil {

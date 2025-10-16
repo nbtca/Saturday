@@ -108,4 +108,3 @@ func Auth(acceptableRoles ...Role) func(c *gin.Context) {
 			Build())
 	}
 }
-

@@ -155,6 +155,14 @@ func SetupRouter() *chi.Mux {
 		Tags:        []string{"Event", "Public"},
 	}, EventRouterApp.GetPublicEventByPage)
 
+	huma.Register(api, huma.Operation{
+		OperationID: "create-anonymous-event",
+		Method:      http.MethodPost,
+		Path:        "/events/anonymous",
+		Summary:     "Create anonymous event (no authentication required)",
+		Tags:        []string{"Event", "Public"},
+	}, EventRouterApp.CreateAnonymous)
+
 	// Client authenticated endpoints
 	huma.Register(api, huma.Operation{
 		OperationID: "create-token-via-logto",

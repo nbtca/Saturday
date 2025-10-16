@@ -38,7 +38,7 @@ func AuthenticateUser(authHeader string, acceptableRoles ...Role) (*AuthContext,
 		if err != nil || !tokenParsed.Valid {
 			return nil, huma.Error401Unauthorized("not authorized, token not valid")
 		}
-		
+
 		for _, roleObj := range acceptableRoles {
 			if string(roleObj) == claims.Role {
 				return &AuthContext{
@@ -90,7 +90,7 @@ func AuthenticateUser(authHeader string, acceptableRoles ...Role) (*AuthContext,
 				Role:     userRoles,
 				UserInfo: userinfo,
 			}
-			
+
 			return &AuthContext{
 				User:   user,
 				ID:     member.MemberId,
@@ -137,11 +137,11 @@ func CreateIdentityFromAuth(auth *AuthContext) model.Identity {
 		Id:   auth.ID,
 		Role: auth.Role,
 	}
-	
+
 	if member, ok := auth.Member.(model.Member); ok {
 		identity.Member = member
 	}
-	
+
 	return identity
 }
 
