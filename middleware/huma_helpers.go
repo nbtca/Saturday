@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log"
 	"slices"
 	"strconv"
 	"strings"
@@ -38,7 +39,6 @@ func AuthenticateUser(authHeader string, acceptableRoles ...Role) (*AuthContext,
 		if err != nil || !tokenParsed.Valid {
 			return nil, huma.Error401Unauthorized("not authorized, token not valid")
 		}
-		
 		for _, roleObj := range acceptableRoles {
 			if string(roleObj) == claims.Role {
 				return &AuthContext{
@@ -49,7 +49,7 @@ func AuthenticateUser(authHeader string, acceptableRoles ...Role) (*AuthContext,
 				}, nil
 			}
 		}
-		return nil, huma.Error401Unauthorized("not authorized")
+		return nil, huma.Error401Unauthorized("not authorized, invalid role")
 	}
 
 	// Strip bearer prefix
@@ -81,16 +81,26 @@ func AuthenticateUser(authHeader string, acceptableRoles ...Role) (*AuthContext,
 	// Check if user has acceptable role
 	for _, r := range acceptableRoles {
 		if slices.Contains(userRoles, string(r)) {
+			// only client role, no need to load member
+			log.Println("userRoles", userRoles)
+			if len(userRoles) == 1 {
+				return &AuthContext{
+					User: AuthContextUser{
+						Role:     userRoles,
+						UserInfo: userinfo,
+					},
+				}, nil
+			}
 			member, err := service.MemberServiceApp.GetMemberByLogtoId(userinfo.Sub)
 			if err != nil {
-				return nil, huma.Error401Unauthorized("not authorized")
+				return nil, huma.Error401Unauthorized("not authorized, failed to load member")
 			}
 
 			user := AuthContextUser{
 				Role:     userRoles,
 				UserInfo: userinfo,
 			}
-			
+
 			return &AuthContext{
 				User:   user,
 				ID:     member.MemberId,
@@ -137,11 +147,11 @@ func CreateIdentityFromAuth(auth *AuthContext) model.Identity {
 		Id:   auth.ID,
 		Role: auth.Role,
 	}
-	
+
 	if member, ok := auth.Member.(model.Member); ok {
 		identity.Member = member
 	}
-	
+
 	return identity
 }
 
