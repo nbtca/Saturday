@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"log"
 
 	"github.com/google/go-github/v69/github"
 	"github.com/spf13/viper"
@@ -12,10 +13,11 @@ var ghClient *github.Client
 var owner string
 var repo string
 
-func init() {
+func InitGithubClient() {
 	ghClient = github.NewClient(nil).WithAuthToken(viper.GetString("github.token"))
 	owner = viper.GetString("github.owner")
 	repo = viper.GetString("github.repo")
+	log.Println("GitHub client initialized for repo:", owner+"/"+repo)
 }
 
 func CreateIssue(issue *github.IssueRequest) (*github.Issue, *github.Response, error) {

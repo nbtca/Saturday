@@ -59,6 +59,7 @@ func main() {
 
 	util.InitValidator()
 	util.InitDialer()
+	util.InitGithubClient()
 
 	repo.InitDB()
 	defer repo.CloseDB()
