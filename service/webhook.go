@@ -293,10 +293,10 @@ func (l *LogtoWebHook) Handle(request *http.Request) error {
 	if member.MemberId == "" {
 		return util.MakeValidationError("member not found", nil)
 	}
+	member.Avatar = logtoUsersResponse.Avatar
+	member.Alias = logtoUsersResponse.UserName
 	if gh, ok := logtoUsersResponse.Identities["github"]; ok {
 		member.GithubId = gh.UserId
-	} else {
-		return nil
 	}
 	return MemberServiceApp.UpdateMember(member)
 
