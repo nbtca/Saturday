@@ -295,7 +295,7 @@ func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog
 		<div style="padding-top:10px;">
   		<a href="http://github.com/nbtca/repair-tickets/issues/%v">在 nbtca/repair-tickets 中处理</a>
 		</div>
-			`, event.Status, event.Problem, event.Model, event.Phone, event.QQ, event.GmtCreate, issueNumber))
+			`, event.Status, event.Problem, event.Model, event.GmtCreate, event.Phone, event.QQ, issueNumber))
 
 		if err := util.SendMail(m); err != nil {
 			return util.MakeInternalServerError().SetMessage("fail on mail")
