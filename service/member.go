@@ -4,14 +4,28 @@ import (
 	"net/http"
 
 	"github.com/nbtca/saturday/model"
+	"github.com/nbtca/saturday/model/dto"
 	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/util"
 )
 
-type MemberService struct{}
+type MemberService struct {
+	memberRepo repo.MemberRepository
+	roleRepo   repo.RoleRepository
+	logtoService LogtoServiceInterface
+}
+
+// NewMemberService creates a new MemberService with injected dependencies
+func NewMemberService(memberRepo repo.MemberRepository, roleRepo repo.RoleRepository, logtoService LogtoServiceInterface) MemberServiceInterface {
+	return &MemberService{
+		memberRepo: memberRepo,
+		roleRepo: roleRepo,
+		logtoService: logtoService,
+	}
+}
 
 func (service *MemberService) GetMemberById(id string) (model.Member, error) {
-	member, err := repo.GetMemberById(id)
+	member, err := service.memberRepo.GetMemberById(id)
 	if err != nil {
 		return model.Member{}, err
 	}
@@ -25,7 +39,7 @@ func (service *MemberService) GetMemberById(id string) (model.Member, error) {
 }
 
 func (service *MemberService) GetMemberByLogtoId(logtoId string) (model.Member, error) {
-	member, err := repo.GetMemberByLogtoId(logtoId)
+	member, err := service.memberRepo.GetMemberByLogtoId(logtoId)
 	if err != nil {
 		return model.Member{}, err
 	}
@@ -39,7 +53,7 @@ func (service *MemberService) GetMemberByLogtoId(logtoId string) (model.Member, 
 }
 
 func (service *MemberService) GetMemberByGithubId(githubId string) (model.Member, error) {
-	member, err := repo.GetMemberByGithubId(githubId)
+	member, err := service.memberRepo.GetMemberByGithubId(githubId)
 	if err != nil {
 		return model.Member{}, err
 	}
@@ -61,7 +75,7 @@ func (service *MemberService) GetPublicMemberById(id string) (model.PublicMember
 }
 
 func (service *MemberService) GetPublicMembers(offset uint64, limit uint64) ([]model.PublicMember, error) {
-	members, err := repo.GetMembers(offset, limit)
+	members, err := service.memberRepo.GetMembers(offset, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +87,7 @@ func (service *MemberService) GetPublicMembers(offset uint64, limit uint64) ([]m
 }
 
 func (service *MemberService) GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
-	members, err := repo.GetMembers(offset, limit)
+	members, err := service.memberRepo.GetMembers(offset, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +101,7 @@ func (service *MemberService) CreateMember(member *model.Member) error {
 			SetMessage("Validation Failed").
 			AddDetailError("member", "role", "invalid role")
 	}
-	exist, err := repo.ExistMember(member.MemberId)
+	exist, err := service.memberRepo.ExistMember(member.MemberId)
 	if err != nil {
 		return err
 	}
@@ -100,7 +114,7 @@ func (service *MemberService) CreateMember(member *model.Member) error {
 	if member.Role == "admin" {
 		member.Role = "admin_inactive"
 	}
-	if err := repo.CreateMember(member); err != nil {
+	if err := service.memberRepo.CreateMember(member); err != nil {
 		return err
 	}
 	return nil
@@ -112,7 +126,7 @@ func (service *MemberService) CreateToken(member model.Member) (string, error) {
 }
 
 // func (service *MemberService) UpdateBasic(member model.Member) error {
-// 	exist, err := repo.ExistRole(member.Role)
+// 	exist, err := service.roleRepo.ExistRole(member.Role)
 // 	if err != nil {
 // 		return err
 // 	}
@@ -122,7 +136,7 @@ func (service *MemberService) CreateToken(member model.Member) (string, error) {
 // 			SetMessage("Validation Failed").
 // 			AddDetailError("member", "role", "invalid role")
 // 	}
-// 	if err := repo.UpdateMember(member); err != nil {
+// 	if err := service.memberRepo.UpdateMember(member); err != nil {
 // 		return err
 // 	}
 // 	return nil
@@ -141,7 +155,7 @@ func (service MemberService) MapLogtoUserRole(roles []LogtoUserRole) string {
 }
 
 func (service *MemberService) UpdateMember(member model.Member) error {
-	exist, err := repo.ExistRole(member.Role)
+	exist, err := service.roleRepo.ExistRole(member.Role)
 	if err != nil {
 		return err
 	}
@@ -151,7 +165,7 @@ func (service *MemberService) UpdateMember(member model.Member) error {
 			SetMessage("Validation Failed").
 			AddDetailError("member", "role", "invalid role")
 	}
-	if err := repo.UpdateMember(member); err != nil {
+	if err := service.memberRepo.UpdateMember(member); err != nil {
 		return err
 	}
 	return nil
@@ -164,7 +178,90 @@ func (service *MemberService) ActivateMember(member model.Member) error {
 	if member.Role == "admin_inactive" {
 		member.Role = "admin"
 	}
-	if err := repo.UpdateMember(member); err != nil {
+	if err := service.memberRepo.UpdateMember(member); err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetOrCreateMemberByLogtoId gets a member by Logto ID, handling the business logic
+func (service *MemberService) GetOrCreateMemberByLogtoId(logtoId string) (model.Member, error) {
+	memberId, err := service.memberRepo.GetMemberIdByLogtoId(logtoId)
+	if err != nil || !memberId.Valid {
+		return model.Member{}, util.MakeServiceError(http.StatusUnprocessableEntity).
+			SetMessage("Validation Failed").
+			AddDetailError("member", "logtoId", "member not found for logto id")
+	}
+	
+	return service.GetMemberById(memberId.String)
+}
+
+// AuthenticateAndSyncMember handles the complete authentication and sync flow from router
+func (service *MemberService) AuthenticateAndSyncMember(logtoToken string) (model.Member, string, error) {
+	// Validate Logto token and get user info
+	user, err := service.logtoService.FetchUserByToken(logtoToken)
+	if err != nil {
+		return model.Member{}, "", err
+	}
+	if user.Id == "" {
+		return model.Member{}, "", util.MakeServiceError(http.StatusUnprocessableEntity).
+			SetMessage("Invalid token: id missing")
+	}
+
+	// Get or create member
+	member, err := service.GetOrCreateMemberByLogtoId(user.Id)
+	if err != nil {
+		return model.Member{}, "", err
+	}
+
+	// Sync role from Logto
+	logtoRoles, err := service.logtoService.FetchUserRole(user.Id)
+	if err != nil {
+		return model.Member{}, "", err
+	}
+
+	mappedRole := service.MapLogtoUserRole(logtoRoles)
+	if mappedRole != member.Role && mappedRole != "" {
+		member.Role = mappedRole
+		err = service.UpdateMember(member)
+		if err != nil {
+			return model.Member{}, "", util.MakeServiceError(http.StatusUnprocessableEntity).
+				SetMessage("error at syncing member role: " + err.Error())
+		}
+	}
+
+	// Sync profile to Logto if needed
+	err = service.SyncMemberProfile(member, user)
+	if err != nil {
+		// Log error but don't fail the authentication
+		// This is non-critical operation
+	}
+
+	// Create JWT token
+	token, err := service.CreateToken(member)
+	if err != nil {
+		return model.Member{}, "", err
+	}
+
+	return member, token, nil
+}
+
+// SyncMemberProfile syncs member profile data to Logto user
+func (service *MemberService) SyncMemberProfile(member model.Member, logtoUser *FetchLogtoUsersResponse) error {
+	patchRequest := dto.PatchLogtoUserRequest{}
+	needsUpdate := false
+
+	if member.Alias != "" && logtoUser.Name == "" {
+		patchRequest.Name = member.Alias
+		needsUpdate = true
+	}
+	if member.Avatar != "" && logtoUser.Avatar == "" {
+		patchRequest.Avatar = member.Avatar
+		needsUpdate = true
+	}
+
+	if needsUpdate {
+		_, err := service.logtoService.PatchUserById(logtoUser.Id, patchRequest)
 		return err
 	}
 	return nil

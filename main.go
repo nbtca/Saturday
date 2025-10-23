@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nbtca/saturday/container"
 	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/router"
-	"github.com/nbtca/saturday/service"
 	"github.com/nbtca/saturday/util"
 
 	"github.com/joho/godotenv"
@@ -64,10 +64,11 @@ func main() {
 	repo.InitDB()
 	defer repo.CloseDB()
 
-	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("logto.endpoint"))
-	util.Logger.Debug("LogtoService initialized with endpoint: " + viper.GetString("logto.endpoint"))
+	// Initialize dependency injection container
+	container := container.NewContainer()
+	util.Logger.Debug("Dependency injection container initialized")
 
-	r := router.SetupRouter()
+	r := router.SetupRouter(container)
 
 	viper.SetDefault("port", 4000)
 	port := viper.GetInt("port")
