@@ -152,7 +152,8 @@ func GetClientEvents(f EventFilter, clientId int64) ([]model.Event, error) {
 
 func GetClosedEventsByTimeRange(f EventFilter, startTime, endTime string) ([]JoinEvent, error) {
 	stat := getEventStatement().
-		Where("DATE(e.gmt_create) BETWEEN DATE(?) AND DATE(?)", startTime, endTime).
+		Where("e.gmt_create >= DATE(?)", startTime).
+		Where("e.gmt_create < DATE(?) + INTERVAL '1 day'", endTime).
 		Where("e.status = ?", util.Closed).
 		Where("e.closed_by != ''")
 	getEventSql, getEventArgs, _ := stat.Offset(f.Offset).Limit(f.Limit).ToSql()
