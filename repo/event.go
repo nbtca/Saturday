@@ -108,13 +108,13 @@ func GetEventByIssueId(issueId int64) (model.Event, error) {
 type EventFilter struct {
 	Offset uint64
 	Limit  uint64
-	Status string
+	Status []string
 	Order  string
 }
 
 func getJoinEvents(f EventFilter, conditions ...squirrel.Eq) ([]JoinEvent, error) {
 	stat := getEventStatement()
-	if f.Status != "" {
+	if len(f.Status) > 0 {
 		stat = stat.Where(squirrel.Eq{"e.status": f.Status})
 	}
 	for _, condition := range conditions {
@@ -152,7 +152,7 @@ func GetClientEvents(f EventFilter, clientId int64) ([]model.Event, error) {
 
 func countEvents(f EventFilter, conditions ...squirrel.Eq) (int64, error) {
 	stat := sq.Select("COUNT(*)").From("event_view as e")
-	if f.Status != "" {
+	if len(f.Status) > 0 {
 		stat = stat.Where(squirrel.Eq{"e.status": f.Status})
 	}
 	for _, condition := range conditions {

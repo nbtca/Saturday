@@ -31,8 +31,8 @@ func (EventRouter) GetPublicEventById(c context.Context, input *struct {
 
 func (EventRouter) GetPublicEventByPage(c context.Context, input *struct {
 	dto.PageRequest
-	Status string `query:"status"`
-	Order  string `query:"order" default:"ASC"`
+	Status []string `query:"status"`
+	Order  string   `query:"order" default:"ASC"`
 }) (*util.CommonResponse[[]model.PublicEvent], error) {
 	filter := repo.EventFilter{
 		Offset: input.Offset,
@@ -76,10 +76,14 @@ func (EventRouter) GetMemberEventByPage(ctx context.Context, input *GetMemberEve
 	if err != nil {
 		return nil, err
 	}
+	var status []string
+	if input.Status != "" {
+		status = []string{input.Status}
+	}
 	filter := repo.EventFilter{
 		Offset: input.Offset,
 		Limit:  input.Limit,
-		Status: input.Status,
+		Status: status,
 		Order:  input.Order,
 	}
 	events, count, err := service.EventServiceApp.GetMemberEventsWithCount(filter, auth.ID)
@@ -97,10 +101,14 @@ func (EventRouter) ExportEventsToXlsx(ctx context.Context, input *ExportEventsTo
 		return nil, err
 	}
 
+	var status []string
+	if input.Status != "" {
+		status = []string{input.Status}
+	}
 	f, err := service.EventServiceApp.ExportEventToXlsx(repo.EventFilter{
 		Offset: 0,
 		Limit:  1000000,
-		Status: input.Status,
+		Status: status,
 		Order:  input.Order,
 	}, input.StartTime, input.EndTime)
 	if err != nil {
@@ -258,10 +266,14 @@ func (er EventRouter) GetClientEventByPage(ctx context.Context, input *GetClient
 	if err != nil {
 		return nil, err
 	}
+	var status []string
+	if input.Status != "" {
+		status = []string{input.Status}
+	}
 	filter := repo.EventFilter{
 		Offset: input.Offset,
 		Limit:  input.Limit,
-		Status: input.Status,
+		Status: status,
 		Order:  input.Order,
 	}
 	events, count, err := service.EventServiceApp.GetClientEventsWithCount(filter, clientId)
