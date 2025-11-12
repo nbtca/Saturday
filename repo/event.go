@@ -150,6 +150,32 @@ func GetClientEvents(f EventFilter, clientId int64) ([]model.Event, error) {
 	return getEvents(f, squirrel.Eq{"e.client_id": clientId})
 }
 
+func countEvents(f EventFilter, conditions ...squirrel.Eq) (int64, error) {
+	stat := sq.Select("COUNT(*)").From("event_view as e")
+	if f.Status != "" {
+		stat = stat.Where(squirrel.Eq{"e.status": f.Status})
+	}
+	for _, condition := range conditions {
+		stat = stat.Where(condition)
+	}
+	sql, args, _ := stat.ToSql()
+	var count int64
+	err := db.Get(&count, sql, args...)
+	return count, err
+}
+
+func CountEvents(f EventFilter) (int64, error) {
+	return countEvents(f)
+}
+
+func CountMemberEvents(f EventFilter, memberId string) (int64, error) {
+	return countEvents(f, squirrel.Eq{"e.member_id": memberId})
+}
+
+func CountClientEvents(f EventFilter, clientId int64) (int64, error) {
+	return countEvents(f, squirrel.Eq{"e.client_id": clientId})
+}
+
 func GetClosedEventsByTimeRange(f EventFilter, startTime, endTime string) ([]JoinEvent, error) {
 	stat := getEventStatement().
 		Where("e.gmt_create BETWEEN ? AND ?", startTime, endTime).

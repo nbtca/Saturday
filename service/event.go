@@ -80,7 +80,7 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 		if sizeHour > 0 {
 			group.Hour += sizeHour
 		} else {
-			group.Hour += 0.5 // Default increment for unknown sizes	
+			group.Hour += 0.5 // Default increment for unknown sizes
 		}
 		if group.Hour > MaxHour {
 			group.Hour = MaxHour // Cap the hour count at MaxHour
@@ -182,6 +182,42 @@ func (service EventService) GetPublicEvents(f repo.EventFilter) ([]model.PublicE
 		publicEvents[i] = model.CreatePublicEvent(v)
 	}
 	return publicEvents, nil
+}
+
+func (service EventService) GetPublicEventsWithCount(f repo.EventFilter) ([]model.PublicEvent, int64, error) {
+	events, err := service.GetPublicEvents(f)
+	if err != nil {
+		return nil, 0, err
+	}
+	count, err := repo.CountEvents(f)
+	if err != nil {
+		return nil, 0, err
+	}
+	return events, count, nil
+}
+
+func (service EventService) GetMemberEventsWithCount(f repo.EventFilter, memberId string) ([]model.Event, int64, error) {
+	events, err := repo.GetMemberEvents(f, memberId)
+	if err != nil {
+		return nil, 0, err
+	}
+	count, err := repo.CountMemberEvents(f, memberId)
+	if err != nil {
+		return nil, 0, err
+	}
+	return events, count, nil
+}
+
+func (service EventService) GetClientEventsWithCount(f repo.EventFilter, clientId int64) ([]model.Event, int64, error) {
+	events, err := repo.GetClientEvents(f, clientId)
+	if err != nil {
+		return nil, 0, err
+	}
+	count, err := repo.CountClientEvents(f, clientId)
+	if err != nil {
+		return nil, 0, err
+	}
+	return events, count, nil
 }
 
 func (service EventService) CreateEvent(event *model.Event) error {
