@@ -41,5 +41,8 @@
   },
   "server": {
     "port": 4000
+  },
+  "web": {
+    "hostname": "nbtca.space"
   }
 }

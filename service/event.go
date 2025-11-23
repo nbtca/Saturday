@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/google/go-github/v69/github"
 	md "github.com/nao1215/markdown"
@@ -354,14 +355,8 @@ func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog
 		return fmt.Errorf("fetch logto user failed: %v", err)
 	}
 
-	// Get GitHub issue number
-	issueNumber, err := event.GithubIssueNumber.Value()
-	if err != nil {
-		return fmt.Errorf("event.GithubIssueNumber is not valid: %v", err)
-	}
-
 	// Generate email subject and content based on action
-	subject, bodyHTML := service.generateEmailContent(event, eventLog, issueNumber)
+	subject, bodyHTML := service.generateEmailContent(event, eventLog)
 
 	// Create and send email
 	m := gomail.NewMessage()
@@ -391,7 +386,7 @@ func getEventStatusText(status string) string {
 	return status
 }
 
-func (service EventService) generateEmailContent(event *model.Event, eventLog model.EventLog, issueNumber interface{}) (string, string) {
+func (service EventService) generateEmailContent(event *model.Event, eventLog model.EventLog) (string, string) {
 	var actionTitle string
 	var actionMessage string
 
@@ -428,6 +423,18 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 	subject := fmt.Sprintf("维修工单 #%v - %s", event.EventId, actionTitle)
 	statusText := getEventStatusText(event.Status)
 
+	// Build web URL with configurable hostname
+	webHostname := viper.GetString("web.hostname")
+	if webHostname == "" {
+		webHostname = "nbtca.space"
+	}
+
+	// Build URL with status filter and event ID
+	// Include all statuses in filter for better user experience
+	statusFilter := url.QueryEscape("open,accepted,committed,closed")
+	webURL := fmt.Sprintf("https://%s/repair/admin?page=1&status=%s&eventid=%d",
+		webHostname, statusFilter, event.EventId)
+
 	bodyHTML := fmt.Sprintf(`
 		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
 			<h2 style="color: #333;">%s</h2>
@@ -452,16 +459,16 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 				</div>
 			</div>
 			<div style="margin-top: 20px;">
-				<a href="http://github.com/nbtca/repair-tickets/issues/%v"
+				<a href="%s"
 				   style="display: inline-block; padding: 10px 20px; background-color: #0366d6; color: white; text-decoration: none; border-radius: 5px;">
-					在 GitHub 中查看和处理
+					查看工单详情
 				</a>
 			</div>
 			<p style="color: #999; font-size: 12px; margin-top: 30px;">
 				这是一封自动发送的邮件，请勿直接回复。
 			</p>
 		</div>
-	`, actionTitle, actionMessage, statusText, event.Problem, event.Model, event.GmtCreate, event.Phone, event.QQ, issueNumber)
+	`, actionTitle, actionMessage, statusText, event.Problem, event.Model, event.GmtCreate, event.Phone, event.QQ, webURL)
 
 	return subject, bodyHTML
 }
