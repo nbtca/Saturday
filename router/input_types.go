@@ -199,10 +199,6 @@ type UploadFileInput struct {
 
 // Webhook inputs (these may stay as Gin handlers)
 
-type GithubWebhookInput struct {
-	// Special handling for webhooks
-}
-
 type LogtoWebhookInput struct {
 	// Special handling for webhooks
 }

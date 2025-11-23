@@ -57,16 +57,6 @@ func SetupRouter() *chi.Mux {
 	api.UseMiddleware(middleware.HumaAuthMiddleware)
 
 	// Keep webhooks as raw endpoints since they don't need OpenAPI documentation
-	hook, _ := service.MakeGithubWebHook(viper.GetString("github.webhook_secret"))
-	router.Post("/webhook", func(w http.ResponseWriter, r *http.Request) {
-		err := hook.Handle(r)
-		if err != nil {
-			util.Logger.Errorf("Error handling github webhook: %v", err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
-		}
-	})
-
 	logtoHook := service.LogtoWebHook{}
 	router.Post("/webhook/logto", func(w http.ResponseWriter, r *http.Request) {
 		err := logtoHook.Handle(r)

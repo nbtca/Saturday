@@ -23,16 +23,6 @@
     "endpoint": "https://auth.app.nbtca.space",
     "test_user_id": "<REDACTED>"
   },
-  "github": {
-    "owner": "nbtca",
-    "repo": "github-api-playground",
-    "token": "<REDACTED>",
-    "webhook_secret": "<REDACTED>"
-  },
-  "dify": {
-    "api_endpoint": "http://dify-cloud.nbtca.space/v1",
-    "api_key": "<REDACTED>"
-  },
   "nsq": {
     "host": "nsqd.app.nbtca.space:4150",
     "secret": "<REDACTED>",

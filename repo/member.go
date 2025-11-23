@@ -63,17 +63,6 @@ func GetMemberByLogtoId(logtoId string) (model.Member, error) {
 	}
 	return member, nil
 }
-func GetMemberByGithubId(githubId string) (model.Member, error) {
-	statement, args, _ := getMemberStatement().Where(squirrel.Eq{"github_id": githubId}).ToSql()
-	member := model.Member{}
-	if err := db.Get(&member, statement, args...); err != nil {
-		if err == sql.ErrNoRows {
-			return model.Member{}, nil
-		}
-		return model.Member{}, err
-	}
-	return member, nil
-}
 
 func GetMembers(offset uint64, limit uint64) ([]model.Member, error) {
 	sql, args, _ := getMemberStatement().Offset(offset).Limit(limit).ToSql()
@@ -113,7 +102,6 @@ func CreateMember(member *model.Member) error {
 func UpdateMember(member model.Member) error {
 	sql, args, _ := sq.Update("member").
 		Set("logto_id", member.LogtoId).
-		Set("github_id", member.GithubId).
 		Set("alias", member.Alias).
 		Set("name", member.Name).
 		Set("section", member.Section).

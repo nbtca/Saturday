@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -9,8 +8,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/google/go-github/v69/github"
-	md "github.com/nao1215/markdown"
 	"github.com/spf13/viper"
 	"github.com/xuri/excelize/v2"
 
@@ -135,8 +132,6 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 	excelFile.SetCellValue(overAllSheet, "H1", "创建时间")
 	excelFile.SetCellValue(overAllSheet, "I1", "关闭时间")
 	excelFile.SetCellValue(overAllSheet, "J1", "审核人")
-	excelFile.SetCellValue(overAllSheet, "K1", "GithubIssue")
-	githubIssueBaseUrl := fmt.Sprintf("https://github.com/%v/%v/issues", viper.GetString("github.owner"), viper.GetString("GITHUB_REPO"))
 	for i, event := range eventsExported {
 		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("A%v", i+2), event.MemberId)
 		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("B%v", i+2), event.MemberName)
@@ -148,9 +143,6 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("H%v", i+2), event.CreatedAt)
 		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("I%v", i+2), event.ClosedAt)
 		excelFile.SetCellValue(overAllSheet, fmt.Sprintf("J%v", i+2), event.ClosedByMemberId)
-		if event.EventGithubIssueNumber != 0 {
-			excelFile.SetCellValue(overAllSheet, fmt.Sprintf("K%v", i+2), fmt.Sprintf("%v/%v", githubIssueBaseUrl, event.EventGithubIssueNumber))
-		}
 	}
 
 	excelFile.SetActiveSheet(index)
@@ -473,208 +465,6 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 	return subject, bodyHTML
 }
 
-type EventAnalyzeResult struct {
-	Suggestion string
-	Tag        string
-}
-
-func (service EventService) Analyze(event *model.Event) (EventAnalyzeResult, error) {
-	request := WorkflowRunRequest{
-		Inputs: map[string]interface{}{
-			"EventId": event.EventId,
-		},
-		ResponseMode: "blocking",
-		User:         "saturday",
-	}
-	response, err := RunDifyWorkflow(request)
-	if err != nil {
-		return EventAnalyzeResult{}, err
-	}
-	if response.Data.Error != nil {
-		return EventAnalyzeResult{}, fmt.Errorf("error: %v", response.Data.Error)
-	}
-	if response.Data.Outputs == nil {
-		return EventAnalyzeResult{}, fmt.Errorf("no outputs")
-	}
-	result := EventAnalyzeResult{
-		Suggestion: response.Data.Outputs["suggestion"].(string),
-		Tag:        response.Data.Outputs["tag"].(string),
-	}
-	return result, nil
-}
-
-func RenderEventToMarkdownString(event *model.Event) string {
-	body := event.ToMarkdown()
-	log.Println("member", event.Member)
-	log.Println("closedBy", event.ClosedByMember)
-	memberAlias := ""
-	if event.Member != nil {
-		memberAlias = event.Member.Alias
-	}
-	closedByAlias := ""
-	if event.ClosedByMember != nil {
-		closedByAlias = event.ClosedByMember.Alias
-	}
-	body.HorizontalRule()
-	body.Table(md.TableSet{
-		Header: []string{"Field", "Value", "Description"},
-		Rows: [][]string{
-			{"Current Status", event.Status, ""},
-			{"Size", event.Size, ""},
-			{"Accepted By", memberAlias, ""},
-			{"Closed By", closedByAlias, ""},
-		},
-	})
-	body.HorizontalRule()
-
-	mermaidDiagram := `flowchart LR
-	A[Open] --> |Drop| B[Canceled]
-	A --> |Accept| C[Accepted]
-	C --> |Commit| D[Committed]
-	D --> |AlterCommit| D
-	D --> |Approve| E[Closed]
-	D --> |Reject| C`
-
-	buf := new(bytes.Buffer)
-	m := md.NewMarkdown(buf)
-	m.LF()
-	m.LF()
-	m.PlainText("You can update event status by commenting on this Issue:")
-	m.BulletList(
-		"`@nbtca-bot accept` will accept this ticket",
-		"`@nbtca-bot drop` will drop your previous accept",
-		"`@nbtca-bot commit` will submit this ticket for admin approval",
-		"`@nbtca-bot reject` will send this ticket back to assignee",
-		"`@nbtca-bot close` will close this ticket as completed",
-	)
-	m.CodeBlocks(md.SyntaxHighlightMermaid, mermaidDiagram)
-	m.Blockquote("Get more detailed documentation at [docs.nbtca.space/repair/weekend](http://docs.nbtca.space/repair/weekend.html)")
-
-	body.Details("nbtca-bot commands", m.String())
-	return body.String()
-}
-
-func RenderEventToGithubIssue(event *model.Event, issueNumber int, issueRequest *github.IssueRequest) (*github.Issue, *github.Response, error) {
-	bodyString := RenderEventToMarkdownString(event)
-	issueRequest.Body = &bodyString
-	title := fmt.Sprintf("%s(#%v)", event.Problem, event.EventId)
-	issueRequest.Title = &title
-	return util.EditIssue(issueNumber, issueRequest)
-}
-
-func CreateEventAnalyzeComment(event *model.Event, issue *github.Issue) error {
-	analyzeResult, err := EventServiceApp.Analyze(event)
-	if err != nil {
-		return fmt.Errorf("analyze event failed: %v", err)
-	}
-	_, _, err = util.CreateIssueComment(int(issue.GetNumber()), &github.IssueComment{
-		Body: &analyzeResult.Suggestion,
-	})
-	if err != nil {
-		return fmt.Errorf("create issue comment for event analyze failed: %v", err)
-	}
-	return nil
-}
-
-func syncEventActionToGithubIssue(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
-	if util.Action(eventLog.Action) == util.Create {
-		bodyString := RenderEventToMarkdownString(event)
-		title := fmt.Sprintf("%s(#%v)", event.Problem, event.EventId)
-		issue, _, err := util.CreateIssue(&github.IssueRequest{
-			Title:  &title,
-			Body:   &bodyString,
-			Labels: &[]string{"ticket"},
-		})
-		if err != nil {
-			return err
-		}
-		event.GithubIssueId = sql.NullInt64{
-			Valid: true,
-			Int64: int64(*issue.ID),
-		}
-		event.GithubIssueNumber = sql.NullInt64{
-			Valid: true,
-			Int64: int64(*issue.Number),
-		}
-
-		go func(event *model.Event, issue *github.Issue) {
-			err := CreateEventAnalyzeComment(event, issue)
-			if err != nil {
-				util.Logger.Error("create event analyze comment failed: ", err)
-			}
-		}(event, issue)
-
-		return nil
-	}
-
-	if !event.GithubIssueId.Valid {
-		return fmt.Errorf("event.GithubIssueId is not valid")
-	}
-
-	RenderEventToGithubIssue(event, int(event.GithubIssueNumber.Int64), &github.IssueRequest{})
-
-	buf := new(bytes.Buffer)
-	memberName := identity.Member.Alias
-	if identity.Member.LogtoId != "" {
-		logtoUser, err := LogtoServiceApp.FetchUserById(identity.Member.LogtoId)
-		if err != nil {
-			util.Logger.Error("fetch logto user failed: ", err)
-			return err
-		}
-		memberName = fmt.Sprintf("%v (%v)", logtoUser.Name, logtoUser.PrimaryEmail)
-	}
-	description := md.NewMarkdown(buf).
-		H2(eventLog.Action).
-		PlainText(eventLog.Description)
-	if util.Action(eventLog.Action) == util.Cancel {
-		description = description.PlainText("Cancelled by client")
-	} else {
-		description = description.PlainText(fmt.Sprintf("By %s", memberName))
-	}
-	commentBody := description.String()
-
-	_, _, err := util.CreateIssueComment(int(event.GithubIssueNumber.Int64), &github.IssueComment{
-		Body: &commentBody,
-	})
-	if err != nil {
-		return err
-	}
-
-	var readyForReviewLabel = "ready for review"
-	var acceptedLabel = "accepted"
-
-	if util.Action(eventLog.Action) == util.Close {
-		if _, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64), "completed"); err != nil {
-			return err
-		}
-	} else if util.Action(eventLog.Action) == util.Cancel {
-		if _, _, err := util.CloseIssue(int(event.GithubIssueNumber.Int64), "not_planned"); err != nil {
-			return err
-		}
-	} else if util.Action(eventLog.Action) == util.Accept {
-		_, _, err = util.AddIssueLabels(int(event.GithubIssueId.Int64), []string{acceptedLabel})
-		if err != nil {
-			util.Logger.Error("add issue labels failed: ", err)
-		}
-	} else if util.Action(eventLog.Action) == util.Commit {
-		_, _, err = util.AddIssueLabels(int(event.GithubIssueId.Int64), []string{readyForReviewLabel})
-		if err != nil {
-			util.Logger.Error("add issue labels failed: ", err)
-		}
-	} else if util.Action(eventLog.Action) == util.Drop {
-		_, err = util.RemoveIssueLabel(int(event.GithubIssueId.Int64), acceptedLabel)
-		if err != nil {
-			util.Logger.Error("remove issue labels failed: ", err)
-		}
-	} else if util.Action(eventLog.Action) == util.Reject {
-		_, err = util.RemoveIssueLabel(int(event.GithubIssueId.Int64), readyForReviewLabel)
-		if err != nil {
-			util.Logger.Error("remove issue labels failed: ", err)
-		}
-	}
-	return nil
-}
-
 /*
 this function validates the action and then perform action to the event.
 it also persists the event and event log.
@@ -697,11 +487,6 @@ func (service EventService) Act(event *model.Event, identity model.Identity, act
 	}
 	// append log
 	event.Logs = append(event.Logs, log)
-
-	err := syncEventActionToGithubIssue(event, log, identity)
-	if err != nil {
-		util.Logger.Error(err)
-	}
 
 	service.SendActionNotify(event, log, identity)
 	util.Logger.Tracef("event log: %v", log)

@@ -11,7 +11,7 @@ import (
 )
 
 var eventFields = []string{"event_id", "client_id", "model", "phone", "qq", "contact_preference",
-	"problem", "member_id", "closed_by", "status", "size", "gmt_create", "gmt_modified", "status", "github_issue_id", "github_issue_number"}
+	"problem", "member_id", "closed_by", "status", "size", "gmt_create", "gmt_modified", "status"}
 
 var EventLogFields = []string{"event_log_id", "description", "gmt_create", "member_id", "action"}
 
@@ -68,32 +68,6 @@ func GetEventById(id int64) (model.Event, error) {
 		conn.Rollback()
 		return model.Event{}, err
 	}
-	defer util.RollbackOnErr(err, conn)
-	event := joinEvent.ToEvent()
-	if err = conn.Select(&event.Logs, getLogSql, getLogArgs...); err != nil {
-		return model.Event{}, err
-	}
-	if err = conn.Commit(); err != nil {
-		return model.Event{}, err
-	}
-	return event, nil
-}
-
-func GetEventByIssueId(issueId int64) (model.Event, error) {
-	getEventSql, getEventArgs, _ := getEventStatement().Where(squirrel.Eq{"github_issue_id": issueId}).ToSql()
-	conn, err := db.Beginx()
-	if err != nil {
-		return model.Event{}, err
-	}
-	joinEvent := JoinEvent{}
-	if err := conn.Get(&joinEvent, getEventSql, getEventArgs...); err != nil {
-		if err == sql.ErrNoRows {
-			return model.Event{}, nil
-		}
-		conn.Rollback()
-		return model.Event{}, err
-	}
-	getLogSql, getLogArgs, _ := getLogStatement().Where(squirrel.Eq{"event_id": joinEvent.Event.EventId}).ToSql()
 	defer util.RollbackOnErr(err, conn)
 	event := joinEvent.ToEvent()
 	if err = conn.Select(&event.Logs, getLogSql, getLogArgs...); err != nil {
