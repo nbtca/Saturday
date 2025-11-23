@@ -14,7 +14,8 @@ import (
 
 var subscriptionFields = []string{
 	"subscription_id", "member_id", "client_id", "event_types",
-	"callback_url", "secret", "filters", "active", "gmt_create", "gmt_modified",
+	"delivery_method", "callback_url", "email", "secret", "scope",
+	"filters", "active", "gmt_create", "gmt_modified",
 }
 
 var deliveryFields = []string{
@@ -40,13 +41,16 @@ func CreateSubscription(subscription *model.EventSubscription) error {
 	subscription.GmtModified = now
 
 	sql, args, err := sq.Insert("event_subscription").
-		Columns("member_id", "client_id", "event_types", "callback_url", "secret", "filters", "active", "gmt_create", "gmt_modified").
+		Columns("member_id", "client_id", "event_types", "delivery_method", "callback_url", "email", "secret", "scope", "filters", "active", "gmt_create", "gmt_modified").
 		Values(
 			subscription.MemberId,
 			subscription.ClientId,
 			pq.Array(subscription.EventTypes),
+			subscription.DeliveryMethod,
 			subscription.CallbackURL,
+			subscription.Email,
 			subscription.Secret,
+			subscription.Scope,
 			subscription.Filters,
 			subscription.Active,
 			subscription.GmtCreate,
@@ -163,7 +167,10 @@ func UpdateSubscription(subscription *model.EventSubscription) error {
 
 	sql, args, err := sq.Update("event_subscription").
 		Set("event_types", pq.Array(subscription.EventTypes)).
+		Set("delivery_method", subscription.DeliveryMethod).
 		Set("callback_url", subscription.CallbackURL).
+		Set("email", subscription.Email).
+		Set("scope", subscription.Scope).
 		Set("filters", subscription.Filters).
 		Set("active", subscription.Active).
 		Set("gmt_modified", subscription.GmtModified).

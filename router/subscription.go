@@ -23,9 +23,12 @@ type SubscriptionPathInput struct {
 type CreateSubscriptionInput struct {
 	AuthenticatedInput
 	Body struct {
-		EventTypes  []string        `json:"eventTypes" minItems:"1" doc:"Event types to subscribe to (e.g., event.created, event.accepted)"`
-		CallbackURL string          `json:"callbackUrl" format:"uri" doc:"Webhook callback URL"`
-		Filters     json.RawMessage `json:"filters,omitempty" doc:"Optional filters for events"`
+		EventTypes     []string        `json:"eventTypes" minItems:"1" doc:"Event types to subscribe to (e.g., event.created, event.accepted)"`
+		DeliveryMethod string          `json:"deliveryMethod" enum:"webhook,email,both" default:"webhook" doc:"Delivery method: webhook, email, or both"`
+		CallbackURL    *string         `json:"callbackUrl,omitempty" format:"uri" doc:"Webhook callback URL (required for webhook/both)"`
+		Email          *string         `json:"email,omitempty" format:"email" doc:"Email address (required for email/both)"`
+		Scope          string          `json:"scope" enum:"related,global" default:"related" doc:"Scope: related (only events you're involved in) or global (all events)"`
+		Filters        json.RawMessage `json:"filters,omitempty" doc:"Optional filters for events"`
 	}
 }
 
@@ -43,10 +46,13 @@ type UpdateSubscriptionInput struct {
 	AuthenticatedInput
 	SubscriptionPathInput
 	Body struct {
-		EventTypes  []string        `json:"eventTypes" minItems:"1" doc:"Event types to subscribe to"`
-		CallbackURL string          `json:"callbackUrl" format:"uri" doc:"Webhook callback URL"`
-		Filters     json.RawMessage `json:"filters,omitempty" doc:"Optional filters for events"`
-		Active      bool            `json:"active" doc:"Whether the subscription is active"`
+		EventTypes     []string        `json:"eventTypes" minItems:"1" doc:"Event types to subscribe to"`
+		DeliveryMethod string          `json:"deliveryMethod" enum:"webhook,email,both" doc:"Delivery method: webhook, email, or both"`
+		CallbackURL    *string         `json:"callbackUrl,omitempty" format:"uri" doc:"Webhook callback URL (required for webhook/both)"`
+		Email          *string         `json:"email,omitempty" format:"email" doc:"Email address (required for email/both)"`
+		Scope          string          `json:"scope" enum:"related,global" doc:"Scope: related or global"`
+		Filters        json.RawMessage `json:"filters,omitempty" doc:"Optional filters for events"`
+		Active         bool            `json:"active" doc:"Whether the subscription is active"`
 	}
 }
 
@@ -82,11 +88,25 @@ func (sr SubscriptionRouter) CreateSubscription(ctx context.Context, input *Crea
 		clientId = &cid
 	}
 
+	// Set default values if not provided
+	deliveryMethod := input.Body.DeliveryMethod
+	if deliveryMethod == "" {
+		deliveryMethod = "webhook"
+	}
+
+	scope := input.Body.Scope
+	if scope == "" {
+		scope = "related"
+	}
+
 	subscription, err := service.SubscriptionServiceApp.CreateSubscription(
 		memberId,
 		clientId,
 		input.Body.EventTypes,
+		deliveryMethod,
 		input.Body.CallbackURL,
+		input.Body.Email,
+		scope,
 		input.Body.Filters,
 	)
 
@@ -189,7 +209,10 @@ func (sr SubscriptionRouter) UpdateSubscription(ctx context.Context, input *Upda
 		memberId,
 		clientId,
 		input.Body.EventTypes,
+		input.Body.DeliveryMethod,
 		input.Body.CallbackURL,
+		input.Body.Email,
+		input.Body.Scope,
 		input.Body.Filters,
 		input.Body.Active,
 	)

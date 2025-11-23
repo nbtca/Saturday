@@ -11,8 +11,11 @@ type EventSubscription struct {
 	MemberId       sql.NullString  `json:"memberId,omitempty" db:"member_id"`
 	ClientId       sql.NullInt64   `json:"clientId,omitempty" db:"client_id"`
 	EventTypes     []string        `json:"eventTypes" db:"event_types"`
-	CallbackURL    string          `json:"callbackUrl" db:"callback_url"`
+	DeliveryMethod string          `json:"deliveryMethod" db:"delivery_method"` // webhook, email, both
+	CallbackURL    sql.NullString  `json:"callbackUrl,omitempty" db:"callback_url"`
+	Email          sql.NullString  `json:"email,omitempty" db:"email"`
 	Secret         string          `json:"secret" db:"secret"`
+	Scope          string          `json:"scope" db:"scope"` // related, global
 	Filters        json.RawMessage `json:"filters,omitempty" db:"filters"`
 	Active         bool            `json:"active" db:"active"`
 	GmtCreate      string          `json:"gmtCreate" db:"gmt_create"`
@@ -70,7 +73,10 @@ type PublicEventSubscription struct {
 	MemberId       sql.NullString  `json:"memberId,omitempty" db:"member_id"`
 	ClientId       sql.NullInt64   `json:"clientId,omitempty" db:"client_id"`
 	EventTypes     []string        `json:"eventTypes" db:"event_types"`
-	CallbackURL    string          `json:"callbackUrl" db:"callback_url"`
+	DeliveryMethod string          `json:"deliveryMethod" db:"delivery_method"`
+	CallbackURL    sql.NullString  `json:"callbackUrl,omitempty" db:"callback_url"`
+	Email          sql.NullString  `json:"email,omitempty" db:"email"`
+	Scope          string          `json:"scope" db:"scope"`
 	Filters        json.RawMessage `json:"filters,omitempty" db:"filters"`
 	Active         bool            `json:"active" db:"active"`
 	GmtCreate      string          `json:"gmtCreate" db:"gmt_create"`
@@ -84,7 +90,10 @@ func (s EventSubscription) ToPublic() PublicEventSubscription {
 		MemberId:       s.MemberId,
 		ClientId:       s.ClientId,
 		EventTypes:     s.EventTypes,
+		DeliveryMethod: s.DeliveryMethod,
 		CallbackURL:    s.CallbackURL,
+		Email:          s.Email,
+		Scope:          s.Scope,
 		Filters:        s.Filters,
 		Active:         s.Active,
 		GmtCreate:      s.GmtCreate,

@@ -16,6 +16,8 @@ import (
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/util"
+	"github.com/spf13/viper"
+	"gopkg.in/gomail.v2"
 )
 
 type SubscriptionService struct{}
@@ -27,7 +29,10 @@ func (s SubscriptionService) CreateSubscription(
 	memberId *string,
 	clientId *int64,
 	eventTypes []string,
-	callbackURL string,
+	deliveryMethod string,
+	callbackURL *string,
+	email *string,
+	scope string,
 	filters json.RawMessage,
 ) (model.PublicEventSubscription, error) {
 	// Validate that at least one owner is specified
@@ -44,14 +49,35 @@ func (s SubscriptionService) CreateSubscription(
 			SetMessage("At least one event type must be specified")
 	}
 
-	// Validate callback URL
-	if callbackURL == "" {
+	// Validate delivery method
+	if deliveryMethod != "webhook" && deliveryMethod != "email" && deliveryMethod != "both" {
 		return model.PublicEventSubscription{}, util.
 			MakeServiceError(http.StatusBadRequest).
-			SetMessage("Callback URL is required")
+			SetMessage("Delivery method must be 'webhook', 'email', or 'both'")
 	}
 
-	// Generate secret for HMAC signature
+	// Validate callback URL for webhook deliveries
+	if (deliveryMethod == "webhook" || deliveryMethod == "both") && (callbackURL == nil || *callbackURL == "") {
+		return model.PublicEventSubscription{}, util.
+			MakeServiceError(http.StatusBadRequest).
+			SetMessage("Callback URL is required for webhook delivery")
+	}
+
+	// Validate email for email deliveries
+	if (deliveryMethod == "email" || deliveryMethod == "both") && (email == nil || *email == "") {
+		return model.PublicEventSubscription{}, util.
+			MakeServiceError(http.StatusBadRequest).
+			SetMessage("Email is required for email delivery")
+	}
+
+	// Validate scope
+	if scope != "related" && scope != "global" {
+		return model.PublicEventSubscription{}, util.
+			MakeServiceError(http.StatusBadRequest).
+			SetMessage("Scope must be 'related' or 'global'")
+	}
+
+	// Generate secret for HMAC signature (for webhooks)
 	secret, err := generateSecret(32)
 	if err != nil {
 		return model.PublicEventSubscription{}, util.
@@ -60,13 +86,20 @@ func (s SubscriptionService) CreateSubscription(
 	}
 
 	subscription := &model.EventSubscription{
-		EventTypes:  eventTypes,
-		CallbackURL: callbackURL,
-		Secret:      secret,
-		Filters:     filters,
-		Active:      true,
+		EventTypes:     eventTypes,
+		DeliveryMethod: deliveryMethod,
+		Secret:         secret,
+		Scope:          scope,
+		Filters:        filters,
+		Active:         true,
 	}
 
+	if callbackURL != nil && *callbackURL != "" {
+		subscription.CallbackURL = sql.NullString{String: *callbackURL, Valid: true}
+	}
+	if email != nil && *email != "" {
+		subscription.Email = sql.NullString{String: *email, Valid: true}
+	}
 	if memberId != nil && *memberId != "" {
 		subscription.MemberId = sql.NullString{String: *memberId, Valid: true}
 	}
@@ -141,7 +174,10 @@ func (s SubscriptionService) UpdateSubscription(
 	memberId *string,
 	clientId *int64,
 	eventTypes []string,
-	callbackURL string,
+	deliveryMethod string,
+	callbackURL *string,
+	email *string,
+	scope string,
 	filters json.RawMessage,
 	active bool,
 ) (model.PublicEventSubscription, error) {
@@ -164,11 +200,51 @@ func (s SubscriptionService) UpdateSubscription(
 			SetMessage("You do not have permission to update this subscription")
 	}
 
+	// Validate delivery method
+	if deliveryMethod != "webhook" && deliveryMethod != "email" && deliveryMethod != "both" {
+		return model.PublicEventSubscription{}, util.
+			MakeServiceError(http.StatusBadRequest).
+			SetMessage("Delivery method must be 'webhook', 'email', or 'both'")
+	}
+
+	// Validate callback URL for webhook deliveries
+	if (deliveryMethod == "webhook" || deliveryMethod == "both") && (callbackURL == nil || *callbackURL == "") {
+		return model.PublicEventSubscription{}, util.
+			MakeServiceError(http.StatusBadRequest).
+			SetMessage("Callback URL is required for webhook delivery")
+	}
+
+	// Validate email for email deliveries
+	if (deliveryMethod == "email" || deliveryMethod == "both") && (email == nil || *email == "") {
+		return model.PublicEventSubscription{}, util.
+			MakeServiceError(http.StatusBadRequest).
+			SetMessage("Email is required for email delivery")
+	}
+
+	// Validate scope
+	if scope != "related" && scope != "global" {
+		return model.PublicEventSubscription{}, util.
+			MakeServiceError(http.StatusBadRequest).
+			SetMessage("Scope must be 'related' or 'global'")
+	}
+
 	// Update fields
 	subscription.EventTypes = eventTypes
-	subscription.CallbackURL = callbackURL
+	subscription.DeliveryMethod = deliveryMethod
+	subscription.Scope = scope
 	subscription.Filters = filters
 	subscription.Active = active
+
+	if callbackURL != nil && *callbackURL != "" {
+		subscription.CallbackURL = sql.NullString{String: *callbackURL, Valid: true}
+	} else {
+		subscription.CallbackURL = sql.NullString{Valid: false}
+	}
+	if email != nil && *email != "" {
+		subscription.Email = sql.NullString{String: *email, Valid: true}
+	} else {
+		subscription.Email = sql.NullString{Valid: false}
+	}
 
 	if err := repo.UpdateSubscription(&subscription); err != nil {
 		return model.PublicEventSubscription{}, util.
@@ -209,7 +285,7 @@ func (s SubscriptionService) DeleteSubscription(id int64, memberId *string, clie
 	return nil
 }
 
-// NotifySubscribers sends webhook notifications to all active subscriptions for an event
+// NotifySubscribers sends notifications to all active subscriptions for an event
 func (s SubscriptionService) NotifySubscribers(event model.Event, eventLog model.EventLog, actor *model.Identity) error {
 	eventType := fmt.Sprintf("event.%s", eventLog.Action)
 
@@ -225,12 +301,26 @@ func (s SubscriptionService) NotifySubscribers(event model.Event, eventLog model
 		return nil
 	}
 
+	// Filter subscriptions based on scope
+	filteredSubscriptions := filterSubscriptionsByScope(subscriptions, event, actor)
+
+	if len(filteredSubscriptions) == 0 {
+		util.Logger.Debug("No subscriptions match the scope for event: ", event.EventId)
+		return nil
+	}
+
 	// Create webhook payload
 	payload := createWebhookPayload(event, eventLog, actor, eventType)
 
-	// Send notifications asynchronously
-	for _, subscription := range subscriptions {
-		go s.sendWebhook(subscription, payload)
+	// Send notifications asynchronously based on delivery method
+	for _, subscription := range filteredSubscriptions {
+		sub := subscription // capture loop variable
+		if sub.DeliveryMethod == "webhook" || sub.DeliveryMethod == "both" {
+			go s.sendWebhook(sub, payload)
+		}
+		if sub.DeliveryMethod == "email" || sub.DeliveryMethod == "both" {
+			go s.sendEmail(sub, event, eventLog, actor)
+		}
 	}
 
 	return nil
@@ -450,4 +540,125 @@ func (s SubscriptionService) GetDeliveryHistory(
 	}
 
 	return deliveries, nil
+}
+
+// filterSubscriptionsByScope filters subscriptions based on their scope (related vs global)
+func filterSubscriptionsByScope(subscriptions []model.EventSubscription, event model.Event, actor *model.Identity) []model.EventSubscription {
+	filtered := []model.EventSubscription{}
+
+	for _, sub := range subscriptions {
+		// Global subscriptions always match
+		if sub.Scope == "global" {
+			filtered = append(filtered, sub)
+			continue
+		}
+
+		// For "related" scope, check if the subscription owner is related to the event
+		if sub.Scope == "related" {
+			isRelated := false
+
+			// Member subscriptions: check if member is assigned to event or performed the action
+			if sub.MemberId.Valid {
+				if event.MemberId == sub.MemberId.String {
+					isRelated = true
+				}
+				if event.ClosedBy == sub.MemberId.String {
+					isRelated = true
+				}
+				if actor != nil && actor.IsMember() && actor.MemberId == sub.MemberId.String {
+					isRelated = true
+				}
+			}
+
+			// Client subscriptions: check if client owns the event
+			if sub.ClientId.Valid {
+				if event.ClientId == sub.ClientId.Int64 {
+					isRelated = true
+				}
+				if actor != nil && actor.IsClient() && actor.ClientId == sub.ClientId.Int64 {
+					isRelated = true
+				}
+			}
+
+			if isRelated {
+				filtered = append(filtered, sub)
+			}
+		}
+	}
+
+	return filtered
+}
+
+// sendEmail sends an email notification for a subscription
+func (s SubscriptionService) sendEmail(subscription model.EventSubscription, event model.Event, eventLog model.EventLog, actor *model.Identity) {
+	if !subscription.Email.Valid || subscription.Email.String == "" {
+		util.Logger.Error("Email not configured for subscription: ", subscription.SubscriptionId)
+		return
+	}
+
+	// Determine the subject based on the action
+	subject := fmt.Sprintf("[NBTCA] Event #%d: %s", event.EventId, eventLog.Action)
+
+	// Build HTML email body
+	htmlBody := fmt.Sprintf(`
+<html>
+<body>
+<h3>Event Notification</h3>
+<table style="border-collapse: collapse; width: 100%%;">
+	<tr><td style="padding: 8px; font-weight: bold;">Event ID:</td><td style="padding: 8px;">%d</td></tr>
+	<tr><td style="padding: 8px; font-weight: bold;">Action:</td><td style="padding: 8px;">%s</td></tr>
+	<tr><td style="padding: 8px; font-weight: bold;">Status:</td><td style="padding: 8px;">%s</td></tr>
+	<tr><td style="padding: 8px; font-weight: bold;">Problem:</td><td style="padding: 8px;">%s</td></tr>
+	<tr><td style="padding: 8px; font-weight: bold;">Model:</td><td style="padding: 8px;">%s</td></tr>
+	<tr><td style="padding: 8px; font-weight: bold;">Time:</td><td style="padding: 8px;">%s</td></tr>`,
+		event.EventId, eventLog.Action, event.Status, event.Problem, event.Model, eventLog.GmtCreate)
+
+	if actor != nil {
+		if actor.IsMember() {
+			htmlBody += fmt.Sprintf(`
+	<tr><td style="padding: 8px; font-weight: bold;">Performed by:</td><td style="padding: 8px;">Member %s</td></tr>`, actor.MemberId)
+		} else if actor.IsClient() {
+			htmlBody += fmt.Sprintf(`
+	<tr><td style="padding: 8px; font-weight: bold;">Performed by:</td><td style="padding: 8px;">Client %d</td></tr>`, actor.ClientId)
+		}
+	}
+
+	htmlBody += `
+</table>
+<div style="margin-top: 20px;">
+`
+
+	if event.GithubIssueNumber.Valid && event.GithubIssueNumber.Int64 > 0 {
+		htmlBody += fmt.Sprintf(`<p><a href="https://github.com/nbtca/Saturday/issues/%d">View GitHub Issue</a></p>`, event.GithubIssueNumber.Int64)
+	}
+
+	htmlBody += fmt.Sprintf(`<p><a href="https://repair.nbtca.space/events/%d">View Event Details</a></p>
+</div>
+</body>
+</html>`, event.EventId)
+
+	// Create email message
+	m := gomail.NewMessage()
+	m.SetHeader("To", subscription.Email.String)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", htmlBody)
+
+	// Get SMTP configuration from viper
+	smtpHost := viper.GetString("smtp.host")
+	smtpPort := viper.GetInt("smtp.port")
+	smtpUser := viper.GetString("smtp.user")
+	smtpPassword := viper.GetString("smtp.password")
+
+	if smtpHost == "" {
+		util.Logger.Error("SMTP host not configured")
+		return
+	}
+
+	// Create dialer and send
+	d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPassword)
+	if err := d.DialAndSend(m); err != nil {
+		util.Logger.Error(fmt.Sprintf("Failed to send email to %s: %v", subscription.Email.String, err))
+	} else {
+		util.Logger.Info(fmt.Sprintf("Email sent successfully to %s for event %d", subscription.Email.String, event.EventId))
+	}
 }
