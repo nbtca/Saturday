@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/google/go-github/v69/github"
 	md "github.com/nao1215/markdown"
@@ -288,58 +289,188 @@ func (service EventService) SendActionNotifyViaNSQ(event *model.Event, eventLog 
 }
 
 func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
+	// Determine recipient LogtoId based on action
+	var recipientLogtoId string
+	var skipEmail bool
+
 	switch eventLog.Action {
 	case string(util.Accept):
-		m := gomail.NewMessage()
-		issueNumber, err := event.GithubIssueNumber.Value()
-		if err != nil {
-			return fmt.Errorf("event.GithubIssueNumber is not valid: %v", err)
+		// Send to the member who accepted the event
+		recipientLogtoId = identity.Member.LogtoId
+	case string(util.Cancel):
+		// Send to the assigned member (if any) that event was cancelled
+		if event.MemberId == "" {
+			skipEmail = true
+		} else {
+			// Need to fetch member info to get LogtoId
+			member, err := MemberServiceApp.GetMemberById(event.MemberId)
+			if err != nil {
+				return fmt.Errorf("fetch member failed: %v", err)
+			}
+			recipientLogtoId = member.LogtoId
 		}
-		if identity.Member.LogtoId == "" {
-			return fmt.Errorf("identity.Member.LogtoId is not set")
+	case string(util.Drop):
+		// Send to the member who dropped the event (confirmation)
+		recipientLogtoId = identity.Member.LogtoId
+	case string(util.Commit):
+		// Send to the member who committed (confirmation)
+		recipientLogtoId = identity.Member.LogtoId
+	case string(util.AlterCommit):
+		// Send to the member who updated the commit (confirmation)
+		recipientLogtoId = identity.Member.LogtoId
+	case string(util.Reject):
+		// Send to the assigned member that their submission was rejected
+		if event.MemberId == "" {
+			skipEmail = true
+		} else {
+			member, err := MemberServiceApp.GetMemberById(event.MemberId)
+			if err != nil {
+				return fmt.Errorf("fetch member failed: %v", err)
+			}
+			recipientLogtoId = member.LogtoId
 		}
-		logtoUser, err := LogtoServiceApp.FetchUserById(identity.Member.LogtoId)
-		if err != nil {
-			return fmt.Errorf("fetch logto user failed: %v", err)
+	case string(util.Close):
+		// Send to the assigned member that event is closed
+		if event.MemberId == "" {
+			skipEmail = true
+		} else {
+			member, err := MemberServiceApp.GetMemberById(event.MemberId)
+			if err != nil {
+				return fmt.Errorf("fetch member failed: %v", err)
+			}
+			recipientLogtoId = member.LogtoId
 		}
+	default:
+		// Skip email for other actions (create, update, etc.)
+		skipEmail = true
+	}
 
-		m.SetHeader("To", logtoUser.PrimaryEmail)
-		m.SetHeader("Subject", fmt.Sprintf("维修状态更新(#%v)", event.EventId))
-		m.SetBody("text/html", fmt.Sprintf(
-			`
-					<h3>新的状态为: %v</h3>
-		<div>
-  		<span style="padding-right:10px;">问题描述:</span>
-  		<span>%s</span>
-		</div>
-		<div>
-  		<span style="padding-right:10px;">型号:</span>
-  		<span>%s</span>
-		</div>
-		<div>
-  		<span style="padding-right:10px;">创建时间:</span>
-  		<span>%s</span>
-		</div>
-		<div>
-  		<span style="padding-right:10px;">手机:</span>
-  		<span>%s</span>
-		</div>
-		<div>
-  		<span style="padding-right:10px;">QQ:</span>
-  		<span>%s</span>
-		</div>
-		<div style="padding-top:10px;">
-  		<a href="http://github.com/nbtca/repair-tickets/issues/%v">在 nbtca/repair-tickets 中处理</a>
-		</div>
-			`, event.Status, event.Problem, event.Model, event.GmtCreate, event.Phone, event.QQ, issueNumber))
-
-		if err := util.SendMail(m); err != nil {
-			return util.MakeInternalServerError().SetMessage("fail on mail")
-		}
-		util.Logger.Trace("event accepted, send mail to ", logtoUser.PrimaryEmail)
+	if skipEmail || recipientLogtoId == "" {
 		return nil
 	}
+
+	// Fetch user email from Logto
+	logtoUser, err := LogtoServiceApp.FetchUserById(recipientLogtoId)
+	if err != nil {
+		return fmt.Errorf("fetch logto user failed: %v", err)
+	}
+
+	// Generate email subject and content based on action
+	subject, bodyHTML := service.generateEmailContent(event, eventLog)
+
+	// Create and send email
+	m := gomail.NewMessage()
+	m.SetHeader("To", logtoUser.PrimaryEmail)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", bodyHTML)
+
+	if err := util.SendMail(m); err != nil {
+		return util.MakeInternalServerError().SetMessage("fail on mail")
+	}
+
+	util.Logger.Tracef("send email for action '%s' to %s", eventLog.Action, logtoUser.PrimaryEmail)
 	return nil
+}
+
+func getEventStatusText(status string) string {
+	statusTextMap := map[string]string{
+		util.Open:      "待处理",
+		util.Accepted:  "维修中",
+		util.Committed: "维修中",
+		util.Closed:    "已完成",
+		util.Cancelled: "已取消",
+	}
+	if text, ok := statusTextMap[status]; ok {
+		return text
+	}
+	return status
+}
+
+func (service EventService) generateEmailContent(event *model.Event, eventLog model.EventLog) (string, string) {
+	var actionTitle string
+	var actionMessage string
+
+	switch eventLog.Action {
+	case string(util.Accept):
+		actionTitle = "工单已接受"
+		actionMessage = "您已接受此维修工单，请及时处理。"
+	case string(util.Cancel):
+		actionTitle = "工单已取消"
+		actionMessage = "此维修工单已被客户取消。"
+	case string(util.Drop):
+		actionTitle = "工单已放弃"
+		actionMessage = "您已放弃此维修工单，工单将重新开放。"
+	case string(util.Commit):
+		actionTitle = "工单已提交审核"
+		actionMessage = "您已提交此维修工单等待审核。"
+	case string(util.AlterCommit):
+		actionTitle = "工单提交已更新"
+		actionMessage = "您已更新此维修工单的提交内容。"
+	case string(util.Reject):
+		actionTitle = "工单已被驳回"
+		actionMessage = "您提交的维修工单未通过审核，请修改后重新提交。"
+		if eventLog.Description != "" {
+			actionMessage = fmt.Sprintf("您提交的维修工单未通过审核，原因：%s", eventLog.Description)
+		}
+	case string(util.Close):
+		actionTitle = "工单已完成"
+		actionMessage = "恭喜！此维修工单已成功完成并关闭。"
+	default:
+		actionTitle = "工单状态更新"
+		actionMessage = ""
+	}
+
+	subject := fmt.Sprintf("维修工单 #%v - %s", event.EventId, actionTitle)
+	statusText := getEventStatusText(event.Status)
+
+	// Build web URL with configurable hostname
+	webHostname := viper.GetString("web.hostname")
+	if webHostname == "" {
+		webHostname = "nbtca.space"
+	}
+
+	// Build URL with status filter and event ID
+	// Include all statuses in filter for better user experience
+	statusFilter := url.QueryEscape("open,accepted,committed,closed")
+	webURL := fmt.Sprintf("https://%s/repair/admin?page=1&status=%s&eventid=%d",
+		webHostname, statusFilter, event.EventId)
+
+	bodyHTML := fmt.Sprintf(`
+		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+			<h2 style="color: #333;">%s</h2>
+			<p style="color: #666;">%s</p>
+			<div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+				<h3 style="margin-top: 0; color: #333;">当前状态: %s</h3>
+				<div style="margin: 10px 0;">
+					<span style="font-weight: bold; color: #555;">问题描述:</span>
+					<span style="color: #333;">%s</span>
+				</div>
+				<div style="margin: 10px 0;">
+					<span style="font-weight: bold; color: #555;">型号:</span>
+					<span style="color: #333;">%s</span>
+				</div>
+				<div style="margin: 10px 0;">
+					<span style="font-weight: bold; color: #555;">创建时间:</span>
+					<span style="color: #333;">%s</span>
+				</div>
+				<div style="margin: 10px 0;">
+					<span style="font-weight: bold; color: #555;">联系方式:</span>
+					<span style="color: #333;">手机: %s | QQ: %s</span>
+				</div>
+			</div>
+			<div style="margin-top: 20px;">
+				<a href="%s"
+				   style="display: inline-block; padding: 10px 20px; background-color: #0366d6; color: white; text-decoration: none; border-radius: 5px;">
+					查看工单详情
+				</a>
+			</div>
+			<p style="color: #999; font-size: 12px; margin-top: 30px;">
+				这是一封自动发送的邮件，请勿直接回复。
+			</p>
+		</div>
+	`, actionTitle, actionMessage, statusText, event.Problem, event.Model, event.GmtCreate, event.Phone, event.QQ, webURL)
+
+	return subject, bodyHTML
 }
 
 type EventAnalyzeResult struct {
