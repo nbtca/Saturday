@@ -238,6 +238,22 @@ func SetupRouter() *chi.Mux {
 	}, MemberRouterApp.UpdateAvatar)
 
 	huma.Register(api, huma.Operation{
+		OperationID: "get-notification-preferences",
+		Method:      http.MethodGet,
+		Path:        "/member/notification-preferences",
+		Summary:     "Get member notification preferences",
+		Tags:        []string{"Member", "Private"},
+	}, MemberRouterApp.GetNotificationPreferences)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "update-notification-preferences",
+		Method:      http.MethodPut,
+		Path:        "/member/notification-preferences",
+		Summary:     "Update member notification preferences",
+		Tags:        []string{"Member", "Private"},
+	}, MemberRouterApp.UpdateNotificationPreferences)
+
+	huma.Register(api, huma.Operation{
 		OperationID: "get-member-events",
 		Method:      http.MethodGet,
 		Path:        "/member/events",

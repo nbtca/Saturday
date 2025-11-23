@@ -358,4 +358,42 @@ func (MemberRouter) UpdateAvatar(ctx context.Context, input *UpdateMemberAvatarI
 	return util.MakeCommonResponse(member), nil
 }
 
+func (MemberRouter) GetNotificationPreferences(ctx context.Context, input *GetMemberInput) (*util.CommonResponse[[]model.NotificationPreferenceItem], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
+	}
+	preferences, err := service.MemberServiceApp.GetNotificationPreferences(auth.ID)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse(preferences), nil
+}
+
+func (MemberRouter) UpdateNotificationPreferences(ctx context.Context, input *UpdateNotificationPreferencesInput) (*util.CommonResponse[string], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
+	}
+
+	// Build NotificationPreferences from the input array
+	prefs := model.NotificationPreferences{}
+	for _, item := range input.Body.Preferences {
+		switch item.NotificationType {
+		case model.NotifNewEventCreated:
+			prefs.NewEventCreated = item.Enabled
+		case model.NotifEventAssignedToMe:
+			prefs.EventAssignedToMe = item.Enabled
+		case model.NotifEventStatusChanged:
+			prefs.EventStatusChanged = item.Enabled
+		}
+	}
+
+	err = service.MemberServiceApp.UpdateNotificationPreferences(auth.ID, prefs)
+	if err != nil {
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse("通知偏好已更新"), nil
+}
+
 var MemberRouterApp = new(MemberRouter)
