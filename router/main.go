@@ -155,6 +155,14 @@ func SetupRouter() *chi.Mux {
 		Tags:        []string{"Event", "Public"},
 	}, EventRouterApp.GetPublicEventByPage)
 
+	huma.Register(api, huma.Operation{
+		OperationID: "submit-member-application",
+		Method:      http.MethodPost,
+		Path:        "/member-application",
+		Summary:     "Submit a new member application",
+		Tags:        []string{"MemberApplication", "Public"},
+	}, MemberApplicationRouterApp.SubmitApplication)
+
 	// Client authenticated endpoints
 	huma.Register(api, huma.Operation{
 		OperationID: "create-token-via-logto",
@@ -357,6 +365,38 @@ func SetupRouter() *chi.Mux {
 		Summary:     "Close event",
 		Tags:        []string{"Event", "Admin"},
 	}, EventRouterApp.Close)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-member-applications",
+		Method:      http.MethodGet,
+		Path:        "/member-application",
+		Summary:     "Get member applications",
+		Tags:        []string{"MemberApplication", "Admin"},
+	}, MemberApplicationRouterApp.GetApplications)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-member-application-by-id",
+		Method:      http.MethodGet,
+		Path:        "/member-application/{ApplicationId}",
+		Summary:     "Get member application by ID",
+		Tags:        []string{"MemberApplication", "Admin"},
+	}, MemberApplicationRouterApp.GetApplicationById)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "approve-member-application",
+		Method:      http.MethodPatch,
+		Path:        "/member-application/{ApplicationId}/approve",
+		Summary:     "Approve member application",
+		Tags:        []string{"MemberApplication", "Admin"},
+	}, MemberApplicationRouterApp.ApproveApplication)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "reject-member-application",
+		Method:      http.MethodPatch,
+		Path:        "/member-application/{ApplicationId}/reject",
+		Summary:     "Reject member application",
+		Tags:        []string{"MemberApplication", "Admin"},
+	}, MemberApplicationRouterApp.RejectApplication)
 
 	// TODO: Upload endpoint - needs special multipart handling
 	// For now, keep as commented until Huma multipart is implemented

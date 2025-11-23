@@ -217,3 +217,44 @@ type GithubWebhookInput struct {
 type LogtoWebhookInput struct {
 	// Special handling for webhooks
 }
+
+// Member Application endpoint inputs
+
+type SubmitMemberApplicationInput struct {
+	Body struct {
+		MemberId string `json:"memberId" minLength:"1" maxLength:"10" doc:"Student ID" example:"2333333333"`
+		Name     string `json:"name" minLength:"1" maxLength:"100" doc:"Full name" example:"张三"`
+		Phone    string `json:"phone" minLength:"1" maxLength:"20" doc:"Phone number" example:"13800138000"`
+		Section  string `json:"section" minLength:"1" maxLength:"50" doc:"Department/Section" example:"web"`
+		QQ       string `json:"qq" maxLength:"20" required:"false" doc:"QQ number" example:"123456789"`
+		Email    string `json:"email" maxLength:"100" required:"false" doc:"Email address" example:"test@example.com"`
+		Major    string `json:"major" maxLength:"100" required:"false" doc:"Major" example:"计算机科学与技术"`
+		Class    string `json:"class" maxLength:"50" required:"false" doc:"Class" example:"计算机196"`
+		Memo     string `json:"memo" required:"false" doc:"Self introduction/Memo"`
+	}
+}
+
+type GetMemberApplicationsInput struct {
+	AdminAuthInput
+	dto.PageRequest
+	Status string `query:"status" required:"false" doc:"Filter by status (pending, approved, rejected)"`
+	Search string `query:"search" required:"false" doc:"Search by name or member ID"`
+}
+
+type GetMemberApplicationByIdInput struct {
+	AdminAuthInput
+	ApplicationId string `path:"ApplicationId" doc:"Application ID"`
+}
+
+type ApproveMemberApplicationInput struct {
+	AdminAuthInput
+	ApplicationId string `path:"ApplicationId" doc:"Application ID"`
+}
+
+type RejectMemberApplicationInput struct {
+	AdminAuthInput
+	ApplicationId string `path:"ApplicationId" doc:"Application ID"`
+	Body          struct {
+		Reason string `json:"reason" required:"false" doc:"Rejection reason"`
+	}
+}
