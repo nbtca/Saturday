@@ -261,6 +261,12 @@ func (service EventService) SendActionNotify(event *model.Event, eventLog model.
 			util.Logger.Error("send action notify via nsq failed: ", err)
 		}
 	}()
+	go func() {
+		err := SubscriptionServiceApp.NotifySubscribers(*event, eventLog, &identity)
+		if err != nil {
+			util.Logger.Error("send action notify via webhooks failed: ", err)
+		}
+	}()
 
 }
 

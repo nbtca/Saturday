@@ -342,6 +342,61 @@ func SetupRouter() *chi.Mux {
 		Tags:        []string{"Event", "Admin"},
 	}, EventRouterApp.Close)
 
+	// Subscription endpoints (available to members, admins, and clients)
+	huma.Register(api, huma.Operation{
+		OperationID: "create-subscription",
+		Method:      http.MethodPost,
+		Path:        "/subscriptions",
+		Summary:     "Create event subscription",
+		Description: "Create a new webhook subscription for event notifications",
+		Tags:        []string{"Subscription", "Private"},
+	}, SubscriptionRouterApp.CreateSubscription)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-subscriptions",
+		Method:      http.MethodGet,
+		Path:        "/subscriptions",
+		Summary:     "Get subscriptions",
+		Description: "Get all subscriptions for the authenticated user",
+		Tags:        []string{"Subscription", "Private"},
+	}, SubscriptionRouterApp.GetSubscriptions)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-subscription",
+		Method:      http.MethodGet,
+		Path:        "/subscriptions/{SubscriptionId}",
+		Summary:     "Get subscription by ID",
+		Description: "Get a specific subscription by ID",
+		Tags:        []string{"Subscription", "Private"},
+	}, SubscriptionRouterApp.GetSubscription)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "update-subscription",
+		Method:      http.MethodPatch,
+		Path:        "/subscriptions/{SubscriptionId}",
+		Summary:     "Update subscription",
+		Description: "Update an existing subscription",
+		Tags:        []string{"Subscription", "Private"},
+	}, SubscriptionRouterApp.UpdateSubscription)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "delete-subscription",
+		Method:      http.MethodDelete,
+		Path:        "/subscriptions/{SubscriptionId}",
+		Summary:     "Delete subscription",
+		Description: "Delete a subscription (soft delete)",
+		Tags:        []string{"Subscription", "Private"},
+	}, SubscriptionRouterApp.DeleteSubscription)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-delivery-history",
+		Method:      http.MethodGet,
+		Path:        "/subscriptions/{SubscriptionId}/deliveries",
+		Summary:     "Get delivery history",
+		Description: "Get webhook delivery history for a subscription",
+		Tags:        []string{"Subscription", "Private"},
+	}, SubscriptionRouterApp.GetDeliveryHistory)
+
 	// TODO: Upload endpoint - needs special multipart handling
 	// For now, keep as commented until Huma multipart is implemented
 	/*
