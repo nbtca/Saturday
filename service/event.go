@@ -377,6 +377,20 @@ func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog
 	return nil
 }
 
+func getEventStatusText(status string) string {
+	statusTextMap := map[string]string{
+		util.Open:      "待处理",
+		util.Accepted:  "维修中",
+		util.Committed: "维修中",
+		util.Closed:    "已完成",
+		util.Cancelled: "已取消",
+	}
+	if text, ok := statusTextMap[status]; ok {
+		return text
+	}
+	return status
+}
+
 func (service EventService) generateEmailContent(event *model.Event, eventLog model.EventLog, issueNumber interface{}) (string, string) {
 	var actionTitle string
 	var actionMessage string
@@ -412,6 +426,7 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 	}
 
 	subject := fmt.Sprintf("维修工单 #%v - %s", event.EventId, actionTitle)
+	statusText := getEventStatusText(event.Status)
 
 	bodyHTML := fmt.Sprintf(`
 		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -446,7 +461,7 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 				这是一封自动发送的邮件，请勿直接回复。
 			</p>
 		</div>
-	`, actionTitle, actionMessage, event.Status, event.Problem, event.Model, event.GmtCreate, event.Phone, event.QQ, issueNumber)
+	`, actionTitle, actionMessage, statusText, event.Problem, event.Model, event.GmtCreate, event.Phone, event.QQ, issueNumber)
 
 	return subject, bodyHTML
 }
