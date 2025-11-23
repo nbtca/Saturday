@@ -34,5 +34,12 @@
   },
   "web": {
     "hostname": "nbtca.space"
+  },
+  "notification": {
+    "batch_size": 50,
+    "batch_delay_ms": 100,
+    "default_new_event_created": false,
+    "default_event_assigned_to_me": true,
+    "default_event_status_changed": true
   }
 }

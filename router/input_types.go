@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
 )
 
@@ -79,6 +80,16 @@ type GetMemberByPageInput struct {
 type ActivateMemberInput struct {
 	MemberAuthInput
 	Body dto.ActivateMemberRequest
+}
+
+type UpdateNotificationPreferencesInput struct {
+	MemberAuthInput
+	Body struct {
+		Preferences []struct {
+			NotificationType model.NotificationType `json:"notificationType"`
+			Enabled          bool                   `json:"enabled"`
+		} `json:"preferences"`
+	}
 }
 
 // Event endpoint inputs

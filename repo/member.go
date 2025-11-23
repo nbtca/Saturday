@@ -141,3 +141,38 @@ func UpdateMember(member model.Member) error {
 	}
 	return nil
 }
+
+// UpdateNotificationPreferences updates the notification preferences for a member
+func UpdateNotificationPreferences(memberId string, preferences model.NotificationPreferences) error {
+	prefsJSON, err := preferences.Value()
+	if err != nil {
+		return err
+	}
+
+	sql, args, _ := sq.Update("member").
+		Set("notification_preferences", prefsJSON).
+		Set("gmt_modified", util.GetDate()).
+		Where(squirrel.Eq{"member_id": memberId}).ToSql()
+
+	if _, err = db.Exec(sql, args...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetMembersWithNotificationEnabled returns all members who have enabled a specific notification type
+func GetMembersWithNotificationEnabled(notifType model.NotificationType) ([]model.Member, error) {
+	// Query members where the notification_preferences JSONB contains the notification type set to true
+	jsonPath := string(notifType)
+	query := `
+		SELECT * FROM member_view
+		WHERE notification_preferences->$1 = 'true'::jsonb
+		AND role IN ('member', 'admin')
+	`
+
+	members := []model.Member{}
+	if err := db.Select(&members, query, jsonPath); err != nil {
+		return []model.Member{}, err
+	}
+	return members, nil
+}

@@ -170,4 +170,62 @@ func (service *MemberService) ActivateMember(member model.Member) error {
 	return nil
 }
 
+// GetNotificationPreferences returns the notification preferences for a member
+func (service *MemberService) GetNotificationPreferences(memberId string) ([]model.NotificationPreferenceItem, error) {
+	member, err := repo.GetMemberById(memberId)
+	if err != nil {
+		return nil, err
+	}
+	if member == (model.Member{}) {
+		return nil, util.MakeServiceError(http.StatusNotFound).SetMessage("Member not found")
+	}
+
+	prefs := member.GetNotificationPreferences()
+
+	items := []model.NotificationPreferenceItem{
+		{
+			NotificationType: model.NotifNewEventCreated,
+			Enabled:          prefs.NewEventCreated,
+			Description:      model.GetNotificationDescription(model.NotifNewEventCreated),
+		},
+		{
+			NotificationType: model.NotifEventAssignedToMe,
+			Enabled:          prefs.EventAssignedToMe,
+			Description:      model.GetNotificationDescription(model.NotifEventAssignedToMe),
+		},
+		{
+			NotificationType: model.NotifEventStatusChanged,
+			Enabled:          prefs.EventStatusChanged,
+			Description:      model.GetNotificationDescription(model.NotifEventStatusChanged),
+		},
+	}
+
+	return items, nil
+}
+
+// UpdateNotificationPreferences updates the notification preferences for a member
+func (service *MemberService) UpdateNotificationPreferences(memberId string, preferences model.NotificationPreferences) error {
+	exist, err := repo.ExistMember(memberId)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return util.MakeServiceError(http.StatusNotFound).SetMessage("Member not found")
+	}
+
+	if err := repo.UpdateNotificationPreferences(memberId, preferences); err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetMembersWithNotificationEnabled returns members who have enabled a specific notification type
+func (service *MemberService) GetMembersWithNotificationEnabled(notifType model.NotificationType) ([]model.Member, error) {
+	members, err := repo.GetMembersWithNotificationEnabled(notifType)
+	if err != nil {
+		return nil, err
+	}
+	return members, nil
+}
+
 var MemberServiceApp = new(MemberService)

@@ -281,86 +281,73 @@ func (service EventService) SendActionNotifyViaNSQ(event *model.Event, eventLog 
 }
 
 func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
-	// Determine recipient LogtoId based on action
-	var recipientLogtoId string
-	var skipEmail bool
+	var recipients []model.Member
 
 	switch eventLog.Action {
-	case string(util.Accept):
-		// Send to the member who accepted the event
-		recipientLogtoId = identity.Member.LogtoId
-	case string(util.Cancel):
-		// Send to the assigned member (if any) that event was cancelled
-		if event.MemberId == "" {
-			skipEmail = true
-		} else {
-			// Need to fetch member info to get LogtoId
-			member, err := MemberServiceApp.GetMemberById(event.MemberId)
-			if err != nil {
-				return fmt.Errorf("fetch member failed: %v", err)
-			}
-			recipientLogtoId = member.LogtoId
+	case string(util.Create):
+		// Send to all members who have enabled new event notifications
+		optedInMembers, err := MemberServiceApp.GetMembersWithNotificationEnabled(model.NotifNewEventCreated)
+		if err != nil {
+			util.Logger.Errorf("failed to get members with enabled notifications: %v", err)
+			return nil
 		}
-	case string(util.Drop):
-		// Send to the member who dropped the event (confirmation)
-		recipientLogtoId = identity.Member.LogtoId
-	case string(util.Commit):
-		// Send to the member who committed (confirmation)
-		recipientLogtoId = identity.Member.LogtoId
-	case string(util.AlterCommit):
-		// Send to the member who updated the commit (confirmation)
-		recipientLogtoId = identity.Member.LogtoId
-	case string(util.Reject):
-		// Send to the assigned member that their submission was rejected
-		if event.MemberId == "" {
-			skipEmail = true
-		} else {
-			member, err := MemberServiceApp.GetMemberById(event.MemberId)
-			if err != nil {
-				return fmt.Errorf("fetch member failed: %v", err)
+		recipients = optedInMembers
+
+	case string(util.Accept), string(util.Drop), string(util.Commit), string(util.AlterCommit):
+		// Send to the acting member if they have event_assigned_to_me enabled
+		if identity.Member.LogtoId != "" {
+			member, err := MemberServiceApp.GetMemberByLogtoId(identity.Member.LogtoId)
+			if err == nil {
+				prefs := member.GetNotificationPreferences()
+				if prefs.EventAssignedToMe {
+					recipients = append(recipients, member)
+				}
 			}
-			recipientLogtoId = member.LogtoId
 		}
-	case string(util.Close):
-		// Send to the assigned member that event is closed
-		if event.MemberId == "" {
-			skipEmail = true
-		} else {
+
+	case string(util.Cancel), string(util.Reject), string(util.Close):
+		// Send to the assigned member if they have event_assigned_to_me enabled
+		if event.MemberId != "" {
 			member, err := MemberServiceApp.GetMemberById(event.MemberId)
-			if err != nil {
-				return fmt.Errorf("fetch member failed: %v", err)
+			if err == nil {
+				prefs := member.GetNotificationPreferences()
+				if prefs.EventAssignedToMe {
+					recipients = append(recipients, member)
+				}
 			}
-			recipientLogtoId = member.LogtoId
 		}
-	default:
-		// Skip email for other actions (create, update, etc.)
-		skipEmail = true
 	}
 
-	if skipEmail || recipientLogtoId == "" {
-		return nil
+	// Send emails to all recipients
+	for _, recipient := range recipients {
+		if recipient.LogtoId == "" {
+			continue
+		}
+
+		// Fetch user email from Logto
+		logtoUser, err := LogtoServiceApp.FetchUserById(recipient.LogtoId)
+		if err != nil {
+			util.Logger.Errorf("fetch logto user failed for %s: %v", recipient.LogtoId, err)
+			continue
+		}
+
+		// Generate email subject and content based on action
+		subject, bodyHTML := service.generateEmailContent(event, eventLog)
+
+		// Create and send email
+		m := gomail.NewMessage()
+		m.SetHeader("To", logtoUser.PrimaryEmail)
+		m.SetHeader("Subject", subject)
+		m.SetBody("text/html", bodyHTML)
+
+		if err := util.SendMail(m); err != nil {
+			util.Logger.Errorf("failed to send email to %s: %v", logtoUser.PrimaryEmail, err)
+			continue
+		}
+
+		util.Logger.Tracef("send email for action '%s' to %s", eventLog.Action, logtoUser.PrimaryEmail)
 	}
 
-	// Fetch user email from Logto
-	logtoUser, err := LogtoServiceApp.FetchUserById(recipientLogtoId)
-	if err != nil {
-		return fmt.Errorf("fetch logto user failed: %v", err)
-	}
-
-	// Generate email subject and content based on action
-	subject, bodyHTML := service.generateEmailContent(event, eventLog)
-
-	// Create and send email
-	m := gomail.NewMessage()
-	m.SetHeader("To", logtoUser.PrimaryEmail)
-	m.SetHeader("Subject", subject)
-	m.SetBody("text/html", bodyHTML)
-
-	if err := util.SendMail(m); err != nil {
-		return util.MakeInternalServerError().SetMessage("fail on mail")
-	}
-
-	util.Logger.Tracef("send email for action '%s' to %s", eventLog.Action, logtoUser.PrimaryEmail)
 	return nil
 }
 
