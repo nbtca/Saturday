@@ -68,6 +68,9 @@ func (l *LogtoWebHook) Handle(request *http.Request) error {
 	}
 	member.Avatar = logtoUsersResponse.Avatar
 	member.Alias = logtoUsersResponse.UserName
+	if gh, ok := logtoUsersResponse.Identities["github"]; ok {
+		member.GithubId = gh.UserId
+	}
 	return MemberServiceApp.UpdateMember(member)
 
 }

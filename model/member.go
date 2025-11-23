@@ -15,6 +15,7 @@ type Member struct {
 	QQ          string `json:"qq" `
 	Avatar      string `json:"avatar"`
 	CreatedBy   string `json:"createdBy" db:"created_by"`
+	GithubId    string `json:"githubId" db:"github_id"`
 	GmtCreate   string `json:"gmtCreate" db:"gmt_create"`
 	GmtModified string `json:"gmtModified" db:"gmt_modified"`
 }
@@ -30,6 +31,7 @@ type NullMember struct {
 	Phone       sql.NullString `json:"phone" `
 	QQ          sql.NullString `json:"qq" `
 	Avatar      sql.NullString `json:"avatar"`
+	GithubId    string         `json:"githubId" db:"github_id"`
 	CreatedBy   sql.NullString `json:"createdBy" db:"created_by"`
 	GmtCreate   sql.NullString `json:"gmtCreate" db:"gmt_create"`
 	GmtModified sql.NullString `json:"gmtModified" db:"gmt_modified"`
