@@ -34,7 +34,6 @@ func GetClientByLogtoId(logtoId string) (model.Client, error) {
 	return client, nil
 }
 
-
 func CreateClient(client *model.Client) error {
 	client.GmtCreate = util.GetDate()
 	client.GmtModified = util.GetDate()

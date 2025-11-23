@@ -1,23 +1,64 @@
 package model
 
-import "database/sql"
+import (
+	"database/sql"
+	"encoding/json"
+)
 
 type Member struct {
-	MemberId    string `json:"memberId" db:"member_id"`
-	LogtoId     string `json:"logtoId" db:"logto_id"`
-	Alias       string `json:"alias"`
-	Password    string `json:"-"`
-	Name        string `json:"name" `
-	Section     string `json:"section" `
-	Role        string `json:"role"`
-	Profile     string `json:"profile"`
-	Phone       string `json:"phone" `
-	QQ          string `json:"qq" `
-	Avatar      string `json:"avatar"`
-	CreatedBy   string `json:"createdBy" db:"created_by"`
-	GithubId    string `json:"githubId" db:"github_id"`
-	GmtCreate   string `json:"gmtCreate" db:"gmt_create"`
-	GmtModified string `json:"gmtModified" db:"gmt_modified"`
+	MemberId                string                  `json:"memberId" db:"member_id"`
+	LogtoId                 string                  `json:"logtoId" db:"logto_id"`
+	Alias                   string                  `json:"alias"`
+	Password                string                  `json:"-"`
+	Name                    string                  `json:"name" `
+	Section                 string                  `json:"section" `
+	Role                    string                  `json:"role"`
+	Profile                 string                  `json:"profile"`
+	Phone                   string                  `json:"phone" `
+	QQ                      string                  `json:"qq" `
+	Avatar                  string                  `json:"avatar"`
+	CreatedBy               string                  `json:"createdBy" db:"created_by"`
+	GithubId                string                  `json:"githubId" db:"github_id"`
+	NotificationPreferences NotificationPreferences `json:"notificationPreferences" db:"notification_preferences"`
+	GmtCreate               string                  `json:"gmtCreate" db:"gmt_create"`
+	GmtModified             string                  `json:"gmtModified" db:"gmt_modified"`
+}
+
+// GetNotificationPreferences returns the notification preferences with defaults if not set
+func (m *Member) GetNotificationPreferences() NotificationPreferences {
+	// If preferences are all false (zero value), return defaults
+	if !m.NotificationPreferences.NewEventCreated &&
+		!m.NotificationPreferences.EventAssignedToMe &&
+		!m.NotificationPreferences.EventStatusChanged {
+		return DefaultNotificationPreferences()
+	}
+	return m.NotificationPreferences
+}
+
+// Value implements driver.Valuer for NotificationPreferences
+func (np NotificationPreferences) Value() ([]byte, error) {
+	return json.Marshal(np)
+}
+
+// Scan implements sql.Scanner for NotificationPreferences
+func (np *NotificationPreferences) Scan(value interface{}) error {
+	if value == nil {
+		*np = DefaultNotificationPreferences()
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		*np = DefaultNotificationPreferences()
+		return nil
+	}
+
+	if err := json.Unmarshal(bytes, np); err != nil {
+		*np = DefaultNotificationPreferences()
+		return err
+	}
+
+	return nil
 }
 
 type NullMember struct {
