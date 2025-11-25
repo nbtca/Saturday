@@ -258,7 +258,7 @@ type UserEvent struct {
 func (l *LogtoWebHook) Handle(request *http.Request) error {
 	bodyBytes, err := io.ReadAll(request.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read request body: %v", err)
 	}
 	defer request.Body.Close() // Always close the body when done
 
@@ -294,7 +294,12 @@ func (l *LogtoWebHook) Handle(request *http.Request) error {
 		return util.MakeValidationError("member not found", nil)
 	}
 	member.Avatar = logtoUsersResponse.Avatar
-	member.Alias = logtoUsersResponse.UserName
+	if logtoUsersResponse.Name != "" {
+		member.Alias = logtoUsersResponse.Name
+	}
+	if logtoUsersResponse.UserName != "" {
+		member.Alias = logtoUsersResponse.UserName
+	}
 	if gh, ok := logtoUsersResponse.Identities["github"]; ok {
 		member.GithubId = gh.UserId
 	}
