@@ -422,6 +422,16 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 	webURL := fmt.Sprintf("https://%s/repair/admin?page=1&status=%s&eventid=%d",
 		webHostname, statusFilter, event.EventId)
 
+	// Build contact info section - only show for actions other than Create
+	contactInfoHTML := ""
+	if eventLog.Action != string(util.Create) {
+		contactInfoHTML = fmt.Sprintf(`
+				<div style="margin: 10px 0;">
+					<span style="font-weight: bold; color: #555;">联系方式:</span>
+					<span style="color: #333;">手机: %s | QQ: %s</span>
+				</div>`, event.Phone, event.QQ)
+	}
+
 	bodyHTML := fmt.Sprintf(`
 		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
 			<h2 style="color: #333;">%s</h2>
@@ -439,11 +449,7 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 				<div style="margin: 10px 0;">
 					<span style="font-weight: bold; color: #555;">创建时间:</span>
 					<span style="color: #333;">%s</span>
-				</div>
-				<div style="margin: 10px 0;">
-					<span style="font-weight: bold; color: #555;">联系方式:</span>
-					<span style="color: #333;">手机: %s | QQ: %s</span>
-				</div>
+				</div>%s
 			</div>
 			<div style="margin-top: 20px;">
 				<a href="%s"
@@ -455,7 +461,7 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 				这是一封自动发送的邮件，请勿直接回复。
 			</p>
 		</div>
-	`, actionTitle, actionMessage, statusText, event.Problem, event.Model, event.GmtCreate, event.Phone, event.QQ, webURL)
+	`, actionTitle, actionMessage, statusText, event.Problem, event.Model, event.GmtCreate, contactInfoHTML, webURL)
 
 	return subject, bodyHTML
 }
