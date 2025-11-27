@@ -301,7 +301,29 @@ func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog
 		}
 		recipients = optedInMembers
 
-	case string(util.Accept), string(util.Drop), string(util.Commit), string(util.AlterCommit):
+		// Also send to the client when event is created
+		if event.ClientId != 0 {
+			client, err := ClientServiceApp.GetClientById(event.ClientId)
+			if err == nil && client.LogtoId != "" {
+				logtoUser, err := LogtoServiceApp.FetchUserById(client.LogtoId)
+				if err == nil {
+					// Send client-friendly email
+					subject, bodyHTML := service.generateClientEmailContent(event, string(util.Create))
+					m := gomail.NewMessage()
+					m.SetHeader("To", logtoUser.PrimaryEmail)
+					m.SetHeader("Subject", subject)
+					m.SetBody("text/html", bodyHTML)
+
+					if err := util.SendMail(m); err != nil {
+						util.Logger.Errorf("failed to send email to client %s: %v", logtoUser.PrimaryEmail, err)
+					} else {
+						util.Logger.Tracef("send email for action '%s' to client %s", eventLog.Action, logtoUser.PrimaryEmail)
+					}
+				}
+			}
+		}
+
+	case string(util.Accept):
 		// Send to the acting member if they have event_assigned_to_me enabled
 		if identity.Member.LogtoId != "" {
 			member, err := MemberServiceApp.GetMemberByLogtoId(identity.Member.LogtoId)
@@ -313,7 +335,41 @@ func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog
 			}
 		}
 
-	case string(util.Cancel), string(util.Reject), string(util.Close):
+		// Also send to the client when event is accepted
+		if event.ClientId != 0 {
+			client, err := ClientServiceApp.GetClientById(event.ClientId)
+			if err == nil && client.LogtoId != "" {
+				logtoUser, err := LogtoServiceApp.FetchUserById(client.LogtoId)
+				if err == nil {
+					// Send client-friendly email
+					subject, bodyHTML := service.generateClientEmailContent(event, string(util.Accept))
+					m := gomail.NewMessage()
+					m.SetHeader("To", logtoUser.PrimaryEmail)
+					m.SetHeader("Subject", subject)
+					m.SetBody("text/html", bodyHTML)
+
+					if err := util.SendMail(m); err != nil {
+						util.Logger.Errorf("failed to send email to client %s: %v", logtoUser.PrimaryEmail, err)
+					} else {
+						util.Logger.Tracef("send email for action '%s' to client %s", eventLog.Action, logtoUser.PrimaryEmail)
+					}
+				}
+			}
+		}
+
+	case string(util.Drop), string(util.Commit), string(util.AlterCommit):
+		// Send to the acting member if they have event_assigned_to_me enabled
+		if identity.Member.LogtoId != "" {
+			member, err := MemberServiceApp.GetMemberByLogtoId(identity.Member.LogtoId)
+			if err == nil {
+				prefs := member.GetNotificationPreferences()
+				if prefs.EventAssignedToMe {
+					recipients = append(recipients, member)
+				}
+			}
+		}
+
+	case string(util.Cancel), string(util.Reject):
 		// Send to the assigned member if they have event_assigned_to_me enabled
 		if event.MemberId != "" {
 			member, err := MemberServiceApp.GetMemberById(event.MemberId)
@@ -321,6 +377,39 @@ func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog
 				prefs := member.GetNotificationPreferences()
 				if prefs.EventAssignedToMe {
 					recipients = append(recipients, member)
+				}
+			}
+		}
+
+	case string(util.Close):
+		// Send to the assigned member if they have event_assigned_to_me enabled
+		if event.MemberId != "" {
+			member, err := MemberServiceApp.GetMemberById(event.MemberId)
+			if err == nil {
+				prefs := member.GetNotificationPreferences()
+				if prefs.EventAssignedToMe {
+					recipients = append(recipients, member)
+				}
+			}
+		}
+		// Also send to the client when event is closed
+		if event.ClientId != 0 {
+			client, err := ClientServiceApp.GetClientById(event.ClientId)
+			if err == nil && client.LogtoId != "" {
+				logtoUser, err := LogtoServiceApp.FetchUserById(client.LogtoId)
+				if err == nil {
+					// Send client-friendly email
+					subject, bodyHTML := service.generateClientEmailContent(event, string(util.Close))
+					m := gomail.NewMessage()
+					m.SetHeader("To", logtoUser.PrimaryEmail)
+					m.SetHeader("Subject", subject)
+					m.SetBody("text/html", bodyHTML)
+
+					if err := util.SendMail(m); err != nil {
+						util.Logger.Errorf("failed to send email to client %s: %v", logtoUser.PrimaryEmail, err)
+					} else {
+						util.Logger.Tracef("send email for action '%s' to client %s", eventLog.Action, logtoUser.PrimaryEmail)
+					}
 				}
 			}
 		}
@@ -373,6 +462,75 @@ func getEventStatusText(status string) string {
 	return status
 }
 
+// generateClientEmailContent creates a client-friendly email for event notifications
+func (service EventService) generateClientEmailContent(event *model.Event, action string) (string, string) {
+	var actionTitle string
+	var actionMessage string
+	var statusText string
+
+	switch action {
+	case string(util.Create):
+		actionTitle = "工单已创建"
+		actionMessage = "您的维修工单已成功创建，我们将尽快为您安排维修人员。"
+		statusText = "待处理"
+	case string(util.Accept):
+		actionTitle = "工单已接受"
+		actionMessage = "您的维修工单已被维修人员接受，正在为您处理中。"
+		statusText = "维修中"
+	case string(util.Close):
+		actionTitle = "工单已完成"
+		actionMessage = "您的维修工单已成功完成，感谢您的耐心等待。"
+		statusText = "已完成"
+	default:
+		actionTitle = "工单状态更新"
+		actionMessage = ""
+		statusText = getEventStatusText(event.Status)
+	}
+
+	subject := fmt.Sprintf("维修工单 #%v - %s", event.EventId, actionTitle)
+
+	// Build web URL with configurable hostname
+	webHostname := viper.GetString("web.hostname")
+	if webHostname == "" {
+		webHostname = "nbtca.space"
+	}
+
+	webURL := fmt.Sprintf("https://%s/repair/ticket-detail?eventId=%d", webHostname, event.EventId)
+
+	bodyHTML := fmt.Sprintf(`
+		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+			<h2 style="color: #333;">%s</h2>
+			<p style="color: #666;">%s</p>
+			<div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+				<h3 style="margin-top: 0; color: #333;">当前状态: %s</h3>
+				<div style="margin: 10px 0;">
+					<span style="font-weight: bold; color: #555;">问题描述:</span>
+					<span style="color: #333;">%s</span>
+				</div>
+				<div style="margin: 10px 0;">
+					<span style="font-weight: bold; color: #555;">型号:</span>
+					<span style="color: #333;">%s</span>
+				</div>
+				<div style="margin: 10px 0;">
+					<span style="font-weight: bold; color: #555;">创建时间:</span>
+					<span style="color: #333;">%s</span>
+				</div>
+			</div>
+			<div style="margin-top: 20px;">
+				<a href="%s"
+				   style="display: inline-block; padding: 10px 20px; background-color: #0366d6; color: white; text-decoration: none; border-radius: 5px;">
+					查看工单详情
+				</a>
+			</div>
+			<p style="color: #999; font-size: 12px; margin-top: 30px;">
+				这是一封自动发送的邮件，请勿直接回复。
+			</p>
+		</div>
+	`, actionTitle, actionMessage, statusText, event.Problem, event.Model, util.FormatEmailDate(event.GmtCreate), webURL)
+
+	return subject, bodyHTML
+}
+
 func (service EventService) generateEmailContent(event *model.Event, eventLog model.EventLog) (string, string) {
 	var actionTitle string
 	var actionMessage string
@@ -422,6 +580,16 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 	webURL := fmt.Sprintf("https://%s/repair/admin?page=1&status=%s&eventid=%d",
 		webHostname, statusFilter, event.EventId)
 
+	// Build contact info section - only show for actions other than Create
+	contactInfoHTML := ""
+	if eventLog.Action != string(util.Create) {
+		contactInfoHTML = fmt.Sprintf(`
+				<div style="margin: 10px 0;">
+					<span style="font-weight: bold; color: #555;">联系方式:</span>
+					<span style="color: #333;">手机: %s | QQ: %s</span>
+				</div>`, event.Phone, event.QQ)
+	}
+
 	bodyHTML := fmt.Sprintf(`
 		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
 			<h2 style="color: #333;">%s</h2>
@@ -439,11 +607,7 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 				<div style="margin: 10px 0;">
 					<span style="font-weight: bold; color: #555;">创建时间:</span>
 					<span style="color: #333;">%s</span>
-				</div>
-				<div style="margin: 10px 0;">
-					<span style="font-weight: bold; color: #555;">联系方式:</span>
-					<span style="color: #333;">手机: %s | QQ: %s</span>
-				</div>
+				</div>%s
 			</div>
 			<div style="margin-top: 20px;">
 				<a href="%s"
@@ -455,7 +619,7 @@ func (service EventService) generateEmailContent(event *model.Event, eventLog mo
 				这是一封自动发送的邮件，请勿直接回复。
 			</p>
 		</div>
-	`, actionTitle, actionMessage, statusText, event.Problem, event.Model, event.GmtCreate, event.Phone, event.QQ, webURL)
+	`, actionTitle, actionMessage, statusText, event.Problem, event.Model, util.FormatEmailDate(event.GmtCreate), contactInfoHTML, webURL)
 
 	return subject, bodyHTML
 }

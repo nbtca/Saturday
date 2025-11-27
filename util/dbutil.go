@@ -41,6 +41,21 @@ func FormatDate(date time.Time) string {
 	return date.Format("2006-01-02 15:04:11")
 }
 
+// FormatEmailDate formats a time string (RFC3339 or other format) to YYYY-MM-DD HH:mm:ss for email display
+func FormatEmailDate(dateStr string) string {
+	// Try to parse as RFC3339 first (the format used by GetDate())
+	t, err := time.Parse(time.RFC3339, dateStr)
+	if err != nil {
+		// If that fails, try other common formats
+		t, err = time.Parse("2006-01-02 15:04:05", dateStr)
+		if err != nil {
+			// If still fails, return the original string
+			return dateStr
+		}
+	}
+	return t.Format("2006-01-02 15:04:05")
+}
+
 func SetColumnPrefix(prefix string, column string) string {
 	return fmt.Sprint(prefix, ".", strings.ToLower(column))
 }
