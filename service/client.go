@@ -32,6 +32,14 @@ func (service ClientService) GetClientByLogtoId(logtoId string) (model.Client, e
 	return client, nil
 }
 
+func (service ClientService) GetClientById(clientId int64) (model.Client, error) {
+	client, err := repo.GetClientById(clientId)
+	if err != nil {
+		return model.Client{}, err
+	}
+	return client, nil
+}
+
 func (service ClientService) CreateClientByOpenId(openId string) (model.Client, error) {
 	client := model.Client{OpenId: openId}
 	err := repo.CreateClient(&client)
