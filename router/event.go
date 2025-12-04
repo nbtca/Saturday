@@ -193,7 +193,11 @@ func (EventRouter) Commit(ctx context.Context, input *CommitEventInput) (*util.C
 	if input.Body.Size != "" {
 		event.Size = input.Body.Size
 	}
-	if err := service.EventServiceApp.Act(&event, identity, util.Commit, input.Body.Content); err != nil {
+	opts := service.ActOptions{
+		Description: input.Body.Content,
+		Images:      input.Body.Images,
+	}
+	if err := service.EventServiceApp.ActWithOptions(&event, identity, util.Commit, opts); err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 	return util.MakeCommonResponse(event), nil
@@ -214,7 +218,11 @@ func (EventRouter) AlterCommit(ctx context.Context, input *AlterCommitEventInput
 	if input.Body.Size != "" {
 		event.Size = input.Body.Size
 	}
-	if err := service.EventServiceApp.Act(&event, identity, util.AlterCommit, input.Body.Content); err != nil {
+	opts := service.ActOptions{
+		Description: input.Body.Content,
+		Images:      input.Body.Images,
+	}
+	if err := service.EventServiceApp.ActWithOptions(&event, identity, util.AlterCommit, opts); err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
 	return util.MakeCommonResponse(event), nil
@@ -301,6 +309,7 @@ func (EventRouter) Create(ctx context.Context, input *CreateClientEventInput) (*
 		QQ:                input.Body.QQ,
 		ContactPreference: input.Body.ContactPreference,
 		Problem:           input.Body.Problem,
+		Images:            model.StringSlice(input.Body.Images),
 	}
 	err = service.EventServiceApp.CreateEvent(event)
 	if err != nil {
@@ -345,6 +354,9 @@ func (er EventRouter) Update(ctx context.Context, input *UpdateClientEventInput)
 	}
 	if input.Body.Size != "" {
 		event.Size = input.Body.Size
+	}
+	if input.Body.Images != nil {
+		event.Images = model.StringSlice(input.Body.Images)
 	}
 	if err := service.EventServiceApp.Act(&event, identity, util.Update); err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
