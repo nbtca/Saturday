@@ -31,7 +31,7 @@ func GetClientFromContext(c *gin.Context) (clientId int64, err error) {
 }
 
 /*
-Get event and put to context. 
+Get event and put to context.
 This middleware should be added to any route that performs event action.
 */
 func EventActionPreProcess(c *gin.Context) {

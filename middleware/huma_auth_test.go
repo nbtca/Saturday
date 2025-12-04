@@ -183,7 +183,7 @@ func TestHumaAuthMiddleware(t *testing.T) {
 			ShouldFail:    false,
 		},
 		{
-			CaseID:        "1.2", 
+			CaseID:        "1.2",
 			Description:   "Valid legacy JWT token with admin role",
 			Authorization: util.GenToken("admin", "2333333333"),
 			ExpectedAuth:  true,
@@ -253,21 +253,21 @@ func TestHumaAuthMiddleware(t *testing.T) {
 			if capturedCtx != nil {
 				authCtx = middleware.GetAuthContextFromHuma(capturedCtx)
 			}
-			
+
 			if tc.ExpectedAuth {
 				if authCtx == nil {
 					t.Errorf("Expected auth context to be set for case %s", tc.CaseID)
 					return
 				}
-				
+
 				if authCtx.Role != tc.ExpectedRole {
 					t.Errorf("Expected role %s, got %s", tc.ExpectedRole, authCtx.Role)
 				}
-				
+
 				if authCtx.ID == "" {
 					t.Error("Expected user ID to be set")
 				}
-				
+
 				if !authCtx.IsLegacyJWT {
 					t.Error("Expected legacy JWT flag to be true")
 				}
@@ -302,7 +302,7 @@ func TestRequireAuthMiddleware(t *testing.T) {
 			ExpectedContinue: true,
 		},
 		{
-			CaseID:      "2.2", 
+			CaseID:      "2.2",
 			Description: "Member access with member or admin role required",
 			AuthContext: &middleware.AuthContext{
 				ID:          "member123",
@@ -326,7 +326,7 @@ func TestRequireAuthMiddleware(t *testing.T) {
 			Description: "Client access with admin role required",
 			AuthContext: &middleware.AuthContext{
 				ID:          "client123",
-				Role:        "client", 
+				Role:        "client",
 				IsLegacyJWT: true,
 			},
 			RequiredRoles:    []middleware.Role{"admin"},
@@ -351,7 +351,7 @@ func TestRequireAuthMiddleware(t *testing.T) {
 		t.Run(tc.CaseID+"_"+tc.Description, func(t *testing.T) {
 			// Create mock context
 			mockCtx := NewMockHumaContext()
-			
+
 			// Set auth context if provided
 			if tc.AuthContext != nil {
 				mockCtx.ctx = context.WithValue(mockCtx.ctx, middleware.GetAuthContextKey(), tc.AuthContext)
@@ -408,7 +408,7 @@ func TestGetAuthContextFromHuma(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.CaseID+"_"+tc.Description, func(t *testing.T) {
 			mockCtx := NewMockHumaContext()
-			
+
 			if tc.SetContext && tc.AuthContext != nil {
 				mockCtx.ctx = context.WithValue(mockCtx.ctx, middleware.GetAuthContextKey(), tc.AuthContext)
 			}
@@ -484,7 +484,7 @@ func TestAuthenticateUserWithContext(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.CaseID+"_"+tc.Description, func(t *testing.T) {
 			ctx := context.Background()
-			
+
 			if tc.ContextAuth != nil {
 				ctx = context.WithValue(ctx, middleware.GetAuthContextKey(), tc.ContextAuth)
 			}

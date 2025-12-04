@@ -18,6 +18,7 @@ type Event struct {
 	QQ                string        `json:"qq"`
 	ContactPreference string        `json:"contactPreference" db:"contact_preference" `
 	Problem           string        `json:"problem" db:"problem"`
+	Images            StringSlice   `json:"images,omitempty" db:"images"`
 	MemberId          string        `json:"memberId" db:"member_id"`
 	Member            *PublicMember `json:"member" db:"-"`
 	ClosedBy          string        `json:"closedById" db:"closed_by"`
@@ -49,12 +50,13 @@ type EventEventStatusRelation struct {
 }
 
 type EventLog struct {
-	EventLogId  int64  `json:"logId" db:"event_log_id"`
-	EventId     int64  `json:"-" db:"-"`
-	Description string `json:"description"`
-	MemberId    string `json:"memberId" db:"member_id"`
-	Action      string `json:"action"`
-	GmtCreate   string `json:"gmtCreate" db:"gmt_create"`
+	EventLogId  int64       `json:"logId" db:"event_log_id"`
+	EventId     int64       `json:"-" db:"-"`
+	Description string      `json:"description"`
+	Images      StringSlice `json:"images,omitempty" db:"images"`
+	MemberId    string      `json:"memberId" db:"member_id"`
+	Action      string      `json:"action"`
+	GmtCreate   string      `json:"gmtCreate" db:"gmt_create"`
 }
 
 type EventActionRelation struct {
@@ -72,6 +74,7 @@ type PublicEvent struct {
 	ClientId          int64         `json:"clientId" db:"client_id"`
 	Model             string        `json:"model"`
 	Problem           string        `json:"problem" db:"event_description"`
+	Images            StringSlice   `json:"images,omitempty" db:"images"`
 	MemberId          string        `json:"-" db:"member_id"`
 	Member            *PublicMember `json:"member"`
 	ClosedBy          string        `json:"-" db:"closed_by"`
@@ -91,6 +94,7 @@ func CreatePublicEvent(e Event) PublicEvent {
 		ClientId:          e.ClientId,
 		Model:             e.Model,
 		Problem:           e.Problem,
+		Images:            e.Images,
 		MemberId:          e.MemberId,
 		Member:            e.Member,
 		ClosedBy:          e.ClosedBy,
