@@ -150,6 +150,7 @@ type ExportEventsToXlsxInput struct {
 	Order     string `query:"order" default:"ASC"`
 	StartTime string `query:"start_time" required:"true"`
 	EndTime   string `query:"end_time" required:"true"`
+	CapHours  bool   `query:"cap_hours" default:"true" doc:"Whether to cap hours at 8"`
 }
 
 // Client event endpoint inputs

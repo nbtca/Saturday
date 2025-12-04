@@ -38,7 +38,7 @@ func (service EventService) GetEventById(id int64) (model.Event, error) {
 	return event, nil
 }
 
-func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, endTime string) (*excelize.File, error) {
+func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, endTime string, capHours bool) (*excelize.File, error) {
 	events, err := repo.GetClosedEventsByTimeRange(f, startTime, endTime)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 		} else {
 			group.Hour += 0.5 // Default increment for unknown sizes
 		}
-		if group.Hour > MaxHour {
+		if capHours && group.Hour > MaxHour {
 			group.Hour = MaxHour // Cap the hour count at MaxHour
 		}
 		groupedByMember[memberId] = group

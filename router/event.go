@@ -110,7 +110,7 @@ func (EventRouter) ExportEventsToXlsx(ctx context.Context, input *ExportEventsTo
 		Limit:  1000000,
 		Status: status,
 		Order:  input.Order,
-	}, input.StartTime, input.EndTime)
+	}, input.StartTime, input.EndTime, input.CapHours)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}
