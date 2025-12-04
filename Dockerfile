@@ -1,8 +1,19 @@
 FROM golang AS builder
-COPY . /app
 WORKDIR /app
-RUN go env -w CGO_ENABLED=0 &&\
-  go build -v -o saturday .
+
+# Copy go mod files first for better caching
+COPY go.mod go.sum ./
+
+# Download dependencies with retry and alternative proxy
+RUN go env -w CGO_ENABLED=0 && \
+    go env -w GOPROXY=https://proxy.golang.org,direct && \
+    go mod download
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN go build -v -o saturday .
 
 FROM alpine:latest AS deploy
 ENV TZ=Asia/Shanghai

@@ -1,0 +1,29 @@
+# Alternative Dockerfile using vendored dependencies
+# Use this if network issues persist during Docker build
+#
+# Before building with this Dockerfile, run: go mod vendor
+# Then build with: docker build -f Dockerfile.vendor -t saturday .
+
+FROM golang AS builder
+WORKDIR /app
+
+# Copy everything including vendor directory
+COPY . .
+
+# Build using vendored dependencies
+RUN go env -w CGO_ENABLED=0 && \
+    go build -v -mod=vendor -o saturday .
+
+FROM alpine:latest AS deploy
+ENV TZ=Asia/Shanghai
+RUN apk add --no-cache tzdata && \
+    mkdir /app
+
+WORKDIR /app
+COPY --from=builder /app/saturday /app
+COPY --from=builder /app/migrations /app/migrations
+
+ENV Port=80
+
+EXPOSE 80
+ENTRYPOINT [ "./saturday" ]
