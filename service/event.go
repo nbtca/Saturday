@@ -181,6 +181,9 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 		}
 	}
 
+	// Delete default Sheet1
+	excelFile.DeleteSheet("Sheet1")
+
 	// Set metadata sheet as active sheet
 	excelFile.SetActiveSheet(metadataIndex)
 	return excelFile, nil
