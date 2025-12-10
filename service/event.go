@@ -113,23 +113,9 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 		}
 	}()
 
-	// Create metadata sheet first
-	metadataSheet := "导出信息"
-	metadataIndex, err := excelFile.NewSheet(metadataSheet)
-	if err != nil {
-		util.Logger.Error(err)
-		return nil, err
-	}
-
-	// Fill metadata sheet
-	if err := service.fillMetadataSheet(excelFile, metadataSheet, metadata, len(eventsExported)); err != nil {
-		util.Logger.Error(err)
-		return nil, err
-	}
-
-	// Create grouped by member sheet
+	// Create grouped by member sheet first
 	groupedByMemberSheet := "工时汇总"
-	_, err = excelFile.NewSheet(groupedByMemberSheet)
+	groupedIndex, err := excelFile.NewSheet(groupedByMemberSheet)
 	if err != nil {
 		util.Logger.Error(err)
 		return nil, err
@@ -181,11 +167,25 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 		}
 	}
 
+	// Create metadata sheet last
+	metadataSheet := "导出信息"
+	_, err = excelFile.NewSheet(metadataSheet)
+	if err != nil {
+		util.Logger.Error(err)
+		return nil, err
+	}
+
+	// Fill metadata sheet
+	if err := service.fillMetadataSheet(excelFile, metadataSheet, metadata, len(eventsExported)); err != nil {
+		util.Logger.Error(err)
+		return nil, err
+	}
+
 	// Delete default Sheet1
 	excelFile.DeleteSheet("Sheet1")
 
-	// Set metadata sheet as active sheet
-	excelFile.SetActiveSheet(metadataIndex)
+	// Set grouped by member sheet as active sheet (first sheet)
+	excelFile.SetActiveSheet(groupedIndex)
 	return excelFile, nil
 }
 
