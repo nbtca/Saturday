@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/google/go-github/v69/github"
 	md "github.com/nao1215/markdown"
@@ -27,6 +28,16 @@ type ActOptions struct {
 	Description string
 	Images      []string
 }
+// ExportMetadata contains metadata information for Excel export
+type ExportMetadata struct {
+	ExportTime time.Time
+	UserId     string
+	UserRole   string
+	StartTime  string
+	EndTime    string
+	Status     string
+	Order      string
+}
 
 func (service EventService) GetEventById(id int64) (model.Event, error) {
 	event, err := repo.GetEventById(id)
@@ -43,7 +54,7 @@ func (service EventService) GetEventById(id int64) (model.Event, error) {
 	return event, nil
 }
 
-func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, endTime string) (*excelize.File, error) {
+func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, endTime string, metadata ExportMetadata) (*excelize.File, error) {
 	events, err := repo.GetClosedEventsByTimeRange(f, startTime, endTime)
 	if err != nil {
 		return nil, err
@@ -105,9 +116,10 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 			fmt.Println(err)
 		}
 	}()
-	// Create a new sheet.
-	groupedByMemberSheet := "Sheet1"
-	index, err := excelFile.NewSheet(groupedByMemberSheet)
+
+	// Create grouped by member sheet first
+	groupedByMemberSheet := "工时汇总"
+	groupedIndex, err := excelFile.NewSheet(groupedByMemberSheet)
 	if err != nil {
 		util.Logger.Error(err)
 		return nil, err
@@ -124,7 +136,8 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 		excelFile.SetCellValue(groupedByMemberSheet, fmt.Sprintf("D%v", i+2), event.MemberPhone)
 		excelFile.SetCellValue(groupedByMemberSheet, fmt.Sprintf("E%v", i+2), event.Hour)
 	}
-	overAllSheet := "Sheet2"
+	// Create detailed events sheet
+	overAllSheet := "事件明细"
 	_, err = excelFile.NewSheet(overAllSheet)
 	if err != nil {
 		util.Logger.Error(err)
@@ -158,7 +171,25 @@ func (service EventService) ExportEventToXlsx(f repo.EventFilter, startTime, end
 		}
 	}
 
-	excelFile.SetActiveSheet(index)
+	// Create metadata sheet last
+	metadataSheet := "导出信息"
+	_, err = excelFile.NewSheet(metadataSheet)
+	if err != nil {
+		util.Logger.Error(err)
+		return nil, err
+	}
+
+	// Fill metadata sheet
+	if err := service.fillMetadataSheet(excelFile, metadataSheet, metadata, len(eventsExported)); err != nil {
+		util.Logger.Error(err)
+		return nil, err
+	}
+
+	// Delete default Sheet1
+	excelFile.DeleteSheet("Sheet1")
+
+	// Set grouped by member sheet as active sheet (first sheet)
+	excelFile.SetActiveSheet(groupedIndex)
 	return excelFile, nil
 }
 
@@ -896,6 +927,109 @@ func EventSizeToHour(size string) float64 {
 	default:
 		return 0
 	}
+}
+
+// formatMetadataDate formats date string for metadata display
+func formatMetadataDate(dateStr string) string {
+	t, err := time.Parse("2006-01-02T15:04:05Z", dateStr)
+	if err != nil {
+		// Try other formats
+		t, err = time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			return dateStr
+		}
+	}
+	return t.Format("2006年01月02日")
+}
+
+// getStatusText returns Chinese description for status
+func getStatusText(status string) string {
+	if status == "" {
+		return "全部"
+	}
+	statusMap := map[string]string{
+		"open":      "待处理",
+		"accepted":  "已接受",
+		"committed": "已提交",
+		"closed":    "已关闭",
+		"cancelled": "已取消",
+	}
+	if text, ok := statusMap[status]; ok {
+		return text
+	}
+	return status
+}
+
+// fillMetadataSheet fills the metadata sheet with export information
+func (service EventService) fillMetadataSheet(
+	f *excelize.File,
+	sheetName string,
+	metadata ExportMetadata,
+	recordCount int,
+) error {
+	// Query user information
+	member, err := MemberServiceApp.GetMemberById(metadata.UserId)
+	memberName := "未知"
+	memberSection := ""
+	if err == nil {
+		memberName = member.Name
+		memberSection = member.Section
+	}
+
+	// Set title style
+	titleStyle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 14},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#4472C4"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
+	})
+
+	headerStyle, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true},
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"#D9E1F2"}, Pattern: 1},
+	})
+
+	// Set column width
+	f.SetColWidth(sheetName, "A", "A", 20)
+	f.SetColWidth(sheetName, "B", "B", 40)
+
+	// Main title
+	f.MergeCell(sheetName, "A1", "B1")
+	f.SetCellValue(sheetName, "A1", "维修记录导出元数据")
+	f.SetCellStyle(sheetName, "A1", "B1", titleStyle)
+	f.SetRowHeight(sheetName, 1, 25)
+
+	// Fill data
+	data := [][]interface{}{
+		{"导出时间", metadata.ExportTime.Format("2006-01-02 15:04:05")},
+		{"导出用户ID", metadata.UserId},
+		{"导出用户姓名", memberName},
+		{"导出用户班级", memberSection},
+		{"导出用户角色", metadata.UserRole},
+		{"", ""}, // Empty row
+		{"时间范围(开始)", formatMetadataDate(metadata.StartTime)},
+		{"时间范围(结束)", formatMetadataDate(metadata.EndTime)},
+		{"筛选状态", getStatusText(metadata.Status)},
+		{"排序方式", metadata.Order},
+		{"", ""}, // Empty row
+		{"导出记录总数", recordCount},
+	}
+
+	row := 2
+	for _, item := range data {
+		if item[0] == "" {
+			row++
+			continue
+		}
+		cell := fmt.Sprintf("A%d", row)
+		f.SetCellValue(sheetName, cell, item[0])
+		f.SetCellStyle(sheetName, cell, cell, headerStyle)
+
+		cell = fmt.Sprintf("B%d", row)
+		f.SetCellValue(sheetName, cell, item[1])
+		row++
+	}
+
+	return nil
 }
 
 var EventServiceApp = EventService{}
