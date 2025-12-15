@@ -24,6 +24,10 @@ import (
 
 type EventService struct{}
 
+type ActOptions struct {
+	Description string
+	Images      []string
+}
 // ExportMetadata contains metadata information for Excel export
 type ExportMetadata struct {
 	ExportTime time.Time
@@ -863,14 +867,21 @@ this function validates the action and then perform action to the event.
 it also persists the event and event log.
 */
 func (service EventService) Act(event *model.Event, identity model.Identity, action util.Action, description ...string) error {
+	opts := ActOptions{}
+	for _, d := range description {
+		opts.Description = fmt.Sprint(opts.Description, d)
+	}
+	return service.ActWithOptions(event, identity, action, opts)
+}
+
+func (service EventService) ActWithOptions(event *model.Event, identity model.Identity, action util.Action, opts ActOptions) error {
 	handler := util.MakeEventActionHandler(action, event, identity)
 	if err := handler.ValidateAction(); err != nil {
 		util.Logger.Error("validate action failed: ", err)
 		return err
 	}
-	for _, d := range description {
-		handler.Description = fmt.Sprint(handler.Description, d)
-	}
+	handler.Description = opts.Description
+	handler.Images = opts.Images
 
 	log := handler.Handle()
 

@@ -39,6 +39,7 @@ type eventActionHandler struct {
 	prevStatus  string
 	nextStatus  string
 	Description string
+	Images      []string
 	customLog   customLogFunc
 }
 
@@ -52,6 +53,7 @@ var idAndDescriptionLog customLogFunc = func(eh *eventActionHandler) model.Event
 	return eh.createEventLog(createEventLogArgs{
 		Id:          eh.actor.Id,
 		Description: eh.Description,
+		Images:      eh.Images,
 	})
 }
 
@@ -183,6 +185,7 @@ func (eh *eventActionHandler) ValidateAction() error {
 type createEventLogArgs struct {
 	Id          string
 	Description string
+	Images      []string
 }
 
 func (eh *eventActionHandler) createEventLog(args createEventLogArgs) model.EventLog {
@@ -191,6 +194,7 @@ func (eh *eventActionHandler) createEventLog(args createEventLogArgs) model.Even
 		Action:      string(eh.action),
 		MemberId:    args.Id,
 		Description: args.Description,
+		Images:      args.Images,
 		GmtCreate:   GetDate(),
 	}
 }

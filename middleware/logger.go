@@ -15,7 +15,7 @@ func Logger(c *gin.Context) {
 
 	endTime := time.Now()
 
-	latencyTime := endTime.Sub(startTime).Microseconds() 
+	latencyTime := endTime.Sub(startTime).Microseconds()
 
 	util.Logger.WithFields(logrus.Fields{
 		"status_code":   c.Writer.Status(),

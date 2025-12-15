@@ -11,9 +11,9 @@ import (
 )
 
 var eventFields = []string{"event_id", "client_id", "model", "phone", "qq", "contact_preference",
-	"problem", "member_id", "closed_by", "status", "size", "gmt_create", "gmt_modified", "status", "github_issue_id", "github_issue_number"}
+	"problem", "images", "member_id", "closed_by", "status", "size", "gmt_create", "gmt_modified", "status", "github_issue_id", "github_issue_number"}
 
-var EventLogFields = []string{"event_log_id", "description", "gmt_create", "member_id", "action"}
+var EventLogFields = []string{"event_log_id", "description", "images", "gmt_create", "member_id", "action"}
 
 func getEventStatement() squirrel.SelectBuilder {
 	prefixedMember := util.Prefixer("member", memberFields)
@@ -204,6 +204,7 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 		Set("qq", event.QQ).
 		Set("contact_preference", event.ContactPreference).
 		Set("problem", event.Problem).
+		Set("images", event.Images).
 		Set("size", event.Size).
 		Set("member_id", event.MemberId).
 		Set("closed_by", event.ClosedBy)
@@ -238,12 +239,13 @@ func UpdateEvent(event *model.Event, eventLog *model.EventLog) error {
 func CreateEvent(event *model.Event) error {
 	event.GmtCreate = util.GetDate()
 	event.GmtModified = util.GetDate()
+
 	createEventSql, args, _ := sq.Insert("event").Columns(
 		"client_id", "model", "phone", "qq",
-		"contact_preference", "problem", "member_id", "closed_by",
+		"contact_preference", "problem", "images", "member_id", "closed_by",
 		"gmt_create", "gmt_modified").Values(
 		event.ClientId, event.Model, event.Phone, event.QQ,
-		event.ContactPreference, event.Problem, event.MemberId, event.ClosedBy,
+		event.ContactPreference, event.Problem, event.Images, event.MemberId, event.ClosedBy,
 		event.GmtCreate, event.GmtModified).ToSql()
 	conn, err := db.Beginx()
 	if err != nil {
@@ -265,8 +267,8 @@ func CreateEvent(event *model.Event) error {
 }
 
 func CreateEventLog(eventLog *model.EventLog, conn *sqlx.Tx) error {
-	sql, args, _ := sq.Insert("event_log").Columns("event_id", "description", "member_id", "gmt_create").
-		Values(eventLog.EventId, eventLog.Description, eventLog.MemberId, util.GetDate()).ToSql()
+	sql, args, _ := sq.Insert("event_log").Columns("event_id", "description", "images", "member_id", "gmt_create").
+		Values(eventLog.EventId, eventLog.Description, eventLog.Images, eventLog.MemberId, util.GetDate()).ToSql()
 	var eventLogId int64
 	err := db.QueryRow(sql+"RETURNING event_log_id", args...).Scan(&eventLogId)
 	if err != nil {

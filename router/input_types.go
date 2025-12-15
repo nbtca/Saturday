@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
 )
@@ -120,8 +121,9 @@ type CommitEventInput struct {
 	MemberAuthInput
 	EventPathInput
 	Body struct {
-		Content string `json:"content"`
-		Size    string `json:"size" required:"false"`
+		Content string   `json:"content"`
+		Size    string   `json:"size" required:"false"`
+		Images  []string `json:"images" required:"false"`
 	}
 }
 
@@ -129,8 +131,9 @@ type AlterCommitEventInput struct {
 	MemberAuthInput
 	EventPathInput
 	Body struct {
-		Content string `json:"content"`
-		Size    string `json:"size" required:"false"`
+		Content string   `json:"content"`
+		Size    string   `json:"size" required:"false"`
+		Images  []string `json:"images" required:"false"`
 	}
 }
 
@@ -169,11 +172,12 @@ type GetClientEventByPageInput struct {
 type CreateClientEventInput struct {
 	ClientAuthInput
 	Body struct {
-		Model             string `json:"model" required:"false"`
-		Phone             string `json:"phone"`
-		QQ                string `json:"qq" required:"false"`
-		ContactPreference string `json:"contactPreference" required:"false"`
-		Problem           string `json:"problem"`
+		Model             string   `json:"model" required:"false"`
+		Phone             string   `json:"phone"`
+		QQ                string   `json:"qq" required:"false"`
+		ContactPreference string   `json:"contactPreference" required:"false"`
+		Problem           string   `json:"problem"`
+		Images            []string `json:"images" required:"false"`
 	}
 }
 
@@ -181,12 +185,13 @@ type UpdateClientEventInput struct {
 	ClientAuthInput
 	EventPathInput
 	Body struct {
-		Model             string `json:"model" required:"false"`
-		Phone             string `json:"phone"`
-		QQ                string `json:"qq" required:"false"`
-		ContactPreference string `json:"contactPreference" required:"false"`
-		Problem           string `json:"problem"`
-		Size              string `json:"size" required:"false"`
+		Model             string   `json:"model" required:"false"`
+		Phone             string   `json:"phone"`
+		QQ                string   `json:"qq" required:"false"`
+		ContactPreference string   `json:"contactPreference" required:"false"`
+		Problem           string   `json:"problem"`
+		Size              string   `json:"size" required:"false"`
+		Images            []string `json:"images" required:"false"`
 	}
 }
 
@@ -205,7 +210,9 @@ type CreateTokenViaLogtoInput struct {
 
 type UploadFileInput struct {
 	AuthenticatedInput
-	// File upload will be handled specially
+	RawBody huma.MultipartFormFiles[struct {
+		File huma.FormFile `form:"file" contentType:"image/jpeg,image/png,image/webp,image/jpg" required:"true" doc:"Image file to upload (max 10MB)"`
+	}]
 }
 
 // Webhook inputs (these may stay as Gin handlers)
