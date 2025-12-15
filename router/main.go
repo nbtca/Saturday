@@ -373,7 +373,7 @@ func SetupRouter() *chi.Mux {
 		Summary:     "Upload image file",
 		Description: "Upload an image file (JPEG, PNG, WebP). Max size: 10MB. Use 'file' as the field name in multipart form.",
 		Tags:        []string{"Common", "Private"},
-		Middlewares: huma.Middlewares{middleware.HumaAuth("member", "admin", "client")},
+		Middlewares: huma.Middlewares{middleware.RequireAuth("member", "admin", "client")},
 	}, CommonRouterApp.Upload)
 
 	return router
