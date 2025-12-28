@@ -34,6 +34,18 @@ func GetClientByLogtoId(logtoId string) (model.Client, error) {
 	return client, nil
 }
 
+func GetClientById(clientId int64) (model.Client, error) {
+	statement, args, _ := sq.Select("*").From("client").Where(squirrel.Eq{"client_id": clientId}).ToSql()
+	client := model.Client{}
+	if err := db.Get(&client, statement, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return model.Client{}, nil
+		}
+		return model.Client{}, err
+	}
+	return client, nil
+}
+
 func CreateClient(client *model.Client) error {
 	client.GmtCreate = util.GetDate()
 	client.GmtModified = util.GetDate()

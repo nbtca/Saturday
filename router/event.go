@@ -96,7 +96,7 @@ func (EventRouter) GetMemberEventByPage(ctx context.Context, input *GetMemberEve
 // ExportEventsToXlsx exports events to XLSX format
 // Note: This endpoint returns raw file data instead of CommonResponse
 func (EventRouter) ExportEventsToXlsx(ctx context.Context, input *ExportEventsToXlsxInput) (*huma.StreamResponse, error) {
-	_, err := middleware.AuthenticateUser(input.Authorization, "admin")
+	auth, err := middleware.AuthenticateUser(input.Authorization, "admin")
 	if err != nil {
 		return nil, err
 	}
@@ -105,12 +105,24 @@ func (EventRouter) ExportEventsToXlsx(ctx context.Context, input *ExportEventsTo
 	if input.Status != "" {
 		status = []string{input.Status}
 	}
+
+	// Prepare export metadata
+	exportMetadata := service.ExportMetadata{
+		ExportTime: time.Now(),
+		UserId:     auth.ID,
+		UserRole:   auth.Role,
+		StartTime:  input.StartTime,
+		EndTime:    input.EndTime,
+		Status:     input.Status,
+		Order:      input.Order,
+	}
+
 	f, err := service.EventServiceApp.ExportEventToXlsx(repo.EventFilter{
 		Offset: 0,
 		Limit:  1000000,
 		Status: status,
 		Order:  input.Order,
-	}, input.StartTime, input.EndTime)
+	}, input.StartTime, input.EndTime, exportMetadata)
 	if err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}

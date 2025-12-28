@@ -26,10 +26,17 @@ func SetupRouter() *chi.Mux {
 
 	// Add CORS middleware
 	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"https://repair.nbtca.space", "https://nbtca.space", "http://localhost:5173"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"*"},
-		ExposedHeaders:   []string{"Content-Length"},
+		AllowedOrigins: []string{"https://repair.nbtca.space", "https://nbtca.space", "http://localhost:5173"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"*"},
+		ExposedHeaders: []string{
+			"Content-Length",
+			"X-Limit",
+			"X-Offset",
+			"X-Page",
+			"X-Total-Count",
+			"X-Total-Pages",
+		},
 		AllowCredentials: true,
 		AllowOriginFunc: func(r *http.Request, origin string) bool {
 			match, err := regexp.MatchString(`https:\/\/.*\.nbtca\.space`, origin)
