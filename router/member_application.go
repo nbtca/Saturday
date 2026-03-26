@@ -2,7 +2,6 @@ package router
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/nbtca/saturday/middleware"
@@ -19,9 +18,9 @@ type MemberApplicationResponse struct {
 }
 
 type MemberApplicationsListResponse struct {
-	Success    bool                        `json:"success"`
-	Result     []model.MemberApplication   `json:"result"`
-	TotalCount int                         `json:"totalCount"`
+	Success    bool                      `json:"success"`
+	Result     []model.MemberApplication `json:"result"`
+	TotalCount int                       `json:"totalCount"`
 }
 
 // SubmitApplication creates a new member application (public endpoint)

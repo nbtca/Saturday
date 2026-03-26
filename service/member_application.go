@@ -129,12 +129,11 @@ func (service *MemberApplicationService) ApproveApplication(applicationId string
 		Phone:     application.Phone,
 		Section:   application.Section,
 		QQ:        application.QQ,
-		Email:     "",     // Email field doesn't exist in Member model based on the schema
-		Alias:     "",     // Will be set later by member
-		Avatar:    "",     // Will be set later by member
+		Alias:     "", // Will be set later by member
+		Avatar:    "", // Will be set later by member
 		Profile:   application.Memo,
 		Role:      "member",
-		LogtoId:   "",     // Will be set when member activates
+		LogtoId:   "", // Will be set when member activates
 		CreatedBy: reviewedBy,
 	}
 
