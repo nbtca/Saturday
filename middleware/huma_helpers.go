@@ -34,7 +34,7 @@ func AuthenticateUser(authHeader string, acceptableRoles ...Role) (*AuthContext,
 	}
 
 	// Handle legacy JWT token (used by wechat mini app)
-	if len(strings.Split(authHeader, ".")) > 1 {
+	if len(strings.Split(authHeader, ".")) > 1 && !strings.HasPrefix(authHeader, "Bearer ") {
 		tokenParsed, claims, err := util.ParseToken(authHeader)
 		if err != nil || !tokenParsed.Valid {
 			return nil, huma.Error401Unauthorized("not authorized, token not valid")
