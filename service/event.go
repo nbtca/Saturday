@@ -317,7 +317,7 @@ func (service EventService) SendActionNotifyViaNSQ(event *model.Event, eventLog 
 		mapEventLog["member_alias"] = ""
 	}
 	jsonMap, _ := json.Marshal(mapEventLog)
-	return producer.PublishAsync(util.EventTopic, jsonMap, nil)
+	return producer.Publish(util.EventTopic(), jsonMap)
 }
 
 func (service EventService) SendActionNotifyViaMail(event *model.Event, eventLog model.EventLog, identity model.Identity) error {
