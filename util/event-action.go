@@ -129,7 +129,7 @@ var eventActionMap map[Action]eventActionHandler = map[Action]eventActionHandler
 		action:     Update,
 		prevStatus: Open,
 		nextStatus: Open,
-		role:       []string{"admin", "current_client"},
+		role:       []string{"admin", "client_current"},
 		customLog:  idLog,
 	},
 }
