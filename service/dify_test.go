@@ -4,9 +4,13 @@ import (
 	"testing"
 
 	"github.com/nbtca/saturday/service"
+	"github.com/spf13/viper"
 )
 
 func TestRunDifyWorkflow(t *testing.T) {
+	if viper.GetString("dify.api_endpoint") == "" {
+		t.Skip("dify.api_endpoint is not set")
+	}
 	// Example request
 	request := service.WorkflowRunRequest{
 		Inputs: map[string]interface{}{

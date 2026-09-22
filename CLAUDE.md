@@ -74,12 +74,10 @@ This is a REST API server built in Go using the Huma v2 framework for the NBTCA 
 - **Database**: PostgreSQL with sqlx (github.com/jmoiron/sqlx) and Squirrel query builder
 - **Migrations**: golang-migrate/migrate/v4
 - **Configuration**: Viper with Consul support and hot-reloading
-- **Testing**: Dockertest for integration tests with MySQL containers
 - **Authentication**: JWT with Logto integration and JWKS validation
 
 ### Database Architecture
 - **Primary Database**: PostgreSQL (production)
-- **Test Database**: MySQL 8.0 (via Docker containers)
 - **Migrations**: Located in `migrations/` directory, run automatically on startup
 - **Connection**: Uses sqlx with connection pooling, logging hooks, and Squirrel query builder
 - **Test Data**: CSV files in `testdata/` directories for reproducible test scenarios
@@ -101,10 +99,7 @@ This is a REST API server built in Go using the Huma v2 framework for the NBTCA 
 
 ### Testing Strategy
 - Unit tests in same packages as source code (`*_test.go`)
-- Integration tests use Docker containers for database testing with `MockDB` utility
 - Test data stored in `testdata/` directories as CSV files for reproducible scenarios
-- Comprehensive coverage of HTTP endpoints, services, and middleware
-- API testing with request/response validation using Huma's type-safe approach
 
 ### API Design Patterns
 - **OpenAPI-First**: Huma v2 automatically generates OpenAPI documentation from Go structs

@@ -109,7 +109,7 @@ func authenticateToken(authHeader string) (*AuthContext, error) {
 		if err != nil || !tokenParsed.Valid {
 			return nil, err
 		}
-		
+
 		return &AuthContext{
 			ID:          claims.Who,
 			Member:      claims.Member,
@@ -153,7 +153,7 @@ func authenticateToken(authHeader string) (*AuthContext, error) {
 		Role:     userRoles,
 		UserInfo: userinfo,
 	}
-	
+
 	return &AuthContext{
 		User:   user,
 		ID:     member.MemberId,
