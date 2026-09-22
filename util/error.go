@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -63,22 +62,6 @@ func IsServiceError(err error) (ServiceError, bool) {
 	}
 	serviceError, ok := err.(ServiceError)
 	return serviceError, ok
-}
-
-// check error type
-// if error is not nil, return true and handle accordingly,
-// else return false
-func CheckError(c *gin.Context, err error) bool {
-	if err != nil {
-		serviceError, ok := IsServiceError(err)
-		if ok {
-			c.AbortWithStatusJSON(serviceError.Build())
-		} else {
-			c.Error(err)
-		}
-		return true
-	}
-	return false
 }
 
 // parse error from validator

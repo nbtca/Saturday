@@ -5,16 +5,10 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 )
-
-type ContextLogger struct {
-	*logrus.Logger
-	Context *gin.Context
-}
 
 type NSQHookForError struct {
 	Producer *nsq.Producer
