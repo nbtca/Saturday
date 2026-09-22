@@ -27,7 +27,7 @@ func (hook *NSQHookForError) Fire(entry *logrus.Entry) error {
 	if err != nil {
 		return err
 	}
-	return hook.Producer.Publish(LogTopic, byte)
+	return hook.Producer.Publish(LogTopic(), byte)
 }
 
 // Levels 返回日志级别，这里返回 ErrorLevel,FatalLevel,PanicLevel
