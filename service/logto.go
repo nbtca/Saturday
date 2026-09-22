@@ -94,7 +94,7 @@ func (l LogtoService) FetchLogtoToken(resource string, scope string) (map[string
 	}
 
 	if res.Status != "200 OK" {
-		return nil, fmt.Errorf(string(rawBody))
+		return nil, fmt.Errorf("%s", rawBody)
 	}
 
 	return body, nil
@@ -162,7 +162,7 @@ func (l LogtoService) FetchUsers(request FetchLogtoUsersRequest) ([]FetchLogtoUs
 	}
 
 	if res.Status != "200 OK" {
-		return nil, fmt.Errorf(string(rawBody))
+		return nil, fmt.Errorf("%s", rawBody)
 	}
 	return body, nil
 
@@ -193,7 +193,7 @@ func (l LogtoService) FetchUserById(userId string) (*FetchLogtoUsersResponse, er
 	}
 
 	if res.Status != "200 OK" {
-		return nil, fmt.Errorf(string(rawBody))
+		return nil, fmt.Errorf("%s", rawBody)
 	}
 	return &body, nil
 }
@@ -230,7 +230,7 @@ func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserReques
 	}
 
 	if res.Status != "200 OK" {
-		return nil, fmt.Errorf(string(rawBody))
+		return nil, fmt.Errorf("%s", rawBody)
 	}
 	return body, nil
 }
@@ -309,7 +309,7 @@ func (l LogtoService) FetchUserRole(userId string) (FetchUserRoleResponse, error
 	}
 
 	if res.Status != "200 OK" {
-		return nil, fmt.Errorf(string(rawBody))
+		return nil, fmt.Errorf("%s", rawBody)
 	}
 
 	var body FetchUserRoleResponse
@@ -353,7 +353,7 @@ func (l LogtoService) FetchUserInfo(accessToken string) (FetchUserInfoResponse, 
 	}
 
 	if res.Status != "200 OK" {
-		return FetchUserInfoResponse{}, fmt.Errorf(string(rawBody))
+		return FetchUserInfoResponse{}, fmt.Errorf("%s", rawBody)
 	}
 
 	var body FetchUserInfoResponse

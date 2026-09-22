@@ -153,7 +153,7 @@ func (eh *eventActionHandler) ValidateAction() error {
 	if eh.actor.Id == eh.event.MemberId {
 		roles = append(roles, "member_current")
 	}
-	if eh.actor.ClientId == eh.event.ClientId {
+	if eh.actor.ClientId != 0 && eh.actor.ClientId == eh.event.ClientId {
 		roles = append(roles, "client_current")
 	}
 	if len(eh.role) != 0 {

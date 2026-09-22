@@ -109,7 +109,7 @@ func (gh *GithubWebHook) handleIssueWithLabel(issue github.IssuesPayload) error 
 	}
 	size, err := ExtractSizeLabel(issue.Label.Name)
 	if err != nil {
-		util.Logger.Debugf(err.Error())
+		util.Logger.Debug(err)
 		return nil
 	}
 	util.Logger.Debugf("size label found: %s", size)
