@@ -967,13 +967,13 @@ func (service EventService) fillMetadataSheet(
 
 	// Set title style
 	titleStyle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 14},
+		Font:      &excelize.Font{Bold: true, Family: "Calibri", Size: 14},
 		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#4472C4"}, Pattern: 1},
 		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
 	})
 
 	headerStyle, _ := f.NewStyle(&excelize.Style{
-		Font: &excelize.Font{Bold: true},
+		Font: &excelize.Font{Bold: true, Family: "Calibri", Size: 11},
 		Fill: excelize.Fill{Type: "pattern", Color: []string{"#D9E1F2"}, Pattern: 1},
 	})
 
