@@ -1,6 +1,9 @@
 package service
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,6 +18,7 @@ import (
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/repo"
 	"github.com/nbtca/saturday/util"
+	"github.com/spf13/viper"
 )
 
 type GithubWebHook struct {
@@ -255,12 +259,26 @@ type UserEvent struct {
 	HookID       string         `json:"hookId"`
 }
 
+func validLogtoSignature(body []byte, signature string) bool {
+	secret := viper.GetString("logto.webhook_secret")
+	if secret == "" {
+		return false
+	}
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write(body)
+	return hmac.Equal([]byte(hex.EncodeToString(mac.Sum(nil))), []byte(signature))
+}
+
 func (l *LogtoWebHook) Handle(request *http.Request) error {
 	bodyBytes, err := io.ReadAll(request.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read request body: %v", err)
 	}
 	defer request.Body.Close() // Always close the body when done
+
+	if !validLogtoSignature(bodyBytes, request.Header.Get("logto-signature-sha-256")) {
+		return fmt.Errorf("invalid logto webhook signature")
+	}
 
 	userEvent := &UserEvent{}
 	if err := json.Unmarshal(bodyBytes, userEvent); err != nil {
