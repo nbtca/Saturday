@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/Masterminds/squirrel"
@@ -67,7 +68,9 @@ func InitDB() {
 		util.Logger.Fatal(err)
 	}
 
-	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		util.Logger.Fatal(err)
+	}
 
 	db.SetMaxOpenConns(1000)               // The default is 0 (unlimited)
 	db.SetMaxIdleConns(10)                 // defaultMaxIdleConns = 2
