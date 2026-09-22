@@ -14,7 +14,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
-	_ "github.com/spf13/viper/remote"
 )
 
 func initConfig() error {
@@ -29,26 +28,44 @@ func initConfig() error {
 	consulKey := viper.GetString("CONSUL_KEY")
 	if consulAddr != "" {
 		util.Logger.Debug("Using consul config", consulAddr)
-		viper.AddRemoteProvider("consul", consulAddr, consulKey)
-		viper.SetConfigType("json") // Need to explicitly set this to json
-		err := viper.ReadRemoteConfig()
-		if err != nil {
+		if err := readConsulConfig(consulAddr, consulKey); err != nil {
 			return fmt.Errorf("failed at reading config from consul: %w", err)
 		}
 		go func() {
 			for {
-				time.Sleep(time.Second * 5) // delay after each request
-
-				// currently, only tested with etcd support
-				err := viper.WatchRemoteConfig()
-				if err != nil {
+				time.Sleep(time.Second * 5)
+				if err := readConsulConfig(consulAddr, consulKey); err != nil {
 					util.Logger.Errorf("unable to read remote config: %v", err)
-					continue
 				}
 			}
 		}()
 	}
 	return nil
+}
+
+var consulClient = &http.Client{Timeout: 10 * time.Second}
+
+func readConsulConfig(addr, key string) error {
+	if !strings.Contains(addr, "://") {
+		addr = "http://" + addr
+	}
+	req, err := http.NewRequest(http.MethodGet, addr+"/v1/kv/"+key+"?raw", nil)
+	if err != nil {
+		return err
+	}
+	if token := viper.GetString("CONSUL_HTTP_TOKEN"); token != "" {
+		req.Header.Set("X-Consul-Token", token)
+	}
+	res, err := consulClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("consul returned %s", res.Status)
+	}
+	viper.SetConfigType("json")
+	return viper.ReadConfig(res.Body)
 }
 
 func main() {
