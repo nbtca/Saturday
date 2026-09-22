@@ -21,6 +21,7 @@
     "appid": "<REDACTED>",
     "app_secret": "<REDACTED>",
     "endpoint": "https://auth.app.nbtca.space",
+    "webhook_secret": "<REDACTED>",
     "test_user_id": "<REDACTED>"
   },
   "github": {

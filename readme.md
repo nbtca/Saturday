@@ -24,6 +24,7 @@ Related projects:
 | `LOGTO_APPID`              | Logto app ID                  |
 | `LOGTO_APP_SECRET`         | Logto app secret              |
 | `LOGTO_ENDPOINT`           | Logto endpoint URL            |
+| `LOGTO_WEBHOOK_SECRET`     | Logto webhook signing key     |
 | `TESTING_LOGTO_USER_ID`       | Logto test user ID (optional) |
 | `GITHUB_OWNER`             | GitHub repo owner             |
 | `GITHUB_REPO`              | GitHub repository name        |
