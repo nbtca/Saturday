@@ -19,7 +19,14 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
+func skipWithoutLogto(t *testing.T) {
+	if viper.GetString("logto.endpoint") == "" {
+		t.Skip("logto.endpoint is not set")
+	}
+}
+
 func TestFetchLogtoToken(t *testing.T) {
+	skipWithoutLogto(t)
 	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("logto.endpoint"))
 	res, err := service.LogtoServiceApp.FetchLogtoToken(service.DefaultLogtoResource, "all")
 	if err != nil {
@@ -29,6 +36,7 @@ func TestFetchLogtoToken(t *testing.T) {
 }
 
 func TestFetchLogtoUser(t *testing.T) {
+	skipWithoutLogto(t)
 	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("logto.endpoint"))
 	userId := viper.GetString("TESTING_LOGTO_USER_ID")
 	user, err := service.LogtoServiceApp.FetchUserById(userId)
@@ -39,6 +47,7 @@ func TestFetchLogtoUser(t *testing.T) {
 }
 
 func TestFetchLogtoUsers(t *testing.T) {
+	skipWithoutLogto(t)
 	service.LogtoServiceApp = service.MakeLogtoService(viper.GetString("logto.endpoint"))
 	// userId := viper.GetString("TESTING_LOGTO_USER_ID")
 	user, err := service.LogtoServiceApp.FetchUsers(service.FetchLogtoUsersRequest{

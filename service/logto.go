@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/nbtca/saturday/model/dto"
 	"github.com/nbtca/saturday/util"
 	"github.com/spf13/viper"
@@ -21,45 +21,29 @@ var DefaultLogtoResource = "https://default.logto.app/api"
 
 type LogtoService struct {
 	BaseURL string
-	token   string
+}
+
+var logtoToken struct {
+	sync.Mutex
+	value     string
+	expiresAt time.Time
 }
 
 func (l LogtoService) getToken() (string, error) {
-
-	validate := func(token string) bool {
-		if token == "" {
-			return false
-		}
-		parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-			return []byte(viper.GetString("logto.app_secret")), nil
-		}, jwt.WithoutClaimsValidation())
-		if err != nil {
-			return false
-		}
-		// Check if the token is valid and not expired
-		if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok {
-			// Check for expiration claim ('exp')
-			if exp, ok := claims["exp"].(float64); ok {
-				// Convert 'exp' to time
-				expirationTime := time.Unix(int64(exp), 0)
-				// Check if the token is expired
-				if time.Now().After(expirationTime) {
-					return false
-				}
-			}
-		}
-		return true
+	logtoToken.Lock()
+	defer logtoToken.Unlock()
+	if logtoToken.value != "" && time.Now().Before(logtoToken.expiresAt) {
+		return logtoToken.value, nil
 	}
-
-	if !validate(l.token) {
-		res, err := l.FetchLogtoToken(DefaultLogtoResource, "all")
-		if err != nil {
-			return "", err
-		}
-		l.token = res["access_token"].(string)
-		return l.token, nil
+	res, err := l.FetchLogtoToken(DefaultLogtoResource, "all")
+	if err != nil {
+		return "", err
 	}
-	return l.token, nil
+	token, _ := res["access_token"].(string)
+	expiresIn, _ := res["expires_in"].(float64)
+	logtoToken.value = token
+	logtoToken.expiresAt = time.Now().Add(time.Duration(expiresIn)*time.Second - time.Minute)
+	return token, nil
 }
 
 func (l LogtoService) FetchLogtoToken(resource string, scope string) (map[string]interface{}, error) {
@@ -94,7 +78,7 @@ func (l LogtoService) FetchLogtoToken(resource string, scope string) (map[string
 	}
 
 	if res.Status != "200 OK" {
-		return nil, fmt.Errorf(string(rawBody))
+		return nil, fmt.Errorf("%s", rawBody)
 	}
 
 	return body, nil
@@ -162,7 +146,7 @@ func (l LogtoService) FetchUsers(request FetchLogtoUsersRequest) ([]FetchLogtoUs
 	}
 
 	if res.Status != "200 OK" {
-		return nil, fmt.Errorf(string(rawBody))
+		return nil, fmt.Errorf("%s", rawBody)
 	}
 	return body, nil
 
@@ -193,7 +177,7 @@ func (l LogtoService) FetchUserById(userId string) (*FetchLogtoUsersResponse, er
 	}
 
 	if res.Status != "200 OK" {
-		return nil, fmt.Errorf(string(rawBody))
+		return nil, fmt.Errorf("%s", rawBody)
 	}
 	return &body, nil
 }
@@ -230,7 +214,7 @@ func (l LogtoService) PatchUserById(userId string, data dto.PatchLogtoUserReques
 	}
 
 	if res.Status != "200 OK" {
-		return nil, fmt.Errorf(string(rawBody))
+		return nil, fmt.Errorf("%s", rawBody)
 	}
 	return body, nil
 }
@@ -309,7 +293,7 @@ func (l LogtoService) FetchUserRole(userId string) (FetchUserRoleResponse, error
 	}
 
 	if res.Status != "200 OK" {
-		return nil, fmt.Errorf(string(rawBody))
+		return nil, fmt.Errorf("%s", rawBody)
 	}
 
 	var body FetchUserRoleResponse
@@ -353,7 +337,7 @@ func (l LogtoService) FetchUserInfo(accessToken string) (FetchUserInfoResponse, 
 	}
 
 	if res.Status != "200 OK" {
-		return FetchUserInfoResponse{}, fmt.Errorf(string(rawBody))
+		return FetchUserInfoResponse{}, fmt.Errorf("%s", rawBody)
 	}
 
 	var body FetchUserInfoResponse

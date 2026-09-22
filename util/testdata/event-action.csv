@@ -68,3 +68,7 @@ CaseId,action,event.status,actor.role,error,out_event.status,out_event_log_actio
 3.1.67,close,open,client_current,X,,,,,
 3.1.68,close,cancelled,member_current,X,,,,,
 3.1.69,close,accepted,member,X,,,,,
+3.1.70,update,open,client_current,,open,,,,
+3.1.71,update,open,admin,,open,,,,
+3.1.72,update,open,client,X,,,,,
+3.1.73,update,accepted,client_current,X,,,,,

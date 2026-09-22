@@ -74,7 +74,6 @@ func main() {
 		log.Fatalf("Error initializing config: %v", err)
 	}
 
-	util.InitValidator()
 	util.InitDialer()
 	util.InitGithubClient()
 

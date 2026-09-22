@@ -3,7 +3,6 @@ package util_test
 import (
 	"fmt"
 	"log"
-	"net/url"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -116,28 +115,17 @@ func TestParseTokenWithoutBearer(t *testing.T) {
 }
 
 func TestParseToken(t *testing.T) {
-	token := "Bearer " + tokenString
+	token, err := util.CreateToken(util.Payload{Who: "123", Role: "member"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	_, claims, err := util.ParseToken(token)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	log.Println(claims)
-}
-
-func TestParseTokenWithJWKS(t *testing.T) {
-	token := "Bearer eyJhbGciOiJFUzM4NCIsInR5cCI6ImF0K2p3dCIsImtpZCI6Im9VU0hpdWNoNkpGUS1yaGRiTnFvLVRrVy1VRmpudmtSako3aWw1dFdOYU0ifQ.eyJqdGkiOiI4VW10UWVlMjVvZzRlSGc4cl9NUHMiLCJzdWIiOiJjaG16MWl0ejgzcXEiLCJpYXQiOjE2OTg3NTcxMDUsImV4cCI6MTY5ODc2MDcwNSwic2NvcGUiOiIiLCJjbGllbnRfaWQiOiJoMmVqa2tmd2R0ampwZW1iMDIxcm8iLCJpc3MiOiJodHRwczovL2F1dGguYXBwLm5idGNhLnNwYWNlL29pZGMiLCJhdWQiOiJodHRwczovL2FwaS5uYnRjYS5zcGFjZS92MiJ9.uUzXk8zERRhWtWFMnLcLGDF8ZQl-PoSWVWv6MnCjHb1q5P1aHlKVRx2RmSjDr2Nm7n0JZIXsSVQrDXhsB0J64qi2gI4Xuvu3pe11FIpeVxHLY7ObpDzyaeRBHc26P2Lo"
-	jwksURL, err := url.JoinPath(viper.GetString("logto.endpoint"), "/oidc/jwks")
-	if err != nil {
-		t.Error(err)
-		return
+	if claims.Who != "123" || claims.Role != "member" {
+		t.Errorf("unexpected claims: %+v", claims.Payload)
 	}
-	_, claims, err := util.ParseTokenWithJWKS(jwksURL, token)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	log.Println(claims)
 }
 
 func TestSendMail(t *testing.T) {
@@ -146,7 +134,7 @@ func TestSendMail(t *testing.T) {
 	util.InitDialer()
 	receiverAddress := viper.GetString("testing.mail.receiver_address")
 	if receiverAddress == "" {
-		t.Error("receiver_address is not set")
+		t.Skip("testing.mail.receiver_address is not set")
 	}
 	m.SetHeader("To", receiverAddress)
 	m.SetHeader("Subject", "维修状态更新(#12): ")

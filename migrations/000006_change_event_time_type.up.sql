@@ -60,7 +60,6 @@ ALTER COLUMN gmt_modified
 TYPE TIMESTAMP WITH TIME ZONE
 USING gmt_modified AT TIME ZONE 'Asia/Shanghai';
 
-DROP VIEW public.member_view;
 CREATE VIEW public.member_view AS
  SELECT member.member_id,
     member.alias,
