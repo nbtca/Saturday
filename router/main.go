@@ -308,6 +308,14 @@ func SetupRouter() *chi.Mux {
 		Tags:        []string{"Event", "Member"},
 	}, EventRouterApp.AlterCommit)
 
+	huma.Register(api, huma.Operation{
+		OperationID: "upload-event-photos",
+		Method:      http.MethodPost,
+		Path:        "/member/events/{EventId}/photos",
+		Summary:     "Upload event photos",
+		Tags:        []string{"Event", "Member"},
+	}, EventRouterApp.UploadPhotos)
+
 	// Admin authenticated endpoints
 	huma.Register(api, huma.Operation{
 		OperationID: "create-members",

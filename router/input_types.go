@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
 )
@@ -132,6 +133,14 @@ type AlterCommitEventInput struct {
 		Content string `json:"content"`
 		Size    string `json:"size" required:"false"`
 	}
+}
+
+type UploadEventPhotosInput struct {
+	MemberAuthInput
+	EventPathInput
+	RawBody huma.MultipartFormFiles[struct {
+		Photos []huma.FormFile `form:"photos" contentType:"image/webp,image/jpeg" required:"true"`
+	}]
 }
 
 type RejectCommitEventInput struct {

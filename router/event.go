@@ -3,6 +3,7 @@ package router
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -65,6 +66,10 @@ func (er EventRouter) GetEventById(ctx context.Context, input *GetEventByIdInput
 
 	if !canViewEvent(event, auth, clientId) {
 		return nil, huma.Error401Unauthorized("not authorized")
+	}
+
+	if err := service.SignPhotos(&event); err != nil {
+		return nil, huma.Error500InternalServerError(err.Error())
 	}
 
 	return util.MakeCommonResponse(event), nil
@@ -228,6 +233,40 @@ func (EventRouter) AlterCommit(ctx context.Context, input *AlterCommitEventInput
 	}
 	if err := service.EventServiceApp.Act(&event, identity, util.AlterCommit, input.Body.Content); err != nil {
 		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	return util.MakeCommonResponse(event), nil
+}
+
+func (EventRouter) UploadPhotos(ctx context.Context, input *UploadEventPhotosInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
+	}
+
+	event, err := middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+
+	files := input.RawBody.Data().Photos
+	uploads := make([]service.PhotoUpload, len(files))
+	for i, f := range files {
+		uploads[i] = service.PhotoUpload{File: f, Size: f.Size}
+	}
+	if err := service.EventServiceApp.AddPhotos(&event, middleware.CreateIdentityFromAuth(auth), uploads); err != nil {
+		if errors.Is(err, service.ErrPhotoStorage) {
+			util.Logger.Error(err)
+			return nil, huma.Error500InternalServerError(service.ErrPhotoStorage.Error())
+		}
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+
+	event, err = middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	if err := service.SignPhotos(&event); err != nil {
+		return nil, huma.Error500InternalServerError(err.Error())
 	}
 	return util.MakeCommonResponse(event), nil
 }
