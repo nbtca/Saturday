@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/google/go-github/v69/github"
@@ -889,6 +892,119 @@ func (service EventService) Act(event *model.Event, identity model.Identity, act
 	service.SendActionNotify(event, log, identity)
 	util.Logger.Tracef("event log: %v", log)
 
+	return nil
+}
+
+type PhotoUpload struct {
+	File io.ReadSeeker
+	Size int64
+}
+
+var ErrPhotoStorage = errors.New("failed to store photos")
+
+const (
+	maxPhotoSize      = 5 << 20
+	maxPhotosPerEvent = 20
+)
+
+func checkPhotoCapacity(status string, count, adding int) error {
+	if status != util.Accepted && status != util.Committed {
+		return errors.New("photos can only be added to accepted or committed events")
+	}
+	if count+adding > maxPhotosPerEvent {
+		return fmt.Errorf("an event can have at most %d photos", maxPhotosPerEvent)
+	}
+	return nil
+}
+
+func ValidatePhotoUpload(event model.Event, identity model.Identity, files []PhotoUpload) ([]string, error) {
+	if identity.Role != "admin" && (identity.Id == "" || event.MemberId != identity.Id) {
+		return nil, errors.New("only the assigned member or an admin can add photos")
+	}
+	if len(files) == 0 {
+		return nil, errors.New("no photos")
+	}
+	if err := checkPhotoCapacity(event.Status, len(event.Photos), len(files)); err != nil {
+		return nil, err
+	}
+	types := make([]string, len(files))
+	head := make([]byte, 512)
+	for i, f := range files {
+		if f.Size > maxPhotoSize {
+			return nil, fmt.Errorf("photo %d exceeds 5 MB", i+1)
+		}
+		n, err := io.ReadFull(f.File, head)
+		if err != nil && err != io.ErrUnexpectedEOF {
+			return nil, err
+		}
+		if _, err := f.File.Seek(0, io.SeekStart); err != nil {
+			return nil, err
+		}
+		types[i] = http.DetectContentType(head[:n])
+		if !slices.Contains([]string{"image/webp", "image/jpeg"}, types[i]) {
+			return nil, fmt.Errorf("photo %d is %s, expected webp or jpeg", i+1, types[i])
+		}
+	}
+	return types, nil
+}
+
+func (service EventService) AddPhotos(event *model.Event, identity model.Identity, files []PhotoUpload) error {
+	types, err := ValidatePhotoUpload(*event, identity, files)
+	if err != nil {
+		return err
+	}
+	photos := make([]model.EventPhoto, 0, len(files))
+	removeUploaded := func() {
+		keys := make([]string, len(photos))
+		for i, p := range photos {
+			keys[i] = p.ObjectKey
+		}
+		if len(keys) > 0 {
+			if err := util.Photos.Delete(keys...); err != nil {
+				util.Logger.Error("delete orphan photos failed: ", err)
+			}
+		}
+	}
+	for i, f := range files {
+		key := util.PhotoKey(event.EventId, types[i])
+		if err := util.Photos.Put(key, types[i], f.File); err != nil {
+			removeUploaded()
+			return fmt.Errorf("%w: %w", ErrPhotoStorage, err)
+		}
+		photos = append(photos, model.EventPhoto{EventId: event.EventId, ObjectKey: key, MemberId: identity.Id, GmtCreate: util.GetDate()})
+	}
+	var rejected error
+	err = repo.CreateEventPhotos(event.EventId, photos, func(status string, count int) error {
+		rejected = checkPhotoCapacity(status, count, len(photos))
+		return rejected
+	})
+	if err != nil {
+		removeUploaded()
+		if rejected != nil {
+			return rejected
+		}
+		return fmt.Errorf("%w: %w", ErrPhotoStorage, err)
+	}
+	return nil
+}
+
+func LoadPhotos(event *model.Event) error {
+	photos, err := repo.GetEventPhotos(event.EventId)
+	if err != nil {
+		return err
+	}
+	event.Photos = photos
+	return SignPhotos(event)
+}
+
+func SignPhotos(event *model.Event) error {
+	for i := range event.Photos {
+		url, err := util.Photos.SignURL(event.Photos[i].ObjectKey)
+		if err != nil {
+			return err
+		}
+		event.Photos[i].Url = url
+	}
 	return nil
 }
 

@@ -1,6 +1,8 @@
 package router
 
 import (
+	"mime/multipart"
+
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
 )
@@ -134,6 +136,13 @@ type AlterCommitEventInput struct {
 	}
 }
 
+type UploadEventPhotosInput struct {
+	MemberAuthInput
+	EventPathInput
+	// Keep file headers unopened until the handler can own and close each file.
+	RawBody multipart.Form
+}
+
 type RejectCommitEventInput struct {
 	AdminAuthInput
 	EventPathInput
@@ -199,13 +208,6 @@ type CancelClientEventInput struct {
 
 type CreateTokenViaLogtoInput struct {
 	ClientAuthInput
-}
-
-// Upload endpoint input
-
-type UploadFileInput struct {
-	AuthenticatedInput
-	// File upload will be handled specially
 }
 
 // Webhook inputs (these may stay as Gin handlers)

@@ -25,6 +25,7 @@ type Event struct {
 	Status            string        `json:"status"`
 	Size              string        `json:"size"`
 	Logs              []EventLog    `json:"logs"`
+	Photos            []EventPhoto  `json:"photos" db:"-"`
 	GmtCreate         string        `json:"gmtCreate" db:"gmt_create"`
 	GmtModified       string        `json:"gmtModified" db:"gmt_modified"`
 }
@@ -55,6 +56,15 @@ type EventLog struct {
 	MemberId    string `json:"memberId" db:"member_id"`
 	Action      string `json:"action"`
 	GmtCreate   string `json:"gmtCreate" db:"gmt_create"`
+}
+
+type EventPhoto struct {
+	PhotoId   int64  `json:"photoId" db:"photo_id"`
+	EventId   int64  `json:"-" db:"event_id"`
+	ObjectKey string `json:"-" db:"object_key"`
+	Url       string `json:"url" db:"-"`
+	MemberId  string `json:"memberId" db:"member_id"`
+	GmtCreate string `json:"gmtCreate" db:"gmt_create"`
 }
 
 type EventActionRelation struct {

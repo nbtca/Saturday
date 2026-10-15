@@ -20,9 +20,23 @@ type PingResponse struct {
 	Pong string `json:"message" example:"ping" doc:"Ping message"`
 }
 
+const maxRequestBytes = 25 << 20
+
 func SetupRouter() *chi.Mux {
 	// Create Chi router
 	router := chi.NewRouter()
+
+	router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.Body = http.MaxBytesReader(w, r.Body, maxRequestBytes)
+			defer func() {
+				if r.MultipartForm != nil {
+					r.MultipartForm.RemoveAll()
+				}
+			}()
+			next.ServeHTTP(w, r)
+		})
+	})
 
 	// Add CORS middleware
 	router.Use(cors.Handler(cors.Options{
@@ -308,6 +322,31 @@ func SetupRouter() *chi.Mux {
 		Tags:        []string{"Event", "Member"},
 	}, EventRouterApp.AlterCommit)
 
+	huma.Register(api, huma.Operation{
+		OperationID: "upload-event-photos",
+		Method:      http.MethodPost,
+		Path:        "/member/events/{EventId}/photos",
+		Summary:     "Upload event photos",
+		Tags:        []string{"Event", "Member"},
+		RequestBody: &huma.RequestBody{
+			Required: true,
+			Content: map[string]*huma.MediaType{
+				"multipart/form-data": {
+					Schema: &huma.Schema{
+						Type:     "object",
+						Required: []string{"photos"},
+						Properties: map[string]*huma.Schema{
+							"photos": {Type: "array", Items: &huma.Schema{Type: "string", Format: "binary", ContentEncoding: "binary"}},
+						},
+					},
+					Encoding: map[string]*huma.Encoding{
+						"photos": {ContentType: "image/webp,image/jpeg"},
+					},
+				},
+			},
+		},
+	}, EventRouterApp.UploadPhotos)
+
 	// Admin authenticated endpoints
 	huma.Register(api, huma.Operation{
 		OperationID: "create-members",
@@ -364,19 +403,6 @@ func SetupRouter() *chi.Mux {
 		Summary:     "Close event",
 		Tags:        []string{"Event", "Admin"},
 	}, EventRouterApp.Close)
-
-	// TODO: Upload endpoint - needs special multipart handling
-	// For now, keep as commented until Huma multipart is implemented
-	/*
-		huma.Register(api, huma.Operation{
-			OperationID: "upload-file",
-			Method:      http.MethodPost,
-			Path:        "/upload",
-			Summary:     "Upload file",
-			Tags:        []string{"Common", "Private"},
-			Middlewares: huma.Middlewares{middleware.HumaAuth("member", "admin", "client")},
-		}, CommonRouterApp.Upload)
-	*/
 
 	return router
 }

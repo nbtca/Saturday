@@ -3,6 +3,7 @@ package router
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -63,8 +64,12 @@ func (er EventRouter) GetEventById(ctx context.Context, input *GetEventByIdInput
 		return nil, err
 	}
 
-	if event.MemberId != auth.ID && event.ClientId != clientId {
+	if !canViewEvent(event, auth, clientId) {
 		return nil, huma.Error401Unauthorized("not authorized")
+	}
+
+	if err := service.LoadPhotos(&event); err != nil {
+		return nil, huma.Error500InternalServerError(err.Error())
 	}
 
 	return util.MakeCommonResponse(event), nil
@@ -232,6 +237,58 @@ func (EventRouter) AlterCommit(ctx context.Context, input *AlterCommitEventInput
 	return util.MakeCommonResponse(event), nil
 }
 
+func (EventRouter) UploadPhotos(ctx context.Context, input *UploadEventPhotosInput) (*util.CommonResponse[model.Event], error) {
+	files := input.RawBody.File["photos"]
+	if len(files) == 0 {
+		return nil, huma.Error422UnprocessableEntity("at least one photo is required")
+	}
+	for _, f := range files {
+		if contentType := f.Header.Get("Content-Type"); contentType != "" && contentType != "image/jpeg" && contentType != "image/webp" {
+			return nil, huma.Error422UnprocessableEntity("expected webp or jpeg")
+		}
+	}
+
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
+	}
+
+	event, err := middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+
+	if event.Photos, err = repo.GetEventPhotos(event.EventId); err != nil {
+		return nil, huma.Error500InternalServerError(err.Error())
+	}
+
+	uploads := make([]service.PhotoUpload, len(files))
+	for i, f := range files {
+		file, err := f.Open()
+		if err != nil {
+			return nil, huma.Error422UnprocessableEntity("failed to open photo")
+		}
+		defer file.Close()
+		uploads[i] = service.PhotoUpload{File: file, Size: f.Size}
+	}
+	if err := service.EventServiceApp.AddPhotos(&event, middleware.CreateIdentityFromAuth(auth), uploads); err != nil {
+		if errors.Is(err, service.ErrPhotoStorage) {
+			util.Logger.Error(err)
+			return nil, huma.Error500InternalServerError(service.ErrPhotoStorage.Error())
+		}
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+
+	event, err = middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	if err := service.LoadPhotos(&event); err != nil {
+		return nil, huma.Error500InternalServerError(err.Error())
+	}
+	return util.MakeCommonResponse(event), nil
+}
+
 func (EventRouter) RejectCommit(ctx context.Context, input *RejectCommitEventInput) (*util.CommonResponse[model.Event], error) {
 	auth, err := middleware.AuthenticateUser(input.Authorization, "admin")
 	if err != nil {
@@ -390,3 +447,7 @@ func (er EventRouter) Cancel(ctx context.Context, input *CancelClientEventInput)
 }
 
 var EventRouterApp = EventRouter{}
+
+func canViewEvent(event model.Event, auth *middleware.AuthContext, clientId int64) bool {
+	return auth.Role == "admin" || (auth.ID != "" && event.MemberId == auth.ID) || event.ClientId == clientId
+}

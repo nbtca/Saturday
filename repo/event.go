@@ -34,6 +34,10 @@ func getLogStatement() squirrel.SelectBuilder {
 	return sq.Select(EventLogFields...).From("event_log_view")
 }
 
+func getPhotoStatement() squirrel.SelectBuilder {
+	return sq.Select("photo_id", "event_id", "object_key", "member_id", "gmt_create").From("event_photo").OrderBy("photo_id")
+}
+
 /*
 when a struct contains sub struct, the struct's field has the db tag of "struct'dbTag.subStruct.dbTag"
 for example: the db tag here for event is event, the db tag for mode.Event has field "EventId" with db tag "event_id"
@@ -342,4 +346,44 @@ func GetEventClientId(eventId int64) (int64, error) {
 		return 0, err
 	}
 	return clientId, nil
+}
+
+func GetEventPhotos(eventId int64) ([]model.EventPhoto, error) {
+	sql, args, _ := getPhotoStatement().Where(squirrel.Eq{"event_id": eventId}).ToSql()
+	photos := []model.EventPhoto{}
+	err := db.Select(&photos, sql, args...)
+	return photos, err
+}
+
+func CreateEventPhotos(eventId int64, photos []model.EventPhoto, check func(status string, count int) error) error {
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.Exec("SELECT 1 FROM event WHERE event_id = $1 FOR UPDATE", eventId); err != nil {
+		return err
+	}
+	var current struct {
+		Status string `db:"status"`
+		Count  int    `db:"count"`
+	}
+	if err := tx.Get(&current, "SELECT status, (SELECT count(*) FROM event_photo WHERE event_id = $1) AS count FROM event_view WHERE event_id = $1", eventId); err != nil {
+		return err
+	}
+	if err := check(current.Status, current.Count); err != nil {
+		return err
+	}
+	insert := sq.Insert("event_photo").Columns("event_id", "object_key", "member_id", "gmt_create")
+	for _, p := range photos {
+		insert = insert.Values(eventId, p.ObjectKey, p.MemberId, p.GmtCreate)
+	}
+	sql, args, err := insert.ToSql()
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec(sql, args...); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
