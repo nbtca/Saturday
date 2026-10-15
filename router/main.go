@@ -20,9 +20,18 @@ type PingResponse struct {
 	Pong string `json:"message" example:"ping" doc:"Ping message"`
 }
 
+const maxRequestBytes = 25 << 20
+
 func SetupRouter() *chi.Mux {
 	// Create Chi router
 	router := chi.NewRouter()
+
+	router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.Body = http.MaxBytesReader(w, r.Body, maxRequestBytes)
+			next.ServeHTTP(w, r)
+		})
+	})
 
 	// Add CORS middleware
 	router.Use(cors.Handler(cors.Options{
