@@ -29,6 +29,11 @@ func SetupRouter() *chi.Mux {
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.Body = http.MaxBytesReader(w, r.Body, maxRequestBytes)
+			defer func() {
+				if r.MultipartForm != nil {
+					r.MultipartForm.RemoveAll()
+				}
+			}()
 			next.ServeHTTP(w, r)
 		})
 	})
@@ -323,6 +328,23 @@ func SetupRouter() *chi.Mux {
 		Path:        "/member/events/{EventId}/photos",
 		Summary:     "Upload event photos",
 		Tags:        []string{"Event", "Member"},
+		RequestBody: &huma.RequestBody{
+			Required: true,
+			Content: map[string]*huma.MediaType{
+				"multipart/form-data": {
+					Schema: &huma.Schema{
+						Type:     "object",
+						Required: []string{"photos"},
+						Properties: map[string]*huma.Schema{
+							"photos": {Type: "array", Items: &huma.Schema{Type: "string", Format: "binary", ContentEncoding: "binary"}},
+						},
+					},
+					Encoding: map[string]*huma.Encoding{
+						"photos": {ContentType: "image/webp,image/jpeg"},
+					},
+				},
+			},
+		},
 	}, EventRouterApp.UploadPhotos)
 
 	// Admin authenticated endpoints

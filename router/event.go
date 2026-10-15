@@ -238,6 +238,16 @@ func (EventRouter) AlterCommit(ctx context.Context, input *AlterCommitEventInput
 }
 
 func (EventRouter) UploadPhotos(ctx context.Context, input *UploadEventPhotosInput) (*util.CommonResponse[model.Event], error) {
+	files := input.RawBody.File["photos"]
+	if len(files) == 0 {
+		return nil, huma.Error422UnprocessableEntity("at least one photo is required")
+	}
+	for _, f := range files {
+		if contentType := f.Header.Get("Content-Type"); contentType != "" && contentType != "image/jpeg" && contentType != "image/webp" {
+			return nil, huma.Error422UnprocessableEntity("expected webp or jpeg")
+		}
+	}
+
 	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
 	if err != nil {
 		return nil, err
@@ -252,11 +262,14 @@ func (EventRouter) UploadPhotos(ctx context.Context, input *UploadEventPhotosInp
 		return nil, huma.Error500InternalServerError(err.Error())
 	}
 
-	files := input.RawBody.Data().Photos
 	uploads := make([]service.PhotoUpload, len(files))
 	for i, f := range files {
-		defer f.Close()
-		uploads[i] = service.PhotoUpload{File: f, Size: f.Size}
+		file, err := f.Open()
+		if err != nil {
+			return nil, huma.Error422UnprocessableEntity("failed to open photo")
+		}
+		defer file.Close()
+		uploads[i] = service.PhotoUpload{File: file, Size: f.Size}
 	}
 	if err := service.EventServiceApp.AddPhotos(&event, middleware.CreateIdentityFromAuth(auth), uploads); err != nil {
 		if errors.Is(err, service.ErrPhotoStorage) {

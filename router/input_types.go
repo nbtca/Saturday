@@ -1,7 +1,8 @@
 package router
 
 import (
-	"github.com/danielgtaylor/huma/v2"
+	"mime/multipart"
+
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/model/dto"
 )
@@ -138,9 +139,8 @@ type AlterCommitEventInput struct {
 type UploadEventPhotosInput struct {
 	MemberAuthInput
 	EventPathInput
-	RawBody huma.MultipartFormFiles[struct {
-		Photos []huma.FormFile `form:"photos" contentType:"image/webp,image/jpeg" required:"true"`
-	}]
+	// Keep file headers unopened until the handler can own and close each file.
+	RawBody multipart.Form
 }
 
 type RejectCommitEventInput struct {
