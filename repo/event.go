@@ -34,6 +34,10 @@ func getLogStatement() squirrel.SelectBuilder {
 	return sq.Select(EventLogFields...).From("event_log_view")
 }
 
+func getPhotoStatement() squirrel.SelectBuilder {
+	return sq.Select("photo_id", "event_id", "object_key", "member_id", "gmt_create").From("event_photo").OrderBy("photo_id")
+}
+
 /*
 when a struct contains sub struct, the struct's field has the db tag of "struct'dbTag.subStruct.dbTag"
 for example: the db tag here for event is event, the db tag for mode.Event has field "EventId" with db tag "event_id"
@@ -56,6 +60,7 @@ func (je JoinEvent) ToEvent() model.Event {
 func GetEventById(id int64) (model.Event, error) {
 	getEventSql, getEventArgs, _ := getEventStatement().Where(squirrel.Eq{"event_id": id}).ToSql()
 	getLogSql, getLogArgs, _ := getLogStatement().Where(squirrel.Eq{"event_id": id}).ToSql()
+	getPhotoSql, getPhotoArgs, _ := getPhotoStatement().Where(squirrel.Eq{"event_id": id}).ToSql()
 	conn, err := db.Beginx()
 	if err != nil {
 		return model.Event{}, err
@@ -71,6 +76,9 @@ func GetEventById(id int64) (model.Event, error) {
 	defer util.RollbackOnErr(err, conn)
 	event := joinEvent.ToEvent()
 	if err = conn.Select(&event.Logs, getLogSql, getLogArgs...); err != nil {
+		return model.Event{}, err
+	}
+	if err = conn.Select(&event.Photos, getPhotoSql, getPhotoArgs...); err != nil {
 		return model.Event{}, err
 	}
 	if err = conn.Commit(); err != nil {
@@ -342,4 +350,17 @@ func GetEventClientId(eventId int64) (int64, error) {
 		return 0, err
 	}
 	return clientId, nil
+}
+
+func CreateEventPhotos(photos []model.EventPhoto) error {
+	insert := sq.Insert("event_photo").Columns("event_id", "object_key", "member_id", "gmt_create")
+	for _, p := range photos {
+		insert = insert.Values(p.EventId, p.ObjectKey, p.MemberId, p.GmtCreate)
+	}
+	sql, args, err := insert.ToSql()
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(sql, args...)
+	return err
 }
