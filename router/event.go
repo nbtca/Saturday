@@ -63,7 +63,7 @@ func (er EventRouter) GetEventById(ctx context.Context, input *GetEventByIdInput
 		return nil, err
 	}
 
-	if event.MemberId != auth.ID && event.ClientId != clientId {
+	if !canViewEvent(event, auth, clientId) {
 		return nil, huma.Error401Unauthorized("not authorized")
 	}
 
@@ -390,3 +390,7 @@ func (er EventRouter) Cancel(ctx context.Context, input *CancelClientEventInput)
 }
 
 var EventRouterApp = EventRouter{}
+
+func canViewEvent(event model.Event, auth *middleware.AuthContext, clientId int64) bool {
+	return auth.Role == "admin" || (auth.ID != "" && event.MemberId == auth.ID) || event.ClientId == clientId
+}
