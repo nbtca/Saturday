@@ -68,7 +68,7 @@ func (er EventRouter) GetEventById(ctx context.Context, input *GetEventByIdInput
 		return nil, huma.Error401Unauthorized("not authorized")
 	}
 
-	if err := service.SignPhotos(&event); err != nil {
+	if err := service.LoadPhotos(&event); err != nil {
 		return nil, huma.Error500InternalServerError(err.Error())
 	}
 
@@ -248,9 +248,14 @@ func (EventRouter) UploadPhotos(ctx context.Context, input *UploadEventPhotosInp
 		return nil, err
 	}
 
+	if event.Photos, err = repo.GetEventPhotos(event.EventId); err != nil {
+		return nil, huma.Error500InternalServerError(err.Error())
+	}
+
 	files := input.RawBody.Data().Photos
 	uploads := make([]service.PhotoUpload, len(files))
 	for i, f := range files {
+		defer f.Close()
 		uploads[i] = service.PhotoUpload{File: f, Size: f.Size}
 	}
 	if err := service.EventServiceApp.AddPhotos(&event, middleware.CreateIdentityFromAuth(auth), uploads); err != nil {
@@ -265,7 +270,7 @@ func (EventRouter) UploadPhotos(ctx context.Context, input *UploadEventPhotosInp
 	if err != nil {
 		return nil, err
 	}
-	if err := service.SignPhotos(&event); err != nil {
+	if err := service.LoadPhotos(&event); err != nil {
 		return nil, huma.Error500InternalServerError(err.Error())
 	}
 	return util.MakeCommonResponse(event), nil

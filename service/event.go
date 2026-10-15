@@ -907,18 +907,25 @@ const (
 	maxPhotosPerEvent = 20
 )
 
+func checkPhotoCapacity(status string, count, adding int) error {
+	if status != util.Accepted && status != util.Committed {
+		return errors.New("photos can only be added to accepted or committed events")
+	}
+	if count+adding > maxPhotosPerEvent {
+		return fmt.Errorf("an event can have at most %d photos", maxPhotosPerEvent)
+	}
+	return nil
+}
+
 func ValidatePhotoUpload(event model.Event, identity model.Identity, files []PhotoUpload) ([]string, error) {
 	if identity.Role != "admin" && (identity.Id == "" || event.MemberId != identity.Id) {
 		return nil, errors.New("only the assigned member or an admin can add photos")
 	}
-	if event.Status != util.Accepted && event.Status != util.Committed {
-		return nil, errors.New("photos can only be added to accepted or committed events")
-	}
 	if len(files) == 0 {
 		return nil, errors.New("no photos")
 	}
-	if len(event.Photos)+len(files) > maxPhotosPerEvent {
-		return nil, fmt.Errorf("an event can have at most %d photos", maxPhotosPerEvent)
+	if err := checkPhotoCapacity(event.Status, len(event.Photos), len(files)); err != nil {
+		return nil, err
 	}
 	types := make([]string, len(files))
 	head := make([]byte, 512)
@@ -946,18 +953,48 @@ func (service EventService) AddPhotos(event *model.Event, identity model.Identit
 	if err != nil {
 		return err
 	}
-	photos := make([]model.EventPhoto, len(files))
+	photos := make([]model.EventPhoto, 0, len(files))
+	removeUploaded := func() {
+		keys := make([]string, len(photos))
+		for i, p := range photos {
+			keys[i] = p.ObjectKey
+		}
+		if len(keys) > 0 {
+			if err := util.Photos.Delete(keys...); err != nil {
+				util.Logger.Error("delete orphan photos failed: ", err)
+			}
+		}
+	}
 	for i, f := range files {
 		key := util.PhotoKey(event.EventId, types[i])
 		if err := util.Photos.Put(key, types[i], f.File); err != nil {
+			removeUploaded()
 			return fmt.Errorf("%w: %w", ErrPhotoStorage, err)
 		}
-		photos[i] = model.EventPhoto{EventId: event.EventId, ObjectKey: key, MemberId: identity.Id, GmtCreate: util.GetDate()}
+		photos = append(photos, model.EventPhoto{EventId: event.EventId, ObjectKey: key, MemberId: identity.Id, GmtCreate: util.GetDate()})
 	}
-	if err := repo.CreateEventPhotos(photos); err != nil {
+	var rejected error
+	err = repo.CreateEventPhotos(event.EventId, photos, func(status string, count int) error {
+		rejected = checkPhotoCapacity(status, count, len(photos))
+		return rejected
+	})
+	if err != nil {
+		removeUploaded()
+		if rejected != nil {
+			return rejected
+		}
 		return fmt.Errorf("%w: %w", ErrPhotoStorage, err)
 	}
 	return nil
+}
+
+func LoadPhotos(event *model.Event) error {
+	photos, err := repo.GetEventPhotos(event.EventId)
+	if err != nil {
+		return err
+	}
+	event.Photos = photos
+	return SignPhotos(event)
 }
 
 func SignPhotos(event *model.Event) error {

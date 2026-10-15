@@ -23,15 +23,21 @@ func upload(b []byte) service.PhotoUpload {
 }
 
 type memoryStore struct {
-	puts []string
-	fail error
+	puts    []string
+	deleted []string
+	failOn  int
 }
 
 func (m *memoryStore) Put(key, contentType string, r io.Reader) error {
-	if m.fail != nil {
-		return m.fail
+	if len(m.puts)+1 == m.failOn {
+		return errors.New("InvalidAccessKeyId")
 	}
 	m.puts = append(m.puts, key)
+	return nil
+}
+
+func (m *memoryStore) Delete(keys ...string) error {
+	m.deleted = append(m.deleted, keys...)
 	return nil
 }
 
@@ -93,12 +99,16 @@ func TestAddPhotosRejectsWithoutWriting(t *testing.T) {
 }
 
 func TestAddPhotosReportsStorageFailure(t *testing.T) {
-	util.Photos = &memoryStore{fail: errors.New("InvalidAccessKeyId")}
+	store := &memoryStore{failOn: 2}
+	util.Photos = store
 	event := model.Event{EventId: 1, MemberId: "2333333333", Status: util.Accepted}
 	err := service.EventServiceApp.AddPhotos(&event, model.Identity{Id: "2333333333", Role: "member"},
-		[]service.PhotoUpload{upload(jpegBytes)})
+		[]service.PhotoUpload{upload(jpegBytes), upload(webpBytes)})
 	if !errors.Is(err, service.ErrPhotoStorage) {
 		t.Errorf("err=%v, want ErrPhotoStorage", err)
+	}
+	if len(store.puts) != 1 || strings.Join(store.deleted, ",") != store.puts[0] {
+		t.Errorf("uploaded %v, deleted %v", store.puts, store.deleted)
 	}
 }
 

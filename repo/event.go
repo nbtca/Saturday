@@ -60,7 +60,6 @@ func (je JoinEvent) ToEvent() model.Event {
 func GetEventById(id int64) (model.Event, error) {
 	getEventSql, getEventArgs, _ := getEventStatement().Where(squirrel.Eq{"event_id": id}).ToSql()
 	getLogSql, getLogArgs, _ := getLogStatement().Where(squirrel.Eq{"event_id": id}).ToSql()
-	getPhotoSql, getPhotoArgs, _ := getPhotoStatement().Where(squirrel.Eq{"event_id": id}).ToSql()
 	conn, err := db.Beginx()
 	if err != nil {
 		return model.Event{}, err
@@ -76,9 +75,6 @@ func GetEventById(id int64) (model.Event, error) {
 	defer util.RollbackOnErr(err, conn)
 	event := joinEvent.ToEvent()
 	if err = conn.Select(&event.Logs, getLogSql, getLogArgs...); err != nil {
-		return model.Event{}, err
-	}
-	if err = conn.Select(&event.Photos, getPhotoSql, getPhotoArgs...); err != nil {
 		return model.Event{}, err
 	}
 	if err = conn.Commit(); err != nil {
@@ -352,15 +348,42 @@ func GetEventClientId(eventId int64) (int64, error) {
 	return clientId, nil
 }
 
-func CreateEventPhotos(photos []model.EventPhoto) error {
+func GetEventPhotos(eventId int64) ([]model.EventPhoto, error) {
+	sql, args, _ := getPhotoStatement().Where(squirrel.Eq{"event_id": eventId}).ToSql()
+	photos := []model.EventPhoto{}
+	err := db.Select(&photos, sql, args...)
+	return photos, err
+}
+
+func CreateEventPhotos(eventId int64, photos []model.EventPhoto, check func(status string, count int) error) error {
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.Exec("SELECT 1 FROM event WHERE event_id = $1 FOR UPDATE", eventId); err != nil {
+		return err
+	}
+	var current struct {
+		Status string `db:"status"`
+		Count  int    `db:"count"`
+	}
+	if err := tx.Get(&current, "SELECT status, (SELECT count(*) FROM event_photo WHERE event_id = $1) AS count FROM event_view WHERE event_id = $1", eventId); err != nil {
+		return err
+	}
+	if err := check(current.Status, current.Count); err != nil {
+		return err
+	}
 	insert := sq.Insert("event_photo").Columns("event_id", "object_key", "member_id", "gmt_create")
 	for _, p := range photos {
-		insert = insert.Values(p.EventId, p.ObjectKey, p.MemberId, p.GmtCreate)
+		insert = insert.Values(eventId, p.ObjectKey, p.MemberId, p.GmtCreate)
 	}
 	sql, args, err := insert.ToSql()
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(sql, args...)
-	return err
+	if _, err := tx.Exec(sql, args...); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
