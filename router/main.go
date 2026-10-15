@@ -365,18 +365,5 @@ func SetupRouter() *chi.Mux {
 		Tags:        []string{"Event", "Admin"},
 	}, EventRouterApp.Close)
 
-	// TODO: Upload endpoint - needs special multipart handling
-	// For now, keep as commented until Huma multipart is implemented
-	/*
-		huma.Register(api, huma.Operation{
-			OperationID: "upload-file",
-			Method:      http.MethodPost,
-			Path:        "/upload",
-			Summary:     "Upload file",
-			Tags:        []string{"Common", "Private"},
-			Middlewares: huma.Middlewares{middleware.HumaAuth("member", "admin", "client")},
-		}, CommonRouterApp.Upload)
-	*/
-
 	return router
 }

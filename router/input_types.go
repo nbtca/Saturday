@@ -201,13 +201,6 @@ type CreateTokenViaLogtoInput struct {
 	ClientAuthInput
 }
 
-// Upload endpoint input
-
-type UploadFileInput struct {
-	AuthenticatedInput
-	// File upload will be handled specially
-}
-
 // Webhook inputs (these may stay as Gin handlers)
 
 type GithubWebhookInput struct {
