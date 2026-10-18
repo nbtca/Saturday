@@ -119,3 +119,17 @@ func TestSignPhotos(t *testing.T) {
 		t.Errorf("err=%v url=%q", err, event.Photos[0].Url)
 	}
 }
+
+func TestRemovePhotoRejectsOtherMembers(t *testing.T) {
+	store := &memoryStore{}
+	util.Photos = store
+	event := model.Event{EventId: 1, MemberId: "2333333333", Status: util.Accepted}
+	for _, identity := range []model.Identity{{Id: "1111111111", Role: "member"}, {Role: "client"}} {
+		if err := service.EventServiceApp.RemovePhoto(event, identity, 1); err == nil {
+			t.Errorf("%v removed a photo", identity)
+		}
+	}
+	if len(store.deleted) != 0 {
+		t.Errorf("deleted %v", store.deleted)
+	}
+}

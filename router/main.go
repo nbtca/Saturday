@@ -347,6 +347,14 @@ func SetupRouter() *chi.Mux {
 		},
 	}, EventRouterApp.UploadPhotos)
 
+	huma.Register(api, huma.Operation{
+		OperationID: "delete-event-photo",
+		Method:      http.MethodDelete,
+		Path:        "/member/events/{EventId}/photos/{PhotoId}",
+		Summary:     "Delete an event photo",
+		Tags:        []string{"Event", "Member"},
+	}, EventRouterApp.DeletePhoto)
+
 	// Admin authenticated endpoints
 	huma.Register(api, huma.Operation{
 		OperationID: "create-members",

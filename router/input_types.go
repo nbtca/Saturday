@@ -143,6 +143,12 @@ type UploadEventPhotosInput struct {
 	RawBody multipart.Form
 }
 
+type DeleteEventPhotoInput struct {
+	MemberAuthInput
+	EventPathInput
+	PhotoId int64 `path:"PhotoId" example:"7" doc:"Photo ID"`
+}
+
 type RejectCommitEventInput struct {
 	AdminAuthInput
 	EventPathInput
