@@ -274,7 +274,11 @@ func (EventRouter) UploadPhotos(ctx context.Context, input *UploadEventPhotosInp
 	if err := service.EventServiceApp.AddPhotos(&event, middleware.CreateIdentityFromAuth(auth), uploads); err != nil {
 		if errors.Is(err, service.ErrPhotoStorage) {
 			util.Logger.Error(err)
-			return nil, huma.Error500InternalServerError(service.ErrPhotoStorage.Error())
+			detail := service.ErrPhotoStorage.Error()
+			if code := util.PhotoErrorCode(err); code != "" {
+				detail += ": OSS " + code
+			}
+			return nil, huma.Error500InternalServerError(detail)
 		}
 		return nil, huma.Error422UnprocessableEntity(err.Error())
 	}

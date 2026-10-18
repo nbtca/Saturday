@@ -2,6 +2,7 @@ package util
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
 	"sync"
@@ -66,6 +67,14 @@ func (s *ossPhotoStore) SignURL(key string) (string, error) {
 		return "", err
 	}
 	return bucket.SignURL(key, oss.HTTPGet, 3600)
+}
+
+func PhotoErrorCode(err error) string {
+	var serviceErr oss.ServiceError
+	if errors.As(err, &serviceErr) {
+		return serviceErr.Code
+	}
+	return ""
 }
 
 func PhotoKey(eventId int64, contentType string) string {
