@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/nbtca/saturday/model"
 	"github.com/nbtca/saturday/util"
@@ -386,4 +387,33 @@ func CreateEventPhotos(eventId int64, photos []model.EventPhoto, check func(stat
 		return err
 	}
 	return tx.Commit()
+}
+
+var ErrPhotoNotFound = errors.New("photo not found")
+
+func DeleteEventPhoto(eventId, photoId int64, check func(status string) error) (string, error) {
+	tx, err := db.Beginx()
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	if _, err := tx.Exec("SELECT 1 FROM event WHERE event_id = $1 FOR UPDATE", eventId); err != nil {
+		return "", err
+	}
+	var status string
+	if err := tx.Get(&status, "SELECT status FROM event_view WHERE event_id = $1", eventId); err != nil {
+		return "", err
+	}
+	if err := check(status); err != nil {
+		return "", err
+	}
+	var key string
+	err = tx.Get(&key, "DELETE FROM event_photo WHERE photo_id = $1 AND event_id = $2 RETURNING object_key", photoId, eventId)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", ErrPhotoNotFound
+	}
+	if err != nil {
+		return "", err
+	}
+	return key, tx.Commit()
 }

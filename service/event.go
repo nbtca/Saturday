@@ -907,8 +907,16 @@ const (
 	maxPhotosPerEvent = 20
 )
 
+func isPhotoEditable(status string) bool {
+	return status == util.Accepted || status == util.Committed
+}
+
+func isPhotoOwner(event model.Event, identity model.Identity) bool {
+	return identity.Role == "admin" || (identity.Id != "" && event.MemberId == identity.Id)
+}
+
 func checkPhotoCapacity(status string, count, adding int) error {
-	if status != util.Accepted && status != util.Committed {
+	if !isPhotoEditable(status) {
 		return errors.New("photos can only be added to accepted or committed events")
 	}
 	if count+adding > maxPhotosPerEvent {
@@ -918,7 +926,7 @@ func checkPhotoCapacity(status string, count, adding int) error {
 }
 
 func ValidatePhotoUpload(event model.Event, identity model.Identity, files []PhotoUpload) ([]string, error) {
-	if identity.Role != "admin" && (identity.Id == "" || event.MemberId != identity.Id) {
+	if !isPhotoOwner(event, identity) {
 		return nil, errors.New("only the assigned member or an admin can add photos")
 	}
 	if len(files) == 0 {
@@ -984,6 +992,25 @@ func (service EventService) AddPhotos(event *model.Event, identity model.Identit
 			return rejected
 		}
 		return fmt.Errorf("%w: %w", ErrPhotoStorage, err)
+	}
+	return nil
+}
+
+func (service EventService) RemovePhoto(event model.Event, identity model.Identity, photoId int64) error {
+	if !isPhotoOwner(event, identity) {
+		return errors.New("only the assigned member or an admin can remove photos")
+	}
+	key, err := repo.DeleteEventPhoto(event.EventId, photoId, func(status string) error {
+		if !isPhotoEditable(status) {
+			return errors.New("photos can only be removed from accepted or committed events")
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	if err := util.Photos.Delete(key); err != nil {
+		util.Logger.Error("delete removed photo failed: ", err)
 	}
 	return nil
 }

@@ -293,6 +293,31 @@ func (EventRouter) UploadPhotos(ctx context.Context, input *UploadEventPhotosInp
 	return util.MakeCommonResponse(event), nil
 }
 
+func (EventRouter) DeletePhoto(ctx context.Context, input *DeleteEventPhotoInput) (*util.CommonResponse[model.Event], error) {
+	auth, err := middleware.AuthenticateUser(input.Authorization, "member", "admin")
+	if err != nil {
+		return nil, err
+	}
+	event, err := middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	if err := service.EventServiceApp.RemovePhoto(event, middleware.CreateIdentityFromAuth(auth), input.PhotoId); err != nil {
+		if errors.Is(err, repo.ErrPhotoNotFound) {
+			return nil, huma.Error404NotFound(err.Error())
+		}
+		return nil, huma.Error422UnprocessableEntity(err.Error())
+	}
+	event, err = middleware.LoadEvent(input.EventId)
+	if err != nil {
+		return nil, err
+	}
+	if err := service.LoadPhotos(&event); err != nil {
+		return nil, huma.Error500InternalServerError(err.Error())
+	}
+	return util.MakeCommonResponse(event), nil
+}
+
 func (EventRouter) RejectCommit(ctx context.Context, input *RejectCommitEventInput) (*util.CommonResponse[model.Event], error) {
 	auth, err := middleware.AuthenticateUser(input.Authorization, "admin")
 	if err != nil {
