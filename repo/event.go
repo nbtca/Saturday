@@ -111,20 +111,28 @@ func GetEventByIssueId(issueId int64) (model.Event, error) {
 }
 
 type EventFilter struct {
-	Offset uint64
-	Limit  uint64
-	Status []string
-	Order  string
+	Offset   uint64
+	Limit    uint64
+	Status   []string
+	Order    string
+	MemberId string
 }
 
-func getJoinEvents(f EventFilter, conditions ...squirrel.Eq) ([]JoinEvent, error) {
-	stat := getEventStatement()
+func filterEvents(stat squirrel.SelectBuilder, f EventFilter, conditions ...squirrel.Eq) squirrel.SelectBuilder {
 	if len(f.Status) > 0 {
 		stat = stat.Where(squirrel.Eq{"e.status": f.Status})
+	}
+	if f.MemberId != "" {
+		stat = stat.Where(squirrel.Eq{"e.member_id": f.MemberId})
 	}
 	for _, condition := range conditions {
 		stat = stat.Where(condition)
 	}
+	return stat
+}
+
+func getJoinEvents(f EventFilter, conditions ...squirrel.Eq) ([]JoinEvent, error) {
+	stat := filterEvents(getEventStatement(), f, conditions...)
 	getEventSql, getEventArgs, _ := stat.OrderBy("e.event_id " + f.Order).Offset(f.Offset).Limit(f.Limit).ToSql()
 	joinEvent := []JoinEvent{}
 	err := db.Select(&joinEvent, getEventSql, getEventArgs...)
@@ -156,13 +164,7 @@ func GetClientEvents(f EventFilter, clientId int64) ([]model.Event, error) {
 }
 
 func countEvents(f EventFilter, conditions ...squirrel.Eq) (int64, error) {
-	stat := sq.Select("COUNT(*)").From("event_view as e")
-	if len(f.Status) > 0 {
-		stat = stat.Where(squirrel.Eq{"e.status": f.Status})
-	}
-	for _, condition := range conditions {
-		stat = stat.Where(condition)
-	}
+	stat := filterEvents(sq.Select("COUNT(*)").From("event_view as e"), f, conditions...)
 	sql, args, _ := stat.ToSql()
 	var count int64
 	err := db.Get(&count, sql, args...)

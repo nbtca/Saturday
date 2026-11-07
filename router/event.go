@@ -32,14 +32,16 @@ func (EventRouter) GetPublicEventById(c context.Context, input *struct {
 
 func (EventRouter) GetPublicEventByPage(c context.Context, input *struct {
 	dto.PageRequest
-	Status []string `query:"status"`
-	Order  string   `query:"order" default:"ASC"`
+	Status   []string `query:"status"`
+	Order    string   `query:"order" default:"ASC"`
+	MemberId string   `query:"memberId" maxLength:"10" doc:"Only events assigned to this member"`
 }) (*util.CommonResponse[[]model.PublicEvent], error) {
 	filter := repo.EventFilter{
-		Offset: input.Offset,
-		Limit:  input.Limit,
-		Status: input.Status,
-		Order:  input.Order,
+		Offset:   input.Offset,
+		Limit:    input.Limit,
+		Status:   input.Status,
+		Order:    input.Order,
+		MemberId: input.MemberId,
 	}
 	events, count, err := service.EventServiceApp.GetPublicEventsWithCount(filter)
 	if err != nil {
